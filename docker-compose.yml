@@ -3,7 +3,6 @@ services:
   hmpps-subject-access-request-api:
     build:
       context: .
-    network_mode: "host"
     container_name: hmpps-subject-access-request-api
     ports:
       - "8081:8080"
