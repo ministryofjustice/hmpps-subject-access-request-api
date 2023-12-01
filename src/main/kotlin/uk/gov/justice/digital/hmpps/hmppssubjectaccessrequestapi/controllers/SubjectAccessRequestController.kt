@@ -9,8 +9,7 @@ import org.springframework.web.bind.annotation.RestController
 class SubjectAccessRequestController {
 
   @PostMapping("creatSubjectAccessReport")
-  fun createSubjectAccessReportPost():String{
-
+  fun createSubjectAccessReportPost(): String {
     return "MockId"
   }
 }
