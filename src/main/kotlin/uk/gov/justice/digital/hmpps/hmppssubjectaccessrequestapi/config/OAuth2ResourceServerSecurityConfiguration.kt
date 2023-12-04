@@ -1,10 +1,13 @@
-package uk.gov.justice.digital.hmpps.approvedpremisesapi.config
+package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.authentication.AbstractAuthenticationToken
+import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer
@@ -19,7 +22,10 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint
 
 
+
+@Configuration
 @EnableWebSecurity
+@EnableGlobalAuthentication
 class OAuth2ResourceServerSecurityConfiguration {
 
   @Bean
@@ -31,6 +37,7 @@ class OAuth2ResourceServerSecurityConfiguration {
       .authorizeHttpRequests { auth ->
         auth
           .requestMatchers("/health/**").permitAll()
+          .requestMatchers("/info").permitAll()
           .anyRequest().authenticated()
       }
       .anonymous { anonymous ->
@@ -45,7 +52,7 @@ class OAuth2ResourceServerSecurityConfiguration {
           SessionCreationPolicy.STATELESS,
         )
       }
-      .exceptionHandling{handler-> handler.authenticationEntryPoint( Http403ForbiddenEntryPoint() )}
+
     return http.build()
   }
 }
