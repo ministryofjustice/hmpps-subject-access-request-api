@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer
@@ -21,8 +20,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint
 
-
-
 @Configuration
 @EnableWebSecurity
 @EnableGlobalAuthentication
@@ -31,7 +28,6 @@ class OAuth2ResourceServerSecurityConfiguration {
   @Bean
   @Throws(Exception::class)
   fun securityFilterChain(http: HttpSecurity, @Autowired objectMapper: ObjectMapper): SecurityFilterChain {
-
     http
       .csrf { csrf: CsrfConfigurer<HttpSecurity> -> csrf.disable() }
       .authorizeHttpRequests { auth ->
@@ -44,9 +40,9 @@ class OAuth2ResourceServerSecurityConfiguration {
         anonymous.disable()
       }
       .oauth2ResourceServer { oauth2ResourceServer ->
-        oauth2ResourceServer.authenticationEntryPoint( Http403ForbiddenEntryPoint() )
-        oauth2ResourceServer.jwt { jwt-> jwt.jwtAuthenticationConverter(AuthAwareTokenConverter()) }
-       }
+        oauth2ResourceServer.authenticationEntryPoint(Http403ForbiddenEntryPoint())
+        oauth2ResourceServer.jwt { jwt -> jwt.jwtAuthenticationConverter(AuthAwareTokenConverter()) }
+      }
       .sessionManagement { sess: SessionManagementConfigurer<HttpSecurity?> ->
         sess.sessionCreationPolicy(
           SessionCreationPolicy.STATELESS,

@@ -1,14 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.integration
 
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.integration.IntegrationTestBase
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.function.Consumer
-class AuthTest: IntegrationTestBase() {
-
+class AuthTest : IntegrationTestBase() {
   @Test
   fun `Providing no JWT to a secured endpoint returns 403`() {
     webTestClient.get()
@@ -17,7 +10,7 @@ class AuthTest: IntegrationTestBase() {
       .expectStatus()
       .isForbidden
       .expectBody()
- }
+  }
 
   @Test
   fun `Providing malformed JWT to a secured endpoint returns 403`() {
