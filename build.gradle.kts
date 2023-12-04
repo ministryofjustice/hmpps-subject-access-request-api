@@ -9,16 +9,21 @@ configurations {
 
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+  implementation("org.springframework.boot:spring-boot-starter-security")
+  implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+  implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 }
 
 java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(20))
+  toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-      jvmTarget = "20"
+      jvmTarget = "17"
     }
   }
 }

@@ -49,3 +49,9 @@ management:
     info:
       cache:
         time-to-live: 2000ms
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${hmpps.auth.url}/.well-known/jwks.json
