@@ -1,15 +1,18 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
-
+import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.HmppsSubjectAccessRequestApi
+import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.service.IReportService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/")
-class SubjectAccessRequestController {
+class SubjectAccessRequestController(private val reportService: IReportService) {
 
   @PostMapping("createSubjectAccessReport")
-  fun createSubjectAccessReportPost(): String {
+  fun createSubjectAccessReportPost(report: Report): String {
+    reportService.save(report)
+    val result = deviceService.getDevicesByDeviceWearerId(deviceWearerId)
     return "MockId"
   }
 }
