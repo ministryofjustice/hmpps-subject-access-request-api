@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS SubjectAccessRequest (
             CHECK (nomisId IS NOT NULL OR ndeliusCaseReferenceId IS NOT NULL OR hmppsId IS NOT NULL),
             subject VARCHAR NOT NULL,
             requestedBy VARCHAR NOT NULL,
-            requestDateBySar TIMESTAMP NOT NULL,
+            requestDateTime TIMESTAMP NOT NULL,
             claimDateTime TIMESTAMP,
             objectURL VARCHAR,
             presignedURL VARCHAR,
