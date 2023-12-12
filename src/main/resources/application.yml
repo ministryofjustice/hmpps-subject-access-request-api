@@ -8,6 +8,10 @@ spring:
   codec:
     max-in-memory-size: 10MB
 
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}?sslmode=verify-full
+
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
     serialization:
