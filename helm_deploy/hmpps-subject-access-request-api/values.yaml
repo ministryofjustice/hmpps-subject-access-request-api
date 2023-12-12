@@ -32,6 +32,11 @@ generic-service:
   namespace_secrets:
     hmpps-subject-access-request-api:
       APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
+    rds-instance-output:
+      DATABASE_URL: "rds_instance_endpoint"
+      DATABASE_NAME: "database_name"
+      DATABASE_USERNAME: "database_username"
+      DATABASE_PASSWORD: "database_password"
 
     sqs-hmpps-audit-secret:
       HMPPS_SQS_QUEUES_AUDIT_QUEUE_NAME: "sqs_queue_name"

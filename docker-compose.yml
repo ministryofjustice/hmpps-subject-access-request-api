@@ -59,13 +59,30 @@ services:
       - "8081:8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/ping"]
-    depends_on:
-      hmpps-auth:
-        condition: service_healthy
-      manage-users-api:
-        condition: service_healthy
     environment:
       - SERVER_PORT=8080
       - SPRING_PROFILES_ACTIVE=dev
+
+  db:
+    container_name: subject-access-request-db
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    ports:
+      - '5432:5432'
+    networks:
+      - db-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+      - ./db/dev/schema.sql:/docker-entrypoint-initdb.d/1-dev-database.sql
+      - ./db/dev/roles.sql:/docker-entrypoint-initdb.d/2-dev-roles.sql
+
 networks:
   hmpps:
