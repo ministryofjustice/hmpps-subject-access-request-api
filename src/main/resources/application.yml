@@ -8,6 +8,10 @@ spring:
   codec:
     max-in-memory-size: 10MB
 
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
     serialization:
