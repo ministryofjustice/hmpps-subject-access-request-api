@@ -10,7 +10,7 @@ spring:
 
   flyway:
     enabled: true
-    url: jdbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}?sslmode=verify-full
+    locations: classpath:db/migration
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
