@@ -15,6 +15,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.0")
+  implementation("org.flywaydb:flyway-core")
 
   testImplementation("com.h2database:h2")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.0")
@@ -22,8 +23,6 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
-
-  runtimeOnly("org.flywaydb:flyway-core")
 }
 
 java {
