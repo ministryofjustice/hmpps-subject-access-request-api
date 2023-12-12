@@ -22,6 +22,8 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+  runtimeOnly("org.flywaydb:flyway-core")
 }
 
 java {
