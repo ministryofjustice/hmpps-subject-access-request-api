@@ -5,6 +5,8 @@ generic-service:
 
   replicaCount: 4
 
+  serviceAccountName: hmpps-subject-access-request-api
+
   image:
     repository: quay.io/hmpps/hmpps-subject-access-request-api
     tag: app_version    # override at deployment time
@@ -25,7 +27,6 @@ generic-service:
     HMPPS_SQS_USE_WEB_TOKEN: "true"
     SPRING_FLYWAY_USER: "database_username"
     SPRING_FLYWAY_PASSWORD: "database_password"
-
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
   # namespace_secrets:
   #   [name of kubernetes secret]:
