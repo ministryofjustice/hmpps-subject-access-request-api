@@ -5,6 +5,8 @@ generic-service:
 
   replicaCount: 4
 
+  serviceAccountName: hmpps-subject-access-request-api
+
   image:
     repository: quay.io/hmpps/hmpps-subject-access-request-api
     tag: app_version    # override at deployment time
