@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS SubjectAccessRequest (
     dateFrom DATE,
     dateTo DATE NOT NULL,
     sarCaseReferenceNumber VARCHAR NOT NULL,
-    services VARCHAR [] NOT NULL,
+    services VARCHAR NOT NULL, /* this will need to be array, need to find correct invalid syntax */
     nomisId VARCHAR,
     ndeliusCaseReferenceId VARCHAR,
     hmppsId VARCHAR,
