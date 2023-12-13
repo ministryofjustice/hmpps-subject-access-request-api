@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditS
 class SubjectAccessRequestController(@Autowired val auditService: AuditService) {
   @PostMapping("createSubjectAccessReport")
   fun createSubjectAccessReportPost(authentication: Authentication): String {
-    auditService.createEvent(authentication.name, "Create Subject Access Report", "Create Subject Access Report")
+    auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REPORT", "Create Subject Access Report")
     return "MockId"
   }
 }
