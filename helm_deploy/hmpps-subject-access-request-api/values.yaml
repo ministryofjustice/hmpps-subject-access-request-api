@@ -34,7 +34,7 @@ generic-service:
     hmpps-subject-access-request-api:
       APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
     rds-instance-output:
-      DATABASE_URL: "rds_instance_endpoint"
+      DATABASE_ENDPOINT: "rds_instance_endpoint"
       DATABASE_NAME: "database_name"
       DATABASE_USERNAME: "database_username"
       DATABASE_PASSWORD: "database_password"
