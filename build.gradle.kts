@@ -21,7 +21,6 @@ dependencies {
   runtimeOnly("com.h2database:h2:2.2.224")
   runtimeOnly("org.postgresql:postgresql:42.6.0")
 
-
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.0")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.0")
   testImplementation("org.mockito:mockito-inline:5.2.0")
