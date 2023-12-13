@@ -18,7 +18,6 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.0")
 
   runtimeOnly("org.flywaydb:flyway-core")
-  runtimeOnly("com.h2database:h2:2.2.224")
   runtimeOnly("org.postgresql:postgresql:42.6.0")
 
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.0")
