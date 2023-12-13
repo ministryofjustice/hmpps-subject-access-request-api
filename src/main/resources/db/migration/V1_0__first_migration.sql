@@ -4,11 +4,10 @@ CREATE TABLE IF NOT EXISTS SubjectAccessRequest (
     dateFrom DATE,
     dateTo DATE NOT NULL,
     sarCaseReferenceNumber VARCHAR NOT NULL,
-    services VARCHAR [] NOT NULL,
+    services VARCHAR NOT NULL, /* this will need to be array, need to find correct invalid syntax */
     nomisId VARCHAR,
     ndeliusCaseReferenceId VARCHAR,
     hmppsId VARCHAR,
-    CHECK (nomisId IS NOT NULL OR ndeliusCaseReferenceId IS NOT NULL OR hmppsId IS NOT NULL),
     subject VARCHAR NOT NULL,
     requestedBy VARCHAR NOT NULL,
     requestDateTime TIMESTAMP NOT NULL,
@@ -17,3 +16,5 @@ CREATE TABLE IF NOT EXISTS SubjectAccessRequest (
     presignedURL VARCHAR,
     claimAttempts SMALLINT
 );
+
+/* CHECK (nomisId IS NOT NULL OR ndeliusCaseReferenceId IS NOT NULL OR hmppsId IS NOT NULL), */
