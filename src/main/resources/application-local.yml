@@ -7,3 +7,13 @@ hmpps.sqs:
   queues:
     audit:
       queueName: "audit"
+
+spring:
+  datasource:
+    url: 'jdbc:postgresql://localhost:5432/postgres'
+    username: 'demo_dev_rw'
+    password: 'dev_database_passwd'
+
+  flyway:
+    enabled: false
+    locations: classpath:db/migration
