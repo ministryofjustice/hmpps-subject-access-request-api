@@ -17,5 +17,5 @@ data class Report(
   val claim_date_time: LocalDateTime,
   val object_url: String?,
   val presigned_url: String?,
-  val claim_attempts: Int
+  val claim_attempts: Int,
 )
