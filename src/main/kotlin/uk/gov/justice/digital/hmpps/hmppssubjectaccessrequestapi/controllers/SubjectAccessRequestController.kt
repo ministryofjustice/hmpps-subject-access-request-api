@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.core.Authentication
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Report
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.ReportRepository
@@ -13,7 +13,7 @@ import java.time.Month
 
 @RestController
 @RequestMapping("/api/")
-class SubjectAccessReportController(@Autowired val auditService: AuditService) {
+class SubjectAccessRequestController(@Autowired val auditService: AuditService) {
 
   @PostMapping("createSubjectAccessRequest")
   fun createSubjectAccessRequestPost(repo: ReportRepository, authentication: Authentication): String {
