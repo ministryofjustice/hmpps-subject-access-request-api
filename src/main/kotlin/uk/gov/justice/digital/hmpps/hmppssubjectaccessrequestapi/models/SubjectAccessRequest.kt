@@ -8,7 +8,7 @@ import jakarta.persistence.Id
 import java.time.LocalDateTime
 
 @Entity
-data class Report(
+data class SubjectAccessRequest(
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   val id: String,
@@ -23,10 +23,10 @@ data class Report(
   val hmppsId: String?,
   val subject: String,
   val requestedBy: String,
-  val requestDateBySar: LocalDateTime? = null,
+  val requestDateTime: LocalDateTime? = null,
   val claimDateTime: LocalDateTime? = null,
-  val objectURL: String?,
-  val presignedURL: String?,
+  val objectUrl: String?,
+  val presignedUrl: String?,
   val claimAttempts: Int,
 ) {
   constructor() : this(
