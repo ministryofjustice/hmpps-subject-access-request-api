@@ -1,3 +1,19 @@
 hmpps:
   auth:
     url: http://localhost:9090/auth
+
+hmpps.sqs:
+  provider: localstack
+  queues:
+    audit:
+      queueName: "audit"
+
+spring:
+  datasource:
+    url: 'jdbc:postgresql://localhost:5432/postgres'
+    username: 'demo_dev_rw'
+    password: 'dev_database_passwd'
+
+  flyway:
+    enabled: false
+    locations: classpath:db/migration

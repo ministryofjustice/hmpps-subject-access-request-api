@@ -8,6 +8,15 @@ spring:
   codec:
     max-in-memory-size: 10MB
 
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  datasource:
+    url: 'jdbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}?sslmode=verify-full'
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
     serialization:
@@ -23,6 +32,9 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${hmpps.auth.url}/.well-known/jwks.json
+  sql:
+    init:
+      continue-on-error: true
 
 server:
   port: 8080

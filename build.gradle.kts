@@ -14,8 +14,13 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+  implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.0")
 
-  testImplementation("com.h2database:h2")
+  runtimeOnly("org.flywaydb:flyway-core")
+  runtimeOnly("com.h2database:h2:2.2.224")
+  runtimeOnly("org.postgresql:postgresql:42.6.0")
+
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.0")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.0")
   testImplementation("org.mockito:mockito-inline:5.2.0")
