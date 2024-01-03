@@ -14,7 +14,6 @@ import java.time.Month
 @RestController
 @RequestMapping("/api/")
 class SubjectAccessRequestController(@Autowired val auditService: AuditService) {
-
   @PostMapping("createSubjectAccessRequest")
   fun createSubjectAccessRequestPost(repo: ReportRepository, authentication: Authentication): String {
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
