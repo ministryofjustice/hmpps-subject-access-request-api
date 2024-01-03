@@ -94,8 +94,4 @@ services:
 
 networks:
   hmpps:
-<<<<<<< HEAD
   db-network:
-=======
-  db-network:
->>>>>>> origin

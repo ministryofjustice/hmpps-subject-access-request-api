@@ -3,6 +3,9 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.Authentication
+import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Report
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.ReportRepository
 import java.time.LocalDateTime
@@ -10,10 +13,11 @@ import java.time.Month
 
 @RestController
 @RequestMapping("/api/")
-class SubjectAccessRequestController() {
+class SubjectAccessReportController(@Autowired val auditService: AuditService) {
 
-  @PostMapping("createSubjectAccessReport")
-  fun createSubjectAccessReportPost(repo: ReportRepository): String {
+  @PostMapping("createSubjectAccessRequest")
+  fun createSubjectAccessRequestPost(repo: ReportRepository, authentication: Authentication): String {
+    auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
     val dateFrom =
       LocalDateTime.of(2019, Month.MARCH, 28, 14, 33, 48)
     val dateTo =
