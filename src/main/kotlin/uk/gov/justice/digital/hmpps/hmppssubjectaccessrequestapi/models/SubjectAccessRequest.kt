@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 data class SubjectAccessRequest(
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  val id: String,
+  val id: Int? = null,
   val status: String,
   val dateFrom: LocalDateTime? = null,
   val dateTo: LocalDateTime? = null,
@@ -30,7 +30,7 @@ data class SubjectAccessRequest(
   val claimAttempts: Int,
 ) {
   constructor() : this(
-    "",
+    null,
     "",
     null,
     null,
