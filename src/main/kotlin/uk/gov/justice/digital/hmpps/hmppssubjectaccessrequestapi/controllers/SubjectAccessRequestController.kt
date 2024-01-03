@@ -31,7 +31,7 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService) 
 
     repo.save(
       SubjectAccessRequest(
-        14,
+        null,
         "1",
         dateFrom,
         dateTo,
