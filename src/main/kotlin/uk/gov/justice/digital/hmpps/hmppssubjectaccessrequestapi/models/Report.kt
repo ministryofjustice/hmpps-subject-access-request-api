@@ -1,9 +1,6 @@
-//import jakarta.persistence.Table
-//import jakarta.persistence.Entity
-package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.model
+package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models
+
 import java.time.LocalDateTime
-//@Entity
-//@Table(name = "report")
 data class Report(
   val id: String,
   val status: String,
