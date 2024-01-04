@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import java.time.LocalDateTime
+
 enum class Status {
   Pending,
   Completed,
@@ -25,31 +26,25 @@ data class SubjectAccessRequest(
   val services: String,
   val nomisId: String?,
   val ndeliusCaseReferenceId: String?,
-  val hmppsId: String?,
-  val subject: String,
   val requestedBy: String,
-  val requestDateTime: LocalDateTime? = null,
+  val requestDateTime: LocalDateTime,
   val claimDateTime: LocalDateTime? = null,
-  val objectUrl: String?,
-  val presignedUrl: String?,
-  val claimAttempts: Int,
+  val claimAttempts: Int = 0,
+  val objectUrl: String? = null,
 ) {
   constructor() : this(
-    null,
-    Status.Pending,
-    null,
-    null,
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    null,
-    null,
-    "",
-    "",
-    0,
+    id = null,
+    status = Status.Pending,
+    dateFrom = null,
+    dateTo = null,
+    sarCaseReferenceNumber = "",
+    services = "",
+    nomisId = "",
+    ndeliusCaseReferenceId = "",
+    requestedBy = "",
+    requestDateTime = LocalDateTime.now(),
+    claimDateTime = null,
+    claimAttempts = 0,
+    objectUrl = "",
   )
 }
