@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 enum class Status {
   Pending,
@@ -20,8 +21,8 @@ data class SubjectAccessRequest(
   val id: Int? = null,
   @Enumerated(EnumType.STRING)
   val status: Status = Status.Pending,
-  val dateFrom: LocalDateTime? = null,
-  val dateTo: LocalDateTime? = null,
+  val dateFrom: LocalDate? = null,
+  val dateTo: LocalDate? = null,
   val sarCaseReferenceNumber: String = "",
   val services: String = "",
   val nomisId: String? = null,

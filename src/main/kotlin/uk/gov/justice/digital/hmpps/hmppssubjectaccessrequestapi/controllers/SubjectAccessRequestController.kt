@@ -1,10 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
-import com.nimbusds.jose.shaded.gson.JsonObject
 //import net.minidev.json.JSONObject
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.jackson.JsonObjectDeserializer
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -15,7 +13,10 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import java.time.LocalDateTime
+import java.time.LocalDate
 import java.time.Month
+import java.time.format.DateTimeFormatter
+
 
 @RestController
 @RequestMapping("/api/")
@@ -27,27 +28,27 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService) 
   fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication): String {
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
     var json = JSONObject(request)
-    println(json.get("request"))
-    val dateFrom =
-      LocalDateTime.of(2019, Month.MARCH, 28, 14, 33, 48)
-    val dateTo =
-      LocalDateTime.of(2020, Month.MARCH, 28, 14, 33, 48)
-    val requestedDateTime =
-      LocalDateTime.now()
+    //println(json.get("request"))
+
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val dateFrom = json.get("dateFrom").toString()
+    val dateFromFormatted = LocalDate.parse(dateFrom, formatter)
+
+    val dateTo = json.get("dateTo").toString()
+    val dateToFormatted = LocalDate.parse(dateTo, formatter)
 
     repo.save(
       SubjectAccessRequest(
         id = null,
         status = Status.Pending,
-        dateFrom = dateFrom,
-        dateTo = dateTo,
-        sarCaseReferenceNumber = "1",
-        services = "1,2,4",
-        nomisId = "1",
-        ndeliusCaseReferenceId = "1",
-        requestedBy = "1",
-        requestDateTime = requestedDateTime,
-        objectUrl = "1",
+        dateFrom = dateFromFormatted,
+        dateTo = dateToFormatted,
+        sarCaseReferenceNumber = json.get("sarCaseReferenceNumber").toString(),
+        services = json.get("services").toString(),
+        nomisId = json.get("nomisId").toString(),
+        ndeliusCaseReferenceId = json.get("ndeliusCaseReferenceId").toString(),
+        requestedBy = authentication.name,
+        requestDateTime = LocalDateTime.now(),
       ),
     )
     return "MockId" // Maybe want to return Report ID?
