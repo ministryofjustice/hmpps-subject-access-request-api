@@ -1,8 +1,13 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
+import com.nimbusds.jose.shaded.gson.JsonObject
+//import net.minidev.json.JSONObject
+import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.jackson.JsonObjectDeserializer
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
@@ -19,15 +24,15 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService) 
   lateinit var repo: SubjectAccessRequestRepository
 
   @PostMapping("createSubjectAccessRequest")
-  fun createSubjectAccessRequestPost(authentication: Authentication): String {
+  fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication): String {
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
+    var json = JSONObject(request)
+    println(json.get("request"))
     val dateFrom =
       LocalDateTime.of(2019, Month.MARCH, 28, 14, 33, 48)
     val dateTo =
       LocalDateTime.of(2020, Month.MARCH, 28, 14, 33, 48)
     val requestedDateTime =
-      LocalDateTime.now()
-    val claimDateTime =
       LocalDateTime.now()
 
     repo.save(
@@ -42,8 +47,6 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService) 
         ndeliusCaseReferenceId = "1",
         requestedBy = "1",
         requestDateTime = requestedDateTime,
-        claimDateTime = claimDateTime,
-        claimAttempts = 1,
         objectUrl = "1",
       ),
     )
