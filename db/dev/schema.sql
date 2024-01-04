@@ -2,11 +2,11 @@ CREATE TYPE status_enum AS ENUM('Pending', 'Completed');
 
 CREATE TABLE IF NOT EXISTS subject_access_request (
       id SERIAL PRIMARY KEY,
-      status status_enum NOT NULL DEFAULT 'Pending',
+      status TEXT NOT NULL DEFAULT 'Pending',
       date_from DATE,
       date_to DATE NOT NULL DEFAULT CURRENT_DATE,
       sar_case_reference_number TEXT NOT NULL,
-      services TEXT ARRAY NOT NULL,
+      services TEXT NOT NULL,
       nomis_id TEXT,
       ndelius_case_reference_id TEXT,
       hmpps_id TEXT,

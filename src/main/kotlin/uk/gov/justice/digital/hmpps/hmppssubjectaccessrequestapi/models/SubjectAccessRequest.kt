@@ -1,23 +1,30 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models
 
+import org.hibernate.annotations.Type
 import jakarta.persistence.ElementCollection
 import jakarta.persistence.Entity
+import jakarta.persistence.Enumerated
+import jakarta.persistence.EnumType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import java.time.LocalDateTime
+enum class Status {
+  Pending,
+  Completed
+}
 
 @Entity
 data class SubjectAccessRequest(
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Int? = null,
-  val status: String,
+  @Enumerated(EnumType.STRING)
+  val status: Status = Status.Pending,
   val dateFrom: LocalDateTime? = null,
   val dateTo: LocalDateTime? = null,
   val sarCaseReferenceNumber: String,
-  @ElementCollection
-  val services: List<String>,
+  val services: String,
   val nomisId: String?,
   val ndeliusCaseReferenceId: String?,
   val hmppsId: String?,
@@ -31,11 +38,11 @@ data class SubjectAccessRequest(
 ) {
   constructor() : this(
     null,
-    "",
+    Status.Pending,
     null,
     null,
     "",
-    listOf("", ""),
+    "",
     "",
     "",
     "",
