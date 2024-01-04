@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
-//import net.minidev.json.JSONObject
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
@@ -12,11 +11,9 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
-import java.time.LocalDateTime
 import java.time.LocalDate
-import java.time.Month
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
 
 @RestController
 @RequestMapping("/api/")
@@ -28,7 +25,6 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService) 
   fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication): String {
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
     var json = JSONObject(request)
-    //println(json.get("request"))
 
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val dateFrom = json.get("dateFrom").toString()
