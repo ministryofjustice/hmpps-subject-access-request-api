@@ -1,17 +1,15 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models
 
-import org.hibernate.annotations.Type
-import jakarta.persistence.ElementCollection
 import jakarta.persistence.Entity
-import jakarta.persistence.Enumerated
 import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import java.time.LocalDateTime
 enum class Status {
   Pending,
-  Completed
+  Completed,
 }
 
 @Entity
