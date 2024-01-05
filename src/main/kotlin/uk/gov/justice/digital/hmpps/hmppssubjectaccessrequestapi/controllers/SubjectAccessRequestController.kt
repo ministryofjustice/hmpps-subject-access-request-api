@@ -17,12 +17,11 @@ import java.time.format.DateTimeFormatter
 
 @RestController
 @RequestMapping("/api/")
-class SubjectAccessRequestController(@Autowired val auditService: AuditService) {
-  @Autowired
-  lateinit var repo: SubjectAccessRequestRepository
+class SubjectAccessRequestController(@Autowired val auditService: AuditService, @Autowired val repo: SubjectAccessRequestRepository) {
 
   @PostMapping("createSubjectAccessRequest")
   fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication): String {
+
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
     var json = JSONObject(request)
 
