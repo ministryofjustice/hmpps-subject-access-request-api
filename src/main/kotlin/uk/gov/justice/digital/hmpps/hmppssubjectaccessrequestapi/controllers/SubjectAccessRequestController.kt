@@ -33,6 +33,12 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
     val dateTo = json.get("dateTo").toString()
     val dateToFormatted = LocalDate.parse(dateTo, formatter)
 
+    if (json.get("nomisId") != null && json.get("ndeliusCaseReferenceId") != null) {
+      println("Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required")
+    } else if (json.get("nomisId") == null && json.get("ndeliusCaseReferenceId") == null){
+      println("Neither nomisId or ndeliusCaseReferenceId is provided - exactly one is required")
+    }
+
     repo.save(
       SubjectAccessRequest(
         id = null,

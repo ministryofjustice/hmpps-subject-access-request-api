@@ -25,13 +25,20 @@ class SubjectAccessRequestControllerTest {
     val auditService = Mockito.mock(AuditService::class.java)
     val authentication: Authentication = Mockito.mock(Authentication::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
-    val request = "{ dateFrom: '01/12/2023', dateTo: '03/01/2024', sarCaseReferenceNumber: '1234abc', services: '{1,2,4}', nomisId: '1', ndeliusCaseReferenceId: '1' }"
+    val request = "{ " +
+      "dateFrom: '01/12/2023', " +
+      "dateTo: '03/01/2024', " +
+      "sarCaseReferenceNumber: '1234abc', " +
+      "services: '{1,2,4}', " +
+      "nomisId: '1', " +
+      "ndeliusCaseReferenceId: '1' " +
+      "}"
 
-    val expected: String = "MockId"
+    val expected = "MockId"
     val result: String = SubjectAccessRequestController(auditService, sarRepository)
       .createSubjectAccessRequestPost(request, authentication)
 
-    var json = JSONObject(request)
+    val json = JSONObject(request)
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val dateFrom = json.get("dateFrom").toString()
     val dateFromFormatted = LocalDate.parse(dateFrom, formatter)
