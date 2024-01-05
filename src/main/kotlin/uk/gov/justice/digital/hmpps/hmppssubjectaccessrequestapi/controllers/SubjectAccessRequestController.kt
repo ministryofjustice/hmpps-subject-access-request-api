@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -26,7 +28,7 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
 
 
   @PostMapping("createSubjectAccessRequest")
-  fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime = LocalDateTime.now()): String {
+  fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime = LocalDateTime.now()): ResponseEntity<String> {
 
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
     val json = JSONObject(request)
@@ -38,10 +40,10 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
     val dateTo = json.get("dateTo").toString()
     val dateToFormatted = LocalDate.parse(dateTo, formatter)
 
-    if (json.get("nomisId") != null && json.get("ndeliusCaseReferenceId") != null) {
-      println("Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required")
-    } else if (json.get("nomisId") == null && json.get("ndeliusCaseReferenceId") == null){
-      println("Neither nomisId or ndeliusCaseReferenceId is provided - exactly one is required")
+    if (json.get("nomisId") != "" && json.get("ndeliusCaseReferenceId") != "") {
+      return ResponseEntity("Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
+    } else if (json.get("nomisId") == "" && json.get("ndeliusCaseReferenceId") == ""){
+      return ResponseEntity("Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
     }
 
     repo.save(
@@ -58,6 +60,6 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
         requestDateTime = requestTime,
       ),
     )
-    return "" // Maybe want to return Report ID?
+    return ResponseEntity("", HttpStatus.OK); // Maybe want to return Report ID?
   }
 }
