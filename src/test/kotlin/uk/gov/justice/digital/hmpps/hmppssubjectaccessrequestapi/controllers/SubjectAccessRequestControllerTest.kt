@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditS
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 class SubjectAccessRequestControllerTest {
   @Test
@@ -49,7 +50,7 @@ class SubjectAccessRequestControllerTest {
         nomisId = "1",
         ndeliusCaseReferenceId = "1",
         requestedBy = authentication.name,
-        requestDateTime = LocalDateTime.now(),
+        requestDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
       ),
     )
     Assertions.assertThat(result).isEqualTo(expected)

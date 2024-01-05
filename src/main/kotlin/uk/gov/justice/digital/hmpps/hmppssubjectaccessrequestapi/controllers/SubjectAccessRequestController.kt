@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditS
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @RestController
 @RequestMapping("/api/")
@@ -43,7 +44,7 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
         nomisId = json.get("nomisId").toString(),
         ndeliusCaseReferenceId = json.get("ndeliusCaseReferenceId").toString(),
         requestedBy = authentication.name,
-        requestDateTime = LocalDateTime.now(),
+        requestDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
       ),
     )
     return "MockId" // Maybe want to return Report ID?
