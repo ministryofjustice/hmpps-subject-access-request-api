@@ -28,11 +28,10 @@ CREATE INDEX claim_attempts_index ON subject_access_request (claim_attempts);
 /* CHECK (nomisId IS NOT NULL OR ndeliusCaseReferenceId IS NOT NULL OR hmppsId IS NOT NULL), */
 /* The check will happen on the application side */
 
-ALTER TABLE subject_access_request
-    ALTER COLUMN status TYPE text,
-    ALTER COLUMN status SET DEFAULT 'Pending',
-    ALTER COLUMN services TYPE text,
-    DROP COLUMN hmpps_id,
-    DROP COLUMN subject,
-    DROP COLUMN presigned_url;
+ALTER TABLE subject_access_request ALTER COLUMN status TYPE text;
+ALTER TABLE subject_access_request ALTER COLUMN status SET DEFAULT 'Pending';
+ALTER TABLE subject_access_request ALTER COLUMN services TYPE text;
+ALTER TABLE subject_access_request DROP COLUMN hmpps_id;
+ALTER TABLE subject_access_request DROP COLUMN subject;
+ALTER TABLE subject_access_request DROP COLUMN presigned_url;
 DROP TYPE status_enum;
