@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Bean
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -14,17 +15,21 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditS
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 
+//@Bean
+//fun clock(): Clock {
+//  return Clock.systemDefaultZone()
+//}
 @RestController
 @RequestMapping("/api/")
 class SubjectAccessRequestController(@Autowired val auditService: AuditService, @Autowired val repo: SubjectAccessRequestRepository) {
 
+
   @PostMapping("createSubjectAccessRequest")
-  fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication): String {
+  fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime = LocalDateTime.now()): String {
 
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
-    var json = JSONObject(request)
+    val json = JSONObject(request)
 
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val dateFrom = json.get("dateFrom").toString()
@@ -50,9 +55,9 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
         nomisId = json.get("nomisId").toString(),
         ndeliusCaseReferenceId = json.get("ndeliusCaseReferenceId").toString(),
         requestedBy = authentication.name,
-        requestDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
+        requestDateTime = requestTime,
       ),
     )
-    return "MockId" // Maybe want to return Report ID?
+    return "" // Maybe want to return Report ID?
   }
 }

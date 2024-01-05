@@ -1,13 +1,12 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.Test
 import org.json.JSONObject
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.springframework.security.core.Authentication
-import org.springframework.security.test.context.support.WithUserDetails
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
@@ -15,16 +14,16 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditS
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
+
 
 class SubjectAccessRequestControllerTest {
   @Test
-  @WithUserDetails("customUsername")
-  fun `createSubjectAccessRequestPost returns MockId`() {
+  fun `createSubjectAccessRequestPost passes data to repository`() {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
     val auditService = Mockito.mock(AuditService::class.java)
     val authentication: Authentication = Mockito.mock(Authentication::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
+
     val request = "{ " +
       "dateFrom: '01/12/2023', " +
       "dateTo: '03/01/2024', " +
@@ -33,10 +32,11 @@ class SubjectAccessRequestControllerTest {
       "nomisId: '1', " +
       "ndeliusCaseReferenceId: '1' " +
       "}"
+    val requestTime = LocalDateTime.now()
 
-    val expected = "MockId"
+    val expected = ""
     val result: String = SubjectAccessRequestController(auditService, sarRepository)
-      .createSubjectAccessRequestPost(request, authentication)
+      .createSubjectAccessRequestPost(request, authentication, requestTime)
 
     val json = JSONObject(request)
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -57,7 +57,7 @@ class SubjectAccessRequestControllerTest {
         nomisId = "1",
         ndeliusCaseReferenceId = "1",
         requestedBy = authentication.name,
-        requestDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
+        requestDateTime = requestTime,
       ),
     )
     Assertions.assertThat(result).isEqualTo(expected)
