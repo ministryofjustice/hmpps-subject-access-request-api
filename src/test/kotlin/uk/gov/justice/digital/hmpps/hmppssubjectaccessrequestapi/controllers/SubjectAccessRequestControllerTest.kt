@@ -3,8 +3,10 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 import org.assertj.core.api.Assertions
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -15,8 +17,6 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditS
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
-
 class SubjectAccessRequestControllerTest {
   @Test
   fun `createSubjectAccessRequestPost returns 200 and passes data to repository`() {
@@ -35,7 +35,7 @@ class SubjectAccessRequestControllerTest {
       "}"
     val requestTime = LocalDateTime.now()
 
-    val expected = ResponseEntity("",  HttpStatus.OK)
+    val expected = ResponseEntity("", HttpStatus.OK)
     val result: ResponseEntity<String> = SubjectAccessRequestController(auditService, sarRepository)
       .createSubjectAccessRequestPost(request, authentication, requestTime)
 
@@ -80,7 +80,7 @@ class SubjectAccessRequestControllerTest {
       "ndeliusCaseReferenceId: '1' " +
       "}"
 
-    val expected = ResponseEntity("Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required",  HttpStatus.BAD_REQUEST)
+    val expected = ResponseEntity("Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
     val result: ResponseEntity<String> = SubjectAccessRequestController(auditService, sarRepository)
       .createSubjectAccessRequestPost(request, authentication)
 
@@ -104,7 +104,7 @@ class SubjectAccessRequestControllerTest {
       "ndeliusCaseReferenceId: '' " +
       "}"
 
-    val expected = ResponseEntity("Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required",  HttpStatus.BAD_REQUEST)
+    val expected = ResponseEntity("Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
     val result: ResponseEntity<String> = SubjectAccessRequestController(auditService, sarRepository)
       .createSubjectAccessRequestPost(request, authentication)
 
