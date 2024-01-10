@@ -29,24 +29,24 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
     val dateFromFormatted = LocalDate.parse(dateFrom, formatter)
     val dateTo = json.get("dateTo").toString()
     val dateToFormatted = LocalDate.parse(dateTo, formatter)
-    if (json.has("nomisId") && json.has("ndeluisCaseReferenceId")) {
-      if (json.get("nomisId") != "" && json.get("ndeliusCaseReferenceId") != "") {
-        return ResponseEntity(
-          "Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required",
-          HttpStatus.BAD_REQUEST
-        )
-      } else if (json.get("nomisId") == "" && json.get("ndeliusCaseReferenceId") == "") {
-        return ResponseEntity(
-          "Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required",
-          HttpStatus.BAD_REQUEST
-        )
-      }
-    } else if (!json.has("nomisId") && !json.has("ndeluisCaseReferenceId")) {
+//    if (json.has("nomisId") && json.has("ndeluisCaseReferenceId")) {
+    if (json.get("nomisId") != "" && json.get("ndeliusCaseReferenceId") != "") {
+      return ResponseEntity(
+        "Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required",
+        HttpStatus.BAD_REQUEST
+      )
+    } else if (json.get("nomisId") == "" && json.get("ndeliusCaseReferenceId") == "") {
       return ResponseEntity(
         "Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required",
         HttpStatus.BAD_REQUEST
       )
     }
+//    } else if (!json.has("nomisId") && !json.has("ndeluisCaseReferenceId")) {
+//      return ResponseEntity(
+//        "Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required",
+//        HttpStatus.BAD_REQUEST
+//      )
+//    }
 
 
     repo.save(
