@@ -33,12 +33,12 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
     if (json.get("nomisId") != "" && json.get("ndeliusCaseReferenceId") != "") {
       return ResponseEntity(
         "Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required",
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       )
     } else if (json.get("nomisId") == "" && json.get("ndeliusCaseReferenceId") == "") {
       return ResponseEntity(
         "Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required",
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       )
     }
 //    } else if (!json.has("nomisId") && !json.has("ndeluisCaseReferenceId")) {
@@ -59,7 +59,7 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
         nomisId = json.get("nomisId").toString(),
         ndeliusCaseReferenceId = json.get("ndeliusCaseReferenceId").toString(),
         requestedBy = authentication.name,
-        requestDateTime = requestTime?: LocalDateTime.now(),
+        requestDateTime = requestTime ?: LocalDateTime.now(),
       ),
     )
     return ResponseEntity("", HttpStatus.OK); // Maybe want to return Report ID?
