@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter
 @RequestMapping("/api/")
 class SubjectAccessRequestController(@Autowired val auditService: AuditService, @Autowired val repo: SubjectAccessRequestRepository) {
   @PostMapping("createSubjectAccessRequest")
-  fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime = LocalDateTime.now()): ResponseEntity<String> {
+  fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
     val json = JSONObject(request)
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -29,11 +29,24 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
     val dateFromFormatted = LocalDate.parse(dateFrom, formatter)
     val dateTo = json.get("dateTo").toString()
     val dateToFormatted = LocalDate.parse(dateTo, formatter)
+//    if (json.has("nomisId") && json.has("ndeluisCaseReferenceId")) {
     if (json.get("nomisId") != "" && json.get("ndeliusCaseReferenceId") != "") {
-      return ResponseEntity("Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
+      return ResponseEntity(
+        "Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required",
+        HttpStatus.BAD_REQUEST,
+      )
     } else if (json.get("nomisId") == "" && json.get("ndeliusCaseReferenceId") == "") {
-      return ResponseEntity("Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
+      return ResponseEntity(
+        "Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required",
+        HttpStatus.BAD_REQUEST,
+      )
     }
+//    } else if (!json.has("nomisId") && !json.has("ndeluisCaseReferenceId")) {
+//      return ResponseEntity(
+//        "Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required",
+//        HttpStatus.BAD_REQUEST
+//      )
+//    }
 
     repo.save(
       SubjectAccessRequest(
@@ -46,7 +59,7 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
         nomisId = json.get("nomisId").toString(),
         ndeliusCaseReferenceId = json.get("ndeliusCaseReferenceId").toString(),
         requestedBy = authentication.name,
-        requestDateTime = requestTime,
+        requestDateTime = requestTime ?: LocalDateTime.now(),
       ),
     )
     return ResponseEntity("", HttpStatus.OK); // Maybe want to return Report ID?

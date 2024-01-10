@@ -80,9 +80,10 @@ class SubjectAccessRequestControllerTest {
       "ndeliusCaseReferenceId: '1' " +
       "}"
 
+    val requestTime = LocalDateTime.now()
     val expected = ResponseEntity("Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
     val result: ResponseEntity<String> = SubjectAccessRequestController(auditService, sarRepository)
-      .createSubjectAccessRequestPost(request, authentication)
+      .createSubjectAccessRequestPost(request, authentication, requestTime)
 
     verify(sarRepository, times(0)).save(any())
     Assertions.assertThat(result).isEqualTo(expected)
@@ -95,6 +96,7 @@ class SubjectAccessRequestControllerTest {
     val authentication: Authentication = Mockito.mock(Authentication::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
 
+    val requestTime = LocalDateTime.now()
     val request = "{ " +
       "dateFrom: '01/12/2023', " +
       "dateTo: '03/01/2024', " +
@@ -106,7 +108,7 @@ class SubjectAccessRequestControllerTest {
 
     val expected = ResponseEntity("Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
     val result: ResponseEntity<String> = SubjectAccessRequestController(auditService, sarRepository)
-      .createSubjectAccessRequestPost(request, authentication)
+      .createSubjectAccessRequestPost(request, authentication, requestTime)
 
     verify(sarRepository, times(0)).save(any())
     Assertions.assertThat(result).isEqualTo(expected)
