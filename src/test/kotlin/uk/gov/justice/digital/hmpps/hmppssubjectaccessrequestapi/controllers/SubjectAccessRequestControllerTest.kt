@@ -81,7 +81,6 @@ class SubjectAccessRequestControllerTest {
       "}"
 
     val requestTime = LocalDateTime.now()
-
     val expected = ResponseEntity("Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
     val result: ResponseEntity<String> = SubjectAccessRequestController(auditService, sarRepository)
       .createSubjectAccessRequestPost(request, authentication, requestTime)

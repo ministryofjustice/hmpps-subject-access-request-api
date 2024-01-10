@@ -48,7 +48,6 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
 //      )
 //    }
 
-
     repo.save(
       SubjectAccessRequest(
         id = null,
