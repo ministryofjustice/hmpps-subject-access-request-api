@@ -31,7 +31,7 @@ class SubjectAccessRequestControllerTest {
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
       "nomisId: '', " +
-      "ndeliusCaseReferenceId: '1' " +
+      "ndeliusId: '1' " +
       "}"
     val requestTime = LocalDateTime.now()
 
@@ -77,11 +77,11 @@ class SubjectAccessRequestControllerTest {
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
       "nomisId: '1', " +
-      "ndeliusCaseReferenceId: '1' " +
+      "ndeliusId: '1' " +
       "}"
 
     val requestTime = LocalDateTime.now()
-    val expected = ResponseEntity("Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
+    val expected = ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
     val result: ResponseEntity<String> = SubjectAccessRequestController(auditService, sarRepository)
       .createSubjectAccessRequestPost(request, authentication, requestTime)
 
@@ -103,10 +103,10 @@ class SubjectAccessRequestControllerTest {
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
       "nomisId: '', " +
-      "ndeliusCaseReferenceId: '' " +
+      "ndeliusId: '' " +
       "}"
 
-    val expected = ResponseEntity("Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
+    val expected = ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
     val result: ResponseEntity<String> = SubjectAccessRequestController(auditService, sarRepository)
       .createSubjectAccessRequestPost(request, authentication, requestTime)
 
