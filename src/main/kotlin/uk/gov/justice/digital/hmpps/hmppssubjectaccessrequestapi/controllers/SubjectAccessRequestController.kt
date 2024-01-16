@@ -29,21 +29,21 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
     val dateFromFormatted = if (dateFrom != "") LocalDate.parse(dateFrom, formatter) else null
     val dateTo = json.get("dateTo").toString()
     val dateToFormatted = LocalDate.parse(dateTo, formatter)
-//    if (json.has("nomisId") && json.has("ndeluisCaseReferenceId")) {
-    if (json.get("nomisId") != "" && json.get("ndeliusCaseReferenceId") != "") {
+//    if (json.has("nomisId") && json.has("ndeliusId")) {
+    if (json.get("nomisId") != "" && json.get("ndeliusId") != "") {
       return ResponseEntity(
-        "Both nomisId and ndeliusCaseReferenceId are provided - exactly one is required",
+        "Both nomisId and ndeliusId are provided - exactly one is required",
         HttpStatus.BAD_REQUEST,
       )
-    } else if (json.get("nomisId") == "" && json.get("ndeliusCaseReferenceId") == "") {
+    } else if (json.get("nomisId") == "" && json.get("ndeliusId") == "") {
       return ResponseEntity(
-        "Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required",
+        "Neither nomisId nor ndeliusId is provided - exactly one is required",
         HttpStatus.BAD_REQUEST,
       )
     }
-//    } else if (!json.has("nomisId") && !json.has("ndeluisCaseReferenceId")) {
+//    } else if (!json.has("nomisId") && !json.has("ndeliusId")) {
 //      return ResponseEntity(
-//        "Neither nomisId nor ndeliusCaseReferenceId is provided - exactly one is required",
+//        "Neither nomisId nor ndeliusId is provided - exactly one is required",
 //        HttpStatus.BAD_REQUEST
 //      )
 //    }
@@ -57,7 +57,7 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
         sarCaseReferenceNumber = json.get("sarCaseReferenceNumber").toString(),
         services = json.get("services").toString(),
         nomisId = json.get("nomisId").toString(),
-        ndeliusCaseReferenceId = json.get("ndeliusCaseReferenceId").toString(),
+        ndeliusId = json.get("ndeliusCaseReferenceId").toString(),
         requestedBy = authentication.name,
         requestDateTime = requestTime ?: LocalDateTime.now(),
       ),

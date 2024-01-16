@@ -26,7 +26,7 @@ data class SubjectAccessRequest(
   val sarCaseReferenceNumber: String = "",
   val services: String = "",
   val nomisId: String? = null,
-  val ndeliusCaseReferenceId: String? = null,
+  val ndeliusId: String? = null,
   val requestedBy: String = "",
   val requestDateTime: LocalDateTime = LocalDateTime.now(),
   val claimDateTime: LocalDateTime? = null,
