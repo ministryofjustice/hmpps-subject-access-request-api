@@ -26,7 +26,7 @@ class SubjectAccessRequestController(@Autowired val auditService: AuditService, 
     val json = JSONObject(request)
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val dateFrom = json.get("dateFrom").toString()
-    val dateFromFormatted = LocalDate.parse(dateFrom, formatter)
+    val dateFromFormatted = if (dateFrom != "") LocalDate.parse(dateFrom, formatter) else null
     val dateTo = json.get("dateTo").toString()
     val dateToFormatted = LocalDate.parse(dateTo, formatter)
 //    if (json.has("nomisId") && json.has("ndeluisCaseReferenceId")) {
