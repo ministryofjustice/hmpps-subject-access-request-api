@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways
 
-import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
@@ -17,7 +16,7 @@ class SubjectAccessRequestGatewayTest {
   }
 
   @Test
-  fun `gateway calls if unclaimed is true`() {
+  fun `gateway calls findByClaimAttemptsIs if unclaimed is true`() {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
     val result: List<SubjectAccessRequest?> = SubjectAccessRequestGateway(sarRepository)
       .getSubjectAccessRequests(unclaimedOnly = true)
