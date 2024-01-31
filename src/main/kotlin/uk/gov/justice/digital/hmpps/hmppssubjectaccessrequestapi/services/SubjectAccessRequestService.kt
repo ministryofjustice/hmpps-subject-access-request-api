@@ -2,8 +2,10 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
+@Service
 class SubjectAccessRequestService(
   @Autowired val sarDbGateway: SubjectAccessRequestGateway) {
 
