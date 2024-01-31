@@ -4,14 +4,12 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.boot.test.context.SpringBootTest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-//@SpringBootTest
 @DataJpaTest
 class SubjectAccessRequestRepositoryTest {
 
@@ -63,7 +61,6 @@ class SubjectAccessRequestRepositoryTest {
   fun `findByClaimAttemptsIs returns only claimed SAR entries if called with 1 or more`() {
     val expectedAll: List<SubjectAccessRequest> = listOf(sampleClaimedSAR, sampleUnclaimedSAR)
     val expectedClaimed: List<SubjectAccessRequest> = listOf(sampleClaimedSAR)
-    val emptyList: List<Any> = emptyList()
     sarRepository?.save(sampleClaimedSAR)
     sarRepository?.save(sampleUnclaimedSAR)
     Assertions.assertThat(sarRepository?.findAll()).isEqualTo(expectedAll)
