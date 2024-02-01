@@ -11,6 +11,7 @@ import org.mockito.Mockito.verify
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
+import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
@@ -87,45 +88,47 @@ class SubjectAccessRequestServiceTest{
 
   @Test
   fun `createSubjectAccessRequestPost and returns 200`() {
+    val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
     val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
-    val auditService = Mockito.mock(AuditService::class.java)
     val authentication: Authentication = Mockito.mock(Authentication::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
     val expected = ResponseEntity("", HttpStatus.OK)
-    val result: ResponseEntity<String> = SubjectAccessRequestController(sarService, auditService)
+    val result: ResponseEntity<String> = SubjectAccessRequestService(sarGateway)
       .createSubjectAccessRequestPost(ndeliusRequest, authentication, requestTime)
-    verify(sarService, times(1)).createSubjectAccessRequestPost(ndeliusRequest, authentication, requestTime)
+    verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
     Assertions.assertThat(result).isEqualTo(expected)
   }
 
   @Test
   fun `createSubjectAccessRequestPost returns 400 and error string if both IDs are supplied`() {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
+    val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
     val auditService = Mockito.mock(AuditService::class.java)
     val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
     val authentication: Authentication = Mockito.mock(Authentication::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
     val expected =
       ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
-    val result: ResponseEntity<String> = SubjectAccessRequestController(sarService, auditService)
+    val result: ResponseEntity<String> = SubjectAccessRequestService(sarGateway)
       .createSubjectAccessRequestPost(ndeliusAndNomisRequest, authentication, requestTime)
-    verify(sarService, times(1)).createSubjectAccessRequestPost(ndeliusAndNomisRequest, authentication, requestTime)
+    verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
     Assertions.assertThat(result).isEqualTo(expected)
   }
 
   @Test
   fun `createSubjectAccessRequestPost returns 400 and error string if neither ID is supplied`() {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
+    val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
     val auditService = Mockito.mock(AuditService::class.java)
     val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
     val authentication: Authentication = Mockito.mock(Authentication::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
     val expected =
       ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
-    val result: ResponseEntity<String> = SubjectAccessRequestController(sarService, auditService)
+    val result: ResponseEntity<String> = SubjectAccessRequestService(sarGateway)
       .createSubjectAccessRequestPost(noIDRequest, authentication, requestTime)
-    verify(sarService, times(1)).createSubjectAccessRequestPost(noIDRequest, authentication, requestTime)
+    verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
     Assertions.assertThat(result).isEqualTo(expected)
   }
 }

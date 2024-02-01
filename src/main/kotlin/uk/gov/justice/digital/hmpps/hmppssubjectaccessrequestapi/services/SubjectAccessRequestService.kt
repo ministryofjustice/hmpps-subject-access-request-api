@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter
 
 @Service
 class SubjectAccessRequestService(
-  @Autowired val sarDbGateway: SubjectAccessRequestGateway, @Autowired val repo: SubjectAccessRequestRepository
+  @Autowired val sarDbGateway: SubjectAccessRequestGateway
 ) {
 
   fun createSubjectAccessRequestPost(request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
@@ -38,8 +38,7 @@ class SubjectAccessRequestService(
         HttpStatus.BAD_REQUEST,
       )
     }
-
-    repo.save(
+    sarDbGateway.saveSubjectAccessRequest(
       SubjectAccessRequest(
         id = null,
         status = Status.Pending,
@@ -51,8 +50,9 @@ class SubjectAccessRequestService(
         ndeliusCaseReferenceId = json.get("ndeliusId").toString(),
         requestedBy = authentication.name,
         requestDateTime = requestTime ?: LocalDateTime.now(),
-      ),
+      )
     )
+
     return ResponseEntity("", HttpStatus.OK); // Maybe want to return Report ID?
   }
   fun getSubjectAccessRequests(unclaimedOnly: Boolean): List<SubjectAccessRequest?> {

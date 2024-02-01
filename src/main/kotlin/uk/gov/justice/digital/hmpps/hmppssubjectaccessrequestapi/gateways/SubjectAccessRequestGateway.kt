@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDateTime
@@ -27,7 +28,7 @@ class SubjectAccessRequestGateway(
 
     return response
   }
-  fun saveSubjectAccessRequest() {
-
+  fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {
+    repo.save(sar)
   }
 }
