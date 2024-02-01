@@ -69,32 +69,32 @@ class SubjectAccessRequestServiceTest {
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
 
   @Test
-  fun `createSubjectAccessRequestPost and returns 200`() {
+  fun `createSubjectAccessRequestPost and returns empty string`() {
     Mockito.`when`(authentication.name).thenReturn("aName")
-    val expected = ResponseEntity("", HttpStatus.OK)
-    val result: ResponseEntity<String> = SubjectAccessRequestService(sarGateway)
+    val expected = ""
+    val result: String = SubjectAccessRequestService(sarGateway)
       .createSubjectAccessRequestPost(ndeliusRequest, authentication, requestTime)
     verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
     Assertions.assertThat(result).isEqualTo(expected)
   }
 
   @Test
-  fun `createSubjectAccessRequestPost returns 400 and error string if both IDs are supplied`() {
+  fun `createSubjectAccessRequestPost returns error string if both IDs are supplied`() {
     Mockito.`when`(authentication.name).thenReturn("aName")
     val expected =
-      ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
-    val result: ResponseEntity<String> = SubjectAccessRequestService(sarGateway)
+      "Both nomisId and ndeliusId are provided - exactly one is required"
+    val result: String = SubjectAccessRequestService(sarGateway)
       .createSubjectAccessRequestPost(ndeliusAndNomisRequest, authentication, requestTime)
     verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
     Assertions.assertThat(result).isEqualTo(expected)
   }
 
   @Test
-  fun `createSubjectAccessRequestPost returns 400 and error string if neither ID is supplied`() {
+  fun `createSubjectAccessRequestPost returns error string if neither ID is supplied`() {
     Mockito.`when`(authentication.name).thenReturn("aName")
     val expected =
-      ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
-    val result: ResponseEntity<String> = SubjectAccessRequestService(sarGateway)
+      "Neither nomisId nor ndeliusId is provided - exactly one is required"
+    val result: String = SubjectAccessRequestService(sarGateway)
       .createSubjectAccessRequestPost(noIDRequest, authentication, requestTime)
     verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
     Assertions.assertThat(result).isEqualTo(expected)

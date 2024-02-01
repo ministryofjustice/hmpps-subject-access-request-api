@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,7 +22,13 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
     val response = subjectAccessRequestService.createSubjectAccessRequestPost(request, authentication, requestTime)
-    return response
+    return if(response == "") {
+      ResponseEntity(response, HttpStatus.OK)
+    }
+    else {
+      ResponseEntity(response, HttpStatus.BAD_REQUEST)
+    }
+
   }
 
   @GetMapping("subjectAccessRequest")

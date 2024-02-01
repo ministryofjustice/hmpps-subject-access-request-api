@@ -18,7 +18,7 @@ class SubjectAccessRequestService(
   @Autowired val sarDbGateway: SubjectAccessRequestGateway,
 ) {
 
-  fun createSubjectAccessRequestPost(request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
+  fun createSubjectAccessRequestPost(request: String, authentication: Authentication, requestTime: LocalDateTime?): String {
     val json = JSONObject(request)
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val dateFrom = json.get("dateFrom").toString()
@@ -27,15 +27,9 @@ class SubjectAccessRequestService(
     val dateToFormatted = LocalDate.parse(dateTo, formatter)
 
     if (json.get("nomisId") != "" && json.get("ndeliusId") != "") {
-      return ResponseEntity(
-        "Both nomisId and ndeliusId are provided - exactly one is required",
-        HttpStatus.BAD_REQUEST,
-      )
+      return "Both nomisId and ndeliusId are provided - exactly one is required"
     } else if (json.get("nomisId") == "" && json.get("ndeliusId") == "") {
-      return ResponseEntity(
-        "Neither nomisId nor ndeliusId is provided - exactly one is required",
-        HttpStatus.BAD_REQUEST,
-      )
+      return "Neither nomisId nor ndeliusId is provided - exactly one is required"
     }
     sarDbGateway.saveSubjectAccessRequest(
       SubjectAccessRequest(
@@ -51,7 +45,7 @@ class SubjectAccessRequestService(
         requestDateTime = requestTime ?: LocalDateTime.now(),
       ),
     )
-    return ResponseEntity("", HttpStatus.OK); // Maybe want to return Report ID?
+    return "" // Maybe want to return Report ID?
   }
   fun getSubjectAccessRequests(unclaimedOnly: Boolean): List<SubjectAccessRequest?> {
     val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly)
