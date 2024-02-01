@@ -7,4 +7,6 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 @Repository
 interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, Int> {
   fun findByClaimAttemptsIs(claimAttempts: Int): List<SubjectAccessRequest?>
+
+//  fun findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(status: String): List<SubjectAccessRequest?>
 }

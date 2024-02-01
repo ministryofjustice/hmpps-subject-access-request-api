@@ -101,40 +101,49 @@ class SubjectAccessRequestRepositoryTest {
     claimDateTime = expiredClaimDateTimeFormatted,
   )
 
+  fun databaseInsert() {
+    sarRepository?.save(unclaimedSar)
+    sarRepository?.save(pendingSarWithExpiredClaim)
+    sarRepository?.save(pendingSarWithCurrentClaim)
+    sarRepository?.save(completedSarWithCurrentClaim)
+    sarRepository?.save(completedSarWithExpiredClaim)
+  }
+
+  val allSars = listOf(unclaimedSar, pendingSarWithExpiredClaim, pendingSarWithCurrentClaim, completedSarWithCurrentClaim, completedSarWithExpiredClaim)
+
   @Nested
   inner class findByClaimAttemptsIs {
     @Test
     fun `findByClaimAttemptsIs returns only unclaimed SAR entries if called with 0`() {
-      val expectedAll: List<SubjectAccessRequest> = listOf(unclaimedSar, pendingSarWithExpiredClaim)
       val expectedUnclaimed: List<SubjectAccessRequest> = listOf(unclaimedSar)
-      sarRepository?.save(unclaimedSar)
-      sarRepository?.save(pendingSarWithExpiredClaim)
-      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(expectedAll)
+
+      databaseInsert()
+
+      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
       Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(0)).isEqualTo(expectedUnclaimed)
     }
 
     @Test
     fun `findByClaimAttemptsIs returns only claimed SAR entries if called with 1 or more`() {
-      val expectedAll: List<SubjectAccessRequest> = listOf(pendingSarWithExpiredClaim, unclaimedSar)
-      val expectedClaimed: List<SubjectAccessRequest> = listOf(pendingSarWithExpiredClaim)
-      sarRepository?.save(pendingSarWithExpiredClaim)
-      sarRepository?.save(unclaimedSar)
-      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(expectedAll)
+      val expectedClaimed: List<SubjectAccessRequest> = listOf(pendingSarWithExpiredClaim, pendingSarWithCurrentClaim, completedSarWithCurrentClaim, completedSarWithExpiredClaim)
+
+      databaseInsert()
+
+      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
       Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(1)).isEqualTo(expectedClaimed)
     }
-
-    @Test
-    fun `db doesn't save between tests`() {
-      val emptyList: List<Any> = emptyList()
-      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(emptyList)
-    }
   }
-
-  @Nested
-  inner class findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore {
-    @Test
-    fun `returns only SAR entries with pending status and expired claim date-time if called with pending, 0 and old date-time`() {
-      val expectAll: List<SubjectAccessRequest> = listOf(unclaimedSar, unclaimedSar)
-    }
-  }
+//
+//  @Nested
+//  inner class findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore {
+//    @Test
+//    fun `returns only SAR entries with pending status and expired claim date-time if called with pending, 0 and old date-time`() {
+//      val expectedExpiredClaimed: List<SubjectAccessRequest> = listOf(unclaimedSar, pendingSarWithExpiredClaim, pendingSarWithCurrentClaim)
+//
+//      databaseInsert()
+//
+//      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
+//      Assertions.assertThat(sarRepository?.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore("Pending")).isEqualTo(expectedExpiredClaimed)
+//    }
+//  }
 }
