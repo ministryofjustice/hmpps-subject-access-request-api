@@ -7,6 +7,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -19,6 +20,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.Subjec
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+@DataJpaTest
 class SubjectAccessRequestControllerTest {
   private val ndeliusRequest = "{ " +
     "dateFrom: '01/12/2023', " +
@@ -77,7 +79,7 @@ class SubjectAccessRequestControllerTest {
     ndeliusCaseReferenceId = "1",
     requestedBy = "Test",
     requestDateTime = requestTime,
-    claimAttempts = 1,
+    claimAttempts = 0,
   )
   @Test
   fun `createSubjectAccessRequestPost returns 200 and passes data to repository`() {
@@ -128,14 +130,16 @@ class SubjectAccessRequestControllerTest {
     val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
     val auditService = Mockito.mock(AuditService::class.java)
-//    val authentication: Authentication = Mockito.mock(Authentication::class.java)
+    val authentication: Authentication = Mockito.mock(Authentication::class.java)
     val subjectAccessRequestService = Mockito.mock(SubjectAccessRequestService::class.java)
-//    Mockito.`when`(authentication.name).thenReturn("aName")
+    Mockito.`when`(authentication.name).thenReturn("aName")
     val expectedUnclaimed: List<SubjectAccessRequest> = listOf(sampleUnclaimedSAR)
+    SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
+      .createSubjectAccessRequestPost(noIDRequest, authentication, requestTime)
     val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
-      .getSubjectAccessRequests(true)
+      .getSubjectAccessRequests(unclaimed = true)
 
-    verify(sarGateway, times(1)).getSubjectAccessRequests(true)
+    verify(subjectAccessRequestService, times(1)).getSubjectAccessRequests(unclaimedOnly = true)
     Assertions.assertThat(result).isEqualTo(expectedUnclaimed)
   }
 }
