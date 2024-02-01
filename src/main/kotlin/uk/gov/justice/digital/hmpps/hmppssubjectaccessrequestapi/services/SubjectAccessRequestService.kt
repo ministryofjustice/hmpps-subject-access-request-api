@@ -9,14 +9,13 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
 class SubjectAccessRequestService(
-  @Autowired val sarDbGateway: SubjectAccessRequestGateway
+  @Autowired val sarDbGateway: SubjectAccessRequestGateway,
 ) {
 
   fun createSubjectAccessRequestPost(request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
@@ -50,17 +49,12 @@ class SubjectAccessRequestService(
         ndeliusCaseReferenceId = json.get("ndeliusId").toString(),
         requestedBy = authentication.name,
         requestDateTime = requestTime ?: LocalDateTime.now(),
-      )
+      ),
     )
-
     return ResponseEntity("", HttpStatus.OK); // Maybe want to return Report ID?
   }
   fun getSubjectAccessRequests(unclaimedOnly: Boolean): List<SubjectAccessRequest?> {
-
     val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly)
     return subjectAccessRequests
   }
-
-
-
 }
