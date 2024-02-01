@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 import org.assertj.core.api.Assertions
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -14,13 +12,9 @@ import org.springframework.security.core.Authentication
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
 
 class SubjectAccessRequestServiceTest{
 
@@ -71,27 +65,10 @@ class SubjectAccessRequestServiceTest{
     requestDateTime = requestTime,
     claimAttempts = 0,
   )
-
-  private val sampleUnclaimedSAR = SubjectAccessRequest(
-    id = null,
-    status = Status.Pending,
-    dateFrom = dateFromFormatted,
-    dateTo = dateToFormatted,
-    sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
-    nomisId = "",
-    ndeliusCaseReferenceId = "1",
-    requestedBy = "Test",
-    requestDateTime = requestTime,
-    claimAttempts = 0,
-  )
-
+  private val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
+  private val authentication: Authentication = Mockito.mock(Authentication::class.java)
   @Test
   fun `createSubjectAccessRequestPost and returns 200`() {
-    val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
-    val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
-    val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
-    val authentication: Authentication = Mockito.mock(Authentication::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
     val expected = ResponseEntity("", HttpStatus.OK)
     val result: ResponseEntity<String> = SubjectAccessRequestService(sarGateway)
@@ -102,11 +79,6 @@ class SubjectAccessRequestServiceTest{
 
   @Test
   fun `createSubjectAccessRequestPost returns 400 and error string if both IDs are supplied`() {
-    val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
-    val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
-    val auditService = Mockito.mock(AuditService::class.java)
-    val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
-    val authentication: Authentication = Mockito.mock(Authentication::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
     val expected =
       ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
@@ -118,11 +90,6 @@ class SubjectAccessRequestServiceTest{
 
   @Test
   fun `createSubjectAccessRequestPost returns 400 and error string if neither ID is supplied`() {
-    val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
-    val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
-    val auditService = Mockito.mock(AuditService::class.java)
-    val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
-    val authentication: Authentication = Mockito.mock(Authentication::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
     val expected =
       ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
