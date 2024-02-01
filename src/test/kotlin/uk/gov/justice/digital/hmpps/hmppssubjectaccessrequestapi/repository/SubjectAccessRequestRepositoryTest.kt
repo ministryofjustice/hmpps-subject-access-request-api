@@ -15,18 +15,16 @@ import java.time.format.DateTimeFormatter
 class SubjectAccessRequestRepositoryTest {
   @Autowired
   private val sarRepository: SubjectAccessRequestRepository? = null
-
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-
   private val dateFrom = "01/12/2023"
   private val dateFromFormatted = LocalDate.parse(dateFrom, dateFormatter)
   private val dateTo = "03/01/2024"
   private val dateToFormatted = LocalDate.parse(dateTo, dateFormatter)
   private val requestTime = "01/01/2024 00:00"
   private val requestTimeFormatted = LocalDateTime.parse(requestTime, dateTimeFormatter)
-  private val ClaimDateTime = "02/01/2024 00:00"
-  private val ClaimDateTimeFormatted = LocalDateTime.parse(ClaimDateTime, dateTimeFormatter)
+  private val claimDateTime = "02/01/2024 00:00"
+  private val claimDateTimeFormatted = LocalDateTime.parse(claimDateTime, dateTimeFormatter)
 
   val unclaimedSar = SubjectAccessRequest(
     id = null,
@@ -53,7 +51,7 @@ class SubjectAccessRequestRepositoryTest {
     requestedBy = "Test",
     requestDateTime = requestTimeFormatted,
     claimAttempts = 1,
-    claimDateTime = ClaimDateTimeFormatted,
+    claimDateTime = claimDateTimeFormatted,
   )
   val completedSar = SubjectAccessRequest(
     id = null,
@@ -67,7 +65,7 @@ class SubjectAccessRequestRepositoryTest {
     requestedBy = "Test",
     requestDateTime = requestTimeFormatted,
     claimAttempts = 1,
-    claimDateTime = ClaimDateTimeFormatted,
+    claimDateTime = claimDateTimeFormatted,
   )
 
   fun databaseInsert() {
@@ -75,7 +73,6 @@ class SubjectAccessRequestRepositoryTest {
     sarRepository?.save(claimedSarWithPendingStatus)
     sarRepository?.save(completedSar)
   }
-
   val allSars = listOf(unclaimedSar, claimedSarWithPendingStatus, completedSar)
 
   @Nested
@@ -83,9 +80,7 @@ class SubjectAccessRequestRepositoryTest {
     @Test
     fun `findByClaimAttemptsIs returns only unclaimed SAR entries if called with 0`() {
       val expectedUnclaimed: List<SubjectAccessRequest> = listOf(unclaimedSar)
-
       databaseInsert()
-
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
       Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(0)).isEqualTo(expectedUnclaimed)
     }
@@ -93,9 +88,7 @@ class SubjectAccessRequestRepositoryTest {
     @Test
     fun `findByClaimAttemptsIs returns only claimed SAR entries if called with 1 or more`() {
       val expectedClaimed: List<SubjectAccessRequest> = listOf(claimedSarWithPendingStatus, completedSar)
-
       databaseInsert()
-
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
       Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(1)).isEqualTo(expectedClaimed)
     }
@@ -107,7 +100,6 @@ class SubjectAccessRequestRepositoryTest {
     fun `returns only SAR entries with given criteria`() {
       val claimDateTimeEarlier = "02/01/2023 00:00"
       val claimDateTimeEarlierFormatted = LocalDateTime.parse(claimDateTimeEarlier, dateTimeFormatter)
-
       val sarWithPendingStatusClaimedEarlier = SubjectAccessRequest(
         id = null,
         status = Status.Pending,
@@ -122,14 +114,11 @@ class SubjectAccessRequestRepositoryTest {
         claimAttempts = 1,
         claimDateTime = claimDateTimeEarlierFormatted,
       )
-
       val expectedPendingClaimedBefore: List<SubjectAccessRequest> = listOf(sarWithPendingStatusClaimedEarlier)
-
       databaseInsert()
       sarRepository?.save(sarWithPendingStatusClaimedEarlier)
-
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
-      Assertions.assertThat(sarRepository?.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, ClaimDateTimeFormatted)).isEqualTo(expectedPendingClaimedBefore)
+      Assertions.assertThat(sarRepository?.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, claimDateTimeFormatted)).isEqualTo(expectedPendingClaimedBefore)
     }
   }
 }

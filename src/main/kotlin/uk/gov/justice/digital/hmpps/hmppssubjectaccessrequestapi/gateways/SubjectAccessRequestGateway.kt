@@ -11,23 +11,10 @@ import java.time.LocalDateTime
 class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepository) {
   fun getSubjectAccessRequests(unclaimedOnly: Boolean, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
     if (unclaimedOnly) {
-
-//      val subjectAccessRequests: List<SubjectAccessRequest?> = emptyList()
-
       val sarsWithNoClaims = repo.findByClaimAttemptsIs(0)
-
       val sarsWithExpiredClaims = repo.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, currentTime.minusMinutes(5))
-
-
-      // val expiredClaimDate = LocalDateTime.(Now.fiveMinutesAgo)
-      // repo.findByStatusAndClaimAttemptsOrClaimDateTime(status: "pending", claimAttempts: "0")
-
-//      val subjectAccessRequests: List<SubjectAccessRequest?> = repo.findByClaimAttemptsIs(0)
-//          status == pending
-//          AND
-//          claimAttempts == 0
-//          OR claimDateTime == before expiredClaimDate
-//
+      val completeList = sarsWithNoClaims.plus(sarsWithExpiredClaims)
+      return completeList
     }
     val response = repo.findAll()
     return response
