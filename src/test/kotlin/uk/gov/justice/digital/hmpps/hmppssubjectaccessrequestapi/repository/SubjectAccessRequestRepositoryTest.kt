@@ -28,7 +28,6 @@ class SubjectAccessRequestRepositoryTest {
   private val ClaimDateTime = "02/01/2024 00:00"
   private val ClaimDateTimeFormatted = LocalDateTime.parse(ClaimDateTime, dateTimeFormatter)
 
-
   val unclaimedSar = SubjectAccessRequest(
     id = null,
     status = Status.Pending,
