@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
 import org.assertj.core.api.Assertions
+import org.hamcrest.core.IsInstanceOf.instanceOf
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
@@ -21,9 +22,11 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.Subjec
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-@DataJpaTest
+import kotlin.reflect.typeOf
+
+
 class SubjectAccessRequestControllerTest {
-  @Autowired
+
   private val sarController: SubjectAccessRequestController? = null
   private val ndeliusRequest = "{ " +
     "dateFrom: '01/12/2023', " +
@@ -110,8 +113,6 @@ class SubjectAccessRequestControllerTest {
     val expected = ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
     val result: ResponseEntity<String> = SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
       .createSubjectAccessRequestPost(ndeliusAndNomisRequest, authentication, requestTime)
-
-
     verify(sarRepository, times(0)).save(any())
     Assertions.assertThat(result).isEqualTo(expected)
   }
@@ -126,38 +127,29 @@ class SubjectAccessRequestControllerTest {
     val expected = ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
     val result: ResponseEntity<String> = SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
       .createSubjectAccessRequestPost(noIDRequest, authentication, requestTime)
-
     verify(sarRepository, times(0)).save(any())
     Assertions.assertThat(result).isEqualTo(expected)
   }
 
   @Test
-  fun `getSubjectAccessRequests returns list`() {
-    val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
+  fun `getSubjectAccessRequests is called with unclaimedOnly = true if specified in controller and returns list`() {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
     val auditService = Mockito.mock(AuditService::class.java)
-    val authentication: Authentication = Mockito.mock(Authentication::class.java)
     val subjectAccessRequestService = Mockito.mock(SubjectAccessRequestService::class.java)
-    //Mockito.`when`(authentication.name).thenReturn("aName")
-//    val sampleSAR = SubjectAccessRequest(
-//      id = null,
-//      status = Status.Pending,
-//      dateFrom = dateFromFormatted,
-//      dateTo = dateToFormatted,
-//      sarCaseReferenceNumber = "1234abc",
-//      services = "{1,2,4}",
-//      nomisId = "",
-//      ndeliusCaseReferenceId = "1",
-//      requestedBy = authentication.name,
-//      requestDateTime = requestTime,
-//    )
-    val expectedUnclaimed: List<SubjectAccessRequest> = listOf(sampleSAR)
-    //SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
-    sarController?.createSubjectAccessRequestPost(ndeliusRequest, authentication, requestTime)
     val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
       .getSubjectAccessRequests(unclaimed = true)
-    //Assertions.assertThat(sarRepository.findAll()).isEqualTo(expectedUnclaimed)
     verify(subjectAccessRequestService, times(1)).getSubjectAccessRequests(unclaimedOnly = true)
-   // Assertions.assertThat(result).isEqualTo(expectedUnclaimed)
+    Assertions.assertThatList(result)
   }
+
+  @Test
+  fun `getSubjectAccessRequests is called with unclaimedOnly = false if unspecified in controller`() {
+    val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
+    val auditService = Mockito.mock(AuditService::class.java)
+    val subjectAccessRequestService = Mockito.mock(SubjectAccessRequestService::class.java)
+    val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
+      .getSubjectAccessRequests()
+    verify(subjectAccessRequestService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
+  }
+
 }
