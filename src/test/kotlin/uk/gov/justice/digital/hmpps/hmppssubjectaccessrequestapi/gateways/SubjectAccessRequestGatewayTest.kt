@@ -37,6 +37,7 @@ class SubjectAccessRequestGatewayTest {
     claimAttempts = 0,
   )
   private val mockSarsWithNoClaims = listOf(unclaimedSar, unclaimedSar, unclaimedSar)
+
   @Nested
   inner class getSubjectAccessRequests {
     private val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
@@ -82,13 +83,12 @@ class SubjectAccessRequestGatewayTest {
       val expiredClaimDateTime = "01/01/2024 23:55"
       val expiredClaimDateTimeFormatted = LocalDateTime.parse(expiredClaimDateTime, dateTimeFormatter)
       Mockito.`when`(sarRepository.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, expiredClaimDateTimeFormatted)).thenReturn(
-        emptyList()
+        emptyList(),
       )
       val result: List<SubjectAccessRequest?> = SubjectAccessRequestGateway(sarRepository)
         .getSubjectAccessRequests(unclaimedOnly = true, formattedMockedCurrentTime)
       verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, expiredClaimDateTimeFormatted)
       Assertions.assertTrue(result.size == 3)
     }
-
   }
 }
