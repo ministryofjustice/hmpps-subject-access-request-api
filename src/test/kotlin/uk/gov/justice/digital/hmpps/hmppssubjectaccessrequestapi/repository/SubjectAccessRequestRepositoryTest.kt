@@ -25,10 +25,8 @@ class SubjectAccessRequestRepositoryTest {
   private val dateToFormatted = LocalDate.parse(dateTo, dateFormatter)
   private val requestTime = "01/01/2024 00:00"
   private val requestTimeFormatted = LocalDateTime.parse(requestTime, dateTimeFormatter)
-  private val expiredClaimDateTime = "02/01/2024 00:00"
-  private val expiredClaimDateTimeFormatted = LocalDateTime.parse(expiredClaimDateTime, dateTimeFormatter)
-  private val currentClaimDateTime = "03/01/2024 00:00"
-  private val currentClaimDateTimeFormatted = LocalDateTime.parse(currentClaimDateTime, dateTimeFormatter)
+  private val ClaimDateTime = "02/01/2024 00:00"
+  private val ClaimDateTimeFormatted = LocalDateTime.parse(ClaimDateTime, dateTimeFormatter)
 
 
   val unclaimedSar = SubjectAccessRequest(
@@ -44,7 +42,7 @@ class SubjectAccessRequestRepositoryTest {
     requestDateTime = requestTimeFormatted,
     claimAttempts = 0,
   )
-  val pendingSarWithExpiredClaim = SubjectAccessRequest(
+  val claimedSarWithPendingStatus = SubjectAccessRequest(
     id = null,
     status = Status.Pending,
     dateFrom = dateFromFormatted,
@@ -56,23 +54,9 @@ class SubjectAccessRequestRepositoryTest {
     requestedBy = "Test",
     requestDateTime = requestTimeFormatted,
     claimAttempts = 1,
-    claimDateTime = expiredClaimDateTimeFormatted,
+    claimDateTime = ClaimDateTimeFormatted,
   )
-  val pendingSarWithCurrentClaim = SubjectAccessRequest(
-    id = null,
-    status = Status.Pending,
-    dateFrom = dateFromFormatted,
-    dateTo = dateToFormatted,
-    sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
-    nomisId = "",
-    ndeliusCaseReferenceId = "1",
-    requestedBy = "Test",
-    requestDateTime = requestTimeFormatted,
-    claimAttempts = 1,
-    claimDateTime = currentClaimDateTimeFormatted,
-  )
-  val completedSarWithCurrentClaim = SubjectAccessRequest(
+  val completedSar = SubjectAccessRequest(
     id = null,
     status = Status.Completed, // here
     dateFrom = dateFromFormatted,
@@ -84,32 +68,16 @@ class SubjectAccessRequestRepositoryTest {
     requestedBy = "Test",
     requestDateTime = requestTimeFormatted,
     claimAttempts = 1,
-    claimDateTime = currentClaimDateTimeFormatted,
-  )
-  val completedSarWithExpiredClaim = SubjectAccessRequest(
-    id = null,
-    status = Status.Completed, // here
-    dateFrom = dateFromFormatted,
-    dateTo = dateToFormatted,
-    sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
-    nomisId = "",
-    ndeliusCaseReferenceId = "1",
-    requestedBy = "Test",
-    requestDateTime = requestTimeFormatted,
-    claimAttempts = 1,
-    claimDateTime = expiredClaimDateTimeFormatted,
+    claimDateTime = ClaimDateTimeFormatted,
   )
 
   fun databaseInsert() {
     sarRepository?.save(unclaimedSar)
-    sarRepository?.save(pendingSarWithExpiredClaim)
-    sarRepository?.save(pendingSarWithCurrentClaim)
-    sarRepository?.save(completedSarWithCurrentClaim)
-    sarRepository?.save(completedSarWithExpiredClaim)
+    sarRepository?.save(claimedSarWithPendingStatus)
+    sarRepository?.save(completedSar)
   }
 
-  val allSars = listOf(unclaimedSar, pendingSarWithExpiredClaim, pendingSarWithCurrentClaim, completedSarWithCurrentClaim, completedSarWithExpiredClaim)
+  val allSars = listOf(unclaimedSar, claimedSarWithPendingStatus, completedSar)
 
   @Nested
   inner class findByClaimAttemptsIs {
@@ -125,7 +93,7 @@ class SubjectAccessRequestRepositoryTest {
 
     @Test
     fun `findByClaimAttemptsIs returns only claimed SAR entries if called with 1 or more`() {
-      val expectedClaimed: List<SubjectAccessRequest> = listOf(pendingSarWithExpiredClaim, pendingSarWithCurrentClaim, completedSarWithCurrentClaim, completedSarWithExpiredClaim)
+      val expectedClaimed: List<SubjectAccessRequest> = listOf(claimedSarWithPendingStatus, completedSar)
 
       databaseInsert()
 
@@ -133,17 +101,36 @@ class SubjectAccessRequestRepositoryTest {
       Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(1)).isEqualTo(expectedClaimed)
     }
   }
-//
-//  @Nested
-//  inner class findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore {
-//    @Test
-//    fun `returns only SAR entries with pending status and expired claim date-time if called with pending, 0 and old date-time`() {
-//      val expectedExpiredClaimed: List<SubjectAccessRequest> = listOf(unclaimedSar, pendingSarWithExpiredClaim, pendingSarWithCurrentClaim)
-//
-//      databaseInsert()
-//
-//      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
-//      Assertions.assertThat(sarRepository?.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore("Pending")).isEqualTo(expectedExpiredClaimed)
-//    }
-//  }
+
+  @Nested
+  inner class findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore {
+    @Test
+    fun `returns only SAR entries with given criteria`() {
+      val claimDateTimeEarlier = "02/01/2023 00:00"
+      val claimDateTimeEarlierFormatted = LocalDateTime.parse(claimDateTimeEarlier, dateTimeFormatter)
+
+      val sarWithPendingStatusClaimedEarlier = SubjectAccessRequest(
+        id = null,
+        status = Status.Pending,
+        dateFrom = dateFromFormatted,
+        dateTo = dateToFormatted,
+        sarCaseReferenceNumber = "1234abc",
+        services = "{1,2,4}",
+        nomisId = "",
+        ndeliusCaseReferenceId = "1",
+        requestedBy = "Test",
+        requestDateTime = requestTimeFormatted,
+        claimAttempts = 1,
+        claimDateTime = claimDateTimeEarlierFormatted,
+      )
+
+      val expectedPendingClaimedBefore: List<SubjectAccessRequest> = listOf(sarWithPendingStatusClaimedEarlier)
+
+      databaseInsert()
+      sarRepository?.save(sarWithPendingStatusClaimedEarlier)
+
+      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
+      Assertions.assertThat(sarRepository?.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, ClaimDateTimeFormatted)).isEqualTo(expectedPendingClaimedBefore)
+    }
+  }
 }
