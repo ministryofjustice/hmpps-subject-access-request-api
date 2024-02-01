@@ -12,7 +12,7 @@ class SubjectAccessRequestGatewayTest {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
     val result: List<SubjectAccessRequest?> = SubjectAccessRequestGateway(sarRepository)
       .getSubjectAccessRequests(unclaimedOnly = false)
-    verify(sarRepository, times(1)).findAll();
+    verify(sarRepository, times(1)).findAll()
   }
 
   @Test
@@ -20,6 +20,6 @@ class SubjectAccessRequestGatewayTest {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
     val result: List<SubjectAccessRequest?> = SubjectAccessRequestGateway(sarRepository)
       .getSubjectAccessRequests(unclaimedOnly = true)
-    verify(sarRepository, times(1)).findByClaimAttemptsIs(0);
+    verify(sarRepository, times(1)).findByClaimAttemptsIs(0)
   }
 }

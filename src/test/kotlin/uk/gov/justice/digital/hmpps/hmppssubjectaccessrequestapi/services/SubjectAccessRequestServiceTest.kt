@@ -16,7 +16,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class SubjectAccessRequestServiceTest{
+class SubjectAccessRequestServiceTest {
 
   private val ndeliusRequest = "{ " +
     "dateFrom: '01/12/2023', " +
@@ -67,6 +67,7 @@ class SubjectAccessRequestServiceTest{
   )
   private val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
+
   @Test
   fun `createSubjectAccessRequestPost and returns 200`() {
     Mockito.`when`(authentication.name).thenReturn("aName")

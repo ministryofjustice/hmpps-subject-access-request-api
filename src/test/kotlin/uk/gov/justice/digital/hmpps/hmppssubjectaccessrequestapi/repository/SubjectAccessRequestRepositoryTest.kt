@@ -47,6 +47,7 @@ class SubjectAccessRequestRepositoryTest {
     requestDateTime = requestTime,
     claimAttempts = 1,
   )
+
   @Test
   fun `findByClaimAttemptsIs returns only unclaimed SAR entries if called with 0`() {
     val expectedAll: List<SubjectAccessRequest> = listOf(sampleClaimedSAR, sampleUnclaimedSAR)
@@ -66,6 +67,7 @@ class SubjectAccessRequestRepositoryTest {
     Assertions.assertThat(sarRepository?.findAll()).isEqualTo(expectedAll)
     Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(1)).isEqualTo(expectedClaimed)
   }
+
   @Test
   fun `db doesn't save between tests`() {
     val emptyList: List<Any> = emptyList()
