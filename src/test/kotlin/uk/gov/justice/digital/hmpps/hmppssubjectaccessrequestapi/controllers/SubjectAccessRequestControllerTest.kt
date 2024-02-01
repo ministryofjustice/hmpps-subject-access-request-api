@@ -53,7 +53,7 @@ class SubjectAccessRequestControllerTest {
     val response = SubjectAccessRequestController(sarService, auditService)
       .createSubjectAccessRequestPost(ndeliusAndNomisRequest, authentication, requestTime)
     verify(sarService, times(1)).createSubjectAccessRequestPost(ndeliusAndNomisRequest, authentication, requestTime)
-    val expected: ResponseEntity<String> = ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST,)
+    val expected: ResponseEntity<String> = ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
     Assertions.assertThat(response).isEqualTo(expected)
   }
 
@@ -72,7 +72,7 @@ class SubjectAccessRequestControllerTest {
     val response = SubjectAccessRequestController(sarService, auditService)
       .createSubjectAccessRequestPost(noIDRequest, authentication, requestTime)
     verify(sarService, times(1)).createSubjectAccessRequestPost(noIDRequest, authentication, requestTime)
-    val expected: ResponseEntity<String> = ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST,)
+    val expected: ResponseEntity<String> = ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
     Assertions.assertThat(response).isEqualTo(expected)
   }
 
