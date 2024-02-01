@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -84,16 +85,16 @@ class SubjectAccessRequestControllerTest {
     claimAttempts = 0,
   )
   @Test
-  fun `createSubjectAccessRequestPost returns 200 and passes data to repository`() {
+  fun `createSubjectAccessRequestPost calls service createSubjectAccessRequestPost and returns 200`() {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
+    val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
     val auditService = Mockito.mock(AuditService::class.java)
-    val subjectAccessRequestService = Mockito.mock(SubjectAccessRequestService::class.java)
     val authentication: Authentication = Mockito.mock(Authentication::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
     val expected = ResponseEntity("", HttpStatus.OK)
-    val result: ResponseEntity<String> = SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
+    val result: ResponseEntity<String> = SubjectAccessRequestController(sarService, auditService)
       .createSubjectAccessRequestPost(ndeliusRequest, authentication, requestTime)
-    verify(sarRepository, times(1)).save(sampleSAR)
+    verify(sarService, times(1)).createSubjectAccessRequestPost(ndeliusRequest, authentication, requestTime)
     Assertions.assertThat(result).isEqualTo(expected)
   }
 
@@ -101,13 +102,13 @@ class SubjectAccessRequestControllerTest {
   fun `createSubjectAccessRequestPost returns 400 and error string if both IDs are supplied`() {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
     val auditService = Mockito.mock(AuditService::class.java)
+    val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
     val authentication: Authentication = Mockito.mock(Authentication::class.java)
-    val subjectAccessRequestService = Mockito.mock(SubjectAccessRequestService::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
     val expected = ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
-    val result: ResponseEntity<String> = SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
+    val result: ResponseEntity<String> = SubjectAccessRequestController(sarService, auditService)
       .createSubjectAccessRequestPost(ndeliusAndNomisRequest, authentication, requestTime)
-    verify(sarRepository, times(0)).save(any())
+    verify(sarService, times(1)).createSubjectAccessRequestPost(ndeliusAndNomisRequest, authentication, requestTime)
     Assertions.assertThat(result).isEqualTo(expected)
   }
 
@@ -115,13 +116,13 @@ class SubjectAccessRequestControllerTest {
   fun `createSubjectAccessRequestPost returns 400 and error string if neither ID is supplied`() {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
     val auditService = Mockito.mock(AuditService::class.java)
+    val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
     val authentication: Authentication = Mockito.mock(Authentication::class.java)
-    val subjectAccessRequestService = Mockito.mock(SubjectAccessRequestService::class.java)
     Mockito.`when`(authentication.name).thenReturn("aName")
     val expected = ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
-    val result: ResponseEntity<String> = SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
+    val result: ResponseEntity<String> = SubjectAccessRequestController(sarService, auditService)
       .createSubjectAccessRequestPost(noIDRequest, authentication, requestTime)
-    verify(sarRepository, times(0)).save(any())
+    verify(sarService, times(1)).createSubjectAccessRequestPost(noIDRequest, authentication, requestTime)
     Assertions.assertThat(result).isEqualTo(expected)
   }
 
@@ -129,10 +130,10 @@ class SubjectAccessRequestControllerTest {
   fun `getSubjectAccessRequests is called with unclaimedOnly = true if specified in controller and returns list`() {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
     val auditService = Mockito.mock(AuditService::class.java)
-    val subjectAccessRequestService = Mockito.mock(SubjectAccessRequestService::class.java)
-    val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
+    val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
+    val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(sarService, auditService)
       .getSubjectAccessRequests(unclaimed = true)
-    verify(subjectAccessRequestService, times(1)).getSubjectAccessRequests(unclaimedOnly = true)
+    verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true)
     Assertions.assertThatList(result)
   }
 
@@ -140,10 +141,10 @@ class SubjectAccessRequestControllerTest {
   fun `getSubjectAccessRequests is called with unclaimedOnly = false if unspecified in controller`() {
     val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
     val auditService = Mockito.mock(AuditService::class.java)
-    val subjectAccessRequestService = Mockito.mock(SubjectAccessRequestService::class.java)
-    val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(subjectAccessRequestService, auditService, sarRepository)
+    val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
+    val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(sarService, auditService)
       .getSubjectAccessRequests()
-    verify(subjectAccessRequestService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
+    verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
   }
 
 }

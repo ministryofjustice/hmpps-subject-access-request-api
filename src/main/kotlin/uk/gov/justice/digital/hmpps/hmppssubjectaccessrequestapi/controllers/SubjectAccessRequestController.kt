@@ -17,44 +17,13 @@ import java.time.format.DateTimeFormatter
 
 @RestController
 @RequestMapping("/api/")
-class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, @Autowired val repo: SubjectAccessRequestRepository) {
+class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService) {
   @PostMapping("createSubjectAccessRequest")
   fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
-    val json = JSONObject(request)
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val dateFrom = json.get("dateFrom").toString()
-    val dateFromFormatted = if (dateFrom != "") LocalDate.parse(dateFrom, formatter) else null
-    val dateTo = json.get("dateTo").toString()
-    val dateToFormatted = LocalDate.parse(dateTo, formatter)
+    val response = subjectAccessRequestService.createSubjectAccessRequestPost(request, authentication, requestTime)
+    return response
 
-    if (json.get("nomisId") != "" && json.get("ndeliusId") != "") {
-      return ResponseEntity(
-        "Both nomisId and ndeliusId are provided - exactly one is required",
-        HttpStatus.BAD_REQUEST,
-      )
-    } else if (json.get("nomisId") == "" && json.get("ndeliusId") == "") {
-      return ResponseEntity(
-        "Neither nomisId nor ndeliusId is provided - exactly one is required",
-        HttpStatus.BAD_REQUEST,
-      )
-    }
-
-    repo.save(
-      SubjectAccessRequest(
-        id = null,
-        status = Status.Pending,
-        dateFrom = dateFromFormatted,
-        dateTo = dateToFormatted,
-        sarCaseReferenceNumber = json.get("sarCaseReferenceNumber").toString(),
-        services = json.get("services").toString(),
-        nomisId = json.get("nomisId").toString(),
-        ndeliusCaseReferenceId = json.get("ndeliusId").toString(),
-        requestedBy = authentication.name,
-        requestDateTime = requestTime ?: LocalDateTime.now(),
-      ),
-    )
-    return ResponseEntity("", HttpStatus.OK); // Maybe want to return Report ID?
   }
 
   @GetMapping("subjectAccessRequest")
