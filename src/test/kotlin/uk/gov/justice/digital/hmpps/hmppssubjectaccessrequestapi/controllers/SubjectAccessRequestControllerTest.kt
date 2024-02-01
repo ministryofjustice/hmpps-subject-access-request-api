@@ -1,19 +1,15 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
 import org.assertj.core.api.Assertions
-import org.hamcrest.core.IsInstanceOf.instanceOf
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
@@ -22,12 +18,10 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.Subjec
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.reflect.typeOf
 
 
 class SubjectAccessRequestControllerTest {
 
-  private val sarController: SubjectAccessRequestController? = null
   private val ndeliusRequest = "{ " +
     "dateFrom: '01/12/2023', " +
     "dateTo: '03/01/2024', " +
