@@ -121,4 +121,34 @@ class SubjectAccessRequestRepositoryTest {
       Assertions.assertThat(sarRepository?.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, claimDateTimeFormatted)).isEqualTo(expectedPendingClaimedBefore)
     }
   }
+
+  @Nested
+  inner class updateSubjectAccessRequestIfClaimDateTimeLessThanWithClaimDateTimeIsAndClaimAttemptsIs {
+    @Test
+    fun `updates claimDateTime if claimDateTime less than threshold`() {
+      val thresholdClaimDateTime = "02/01/2023 00:00"
+      val thresholdClaimDateTimeFormatted = LocalDateTime.parse(thresholdClaimDateTime, dateTimeFormatter)
+      databaseInsert()
+      val expectedUpdatedRecord = SubjectAccessRequest(
+        id = 1,
+        status = Status.Pending,
+        dateFrom = dateFromFormatted,
+        dateTo = dateToFormatted,
+        sarCaseReferenceNumber = "1234abc",
+        services = "{1,2,4}",
+        nomisId = "",
+        ndeliusCaseReferenceId = "1",
+        requestedBy = "Test",
+        requestDateTime = requestTimeFormatted,
+        claimAttempts = 0,
+        claimDateTime = thresholdClaimDateTimeFormatted
+      )
+      Assertions.assertThat(sarRepository?.updateIfClaimDateTimeLessThanWithClaimDateTimeIs(1, thresholdClaimDateTimeFormatted)).isEqualTo(expectedUpdatedRecord)
+    }
+  }
+    @Test
+    fun `updates claimDateTime and claimAttempts if claimDateTime less than threshold`() {
+
+    }
 }
+
