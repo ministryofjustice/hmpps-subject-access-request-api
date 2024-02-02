@@ -125,7 +125,7 @@ class SubjectAccessRequestRepositoryTest {
   @Nested
   inner class updateSubjectAccessRequestIfClaimDateTimeLessThanWithClaimDateTimeIsAndClaimAttemptsIs {
     @Test
-    fun `updates claimDateTime if claimDateTime less than threshold`() {
+    fun `updates claimDateTime if claimDateTime later than threshold`() {
       val thresholdClaimDateTime = "02/01/2023 00:00"
       val thresholdClaimDateTimeFormatted = LocalDateTime.parse(thresholdClaimDateTime, dateTimeFormatter)
       databaseInsert()
@@ -143,11 +143,11 @@ class SubjectAccessRequestRepositoryTest {
         claimAttempts = 0,
         claimDateTime = thresholdClaimDateTimeFormatted
       )
-      Assertions.assertThat(sarRepository?.updateIfClaimDateTimeLessThanWithClaimDateTimeIs(1, thresholdClaimDateTimeFormatted)).isEqualTo(expectedUpdatedRecord)
+      Assertions.assertThat(sarRepository?.updateClaimDateTime(1, thresholdClaimDateTimeFormatted)).isEqualTo(expectedUpdatedRecord)
     }
   }
     @Test
-    fun `updates claimDateTime and claimAttempts if claimDateTime less than threshold`() {
+    fun `updates claimDateTime and claimAttempts if claimDateTime later than threshold`() {
 
     }
 }
