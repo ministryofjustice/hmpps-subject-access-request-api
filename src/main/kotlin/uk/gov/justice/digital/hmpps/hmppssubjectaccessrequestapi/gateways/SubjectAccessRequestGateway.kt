@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Component
 class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepository) {
@@ -19,7 +20,15 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
     val response = repo.findAll()
     return response
   }
+
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {
     repo.save(sar)
+  }
+  fun updateSubjectAccessRequest(sar: SubjectAccessRequest, thresholdTime: LocalDateTime, currentTime: LocalDateTime = LocalDateTime.now()): Int {
+    if (sar.id != null) {
+      val result = repo.updateClaimDateTimeIfBeforeThreshold(sar.id, thresholdTime, currentTime)
+      return result
+    }
+    return 0
   }
 }
