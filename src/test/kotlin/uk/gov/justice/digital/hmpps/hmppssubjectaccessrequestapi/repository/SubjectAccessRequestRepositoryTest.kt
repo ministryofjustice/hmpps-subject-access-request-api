@@ -157,14 +157,16 @@ class SubjectAccessRequestRepositoryTest {
         claimDateTime = currentDateTimeFormatted,
       )
 
+      var numberOfDbRecordsUpdated = 0
       if (idOfSarWithPendingStatusClaimedEarlier != null) {
-        sarRepository?.updateClaimDateTimeIfBeforeThreshold(
+          numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeIfBeforeThreshold(
           idOfSarWithPendingStatusClaimedEarlier,
           thresholdClaimDateTimeFormatted,
           currentDateTimeFormatted
-        )
+        )!!
       }
 
+      Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
       Assertions.assertThat(sarRepository?.getReferenceById(idOfSarWithPendingStatusClaimedEarlier))
         .isEqualTo(expectedUpdatedRecord)
@@ -195,14 +197,16 @@ class SubjectAccessRequestRepositoryTest {
         claimDateTime = claimDateTimeFormatted,
       )
 
+      var numberOfDbRecordsUpdated = 0
       if (idOfClaimedSarWithPendingStatusAfterThreshold != null) {
-        sarRepository?.updateClaimDateTimeIfBeforeThreshold(
-          idOfClaimedSarWithPendingStatusAfterThreshold,
-          thresholdClaimDateTimeFormatted,
-          currentDateTimeFormatted
-        )
+            numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeIfBeforeThreshold(
+            idOfClaimedSarWithPendingStatusAfterThreshold,
+            thresholdClaimDateTimeFormatted,
+            currentDateTimeFormatted
+          )!!
       }
 
+      Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(0)
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
       Assertions.assertThat(sarRepository?.getReferenceById(idOfClaimedSarWithPendingStatusAfterThreshold))
         .isEqualTo(expectedUpdatedRecord)
