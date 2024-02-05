@@ -124,8 +124,8 @@ class SubjectAccessRequestRepositoryTest {
         sarRepository?.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(
           Status.Pending,
           0,
-          claimDateTimeFormatted
-        )
+          claimDateTimeFormatted,
+        ),
       ).isEqualTo(expectedPendingClaimedBefore)
     }
   }
@@ -159,10 +159,10 @@ class SubjectAccessRequestRepositoryTest {
 
       var numberOfDbRecordsUpdated = 0
       if (idOfSarWithPendingStatusClaimedEarlier != null) {
-          numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
+        numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
           idOfSarWithPendingStatusClaimedEarlier,
           thresholdClaimDateTimeFormatted,
-          currentDateTimeFormatted
+          currentDateTimeFormatted,
         )!!
       }
 
@@ -199,11 +199,11 @@ class SubjectAccessRequestRepositoryTest {
 
       var numberOfDbRecordsUpdated = 0
       if (idOfClaimedSarWithPendingStatusAfterThreshold != null) {
-            numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
-            idOfClaimedSarWithPendingStatusAfterThreshold,
-            thresholdClaimDateTimeFormatted,
-            currentDateTimeFormatted
-          )!!
+        numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
+          idOfClaimedSarWithPendingStatusAfterThreshold,
+          thresholdClaimDateTimeFormatted,
+          currentDateTimeFormatted,
+        )!!
       }
 
       Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(0)

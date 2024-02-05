@@ -91,6 +91,7 @@ class SubjectAccessRequestControllerTest {
       .getSubjectAccessRequests()
     verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
   }
+
   @Nested
   inner class patchSubjectAccessRequest {
     @Test

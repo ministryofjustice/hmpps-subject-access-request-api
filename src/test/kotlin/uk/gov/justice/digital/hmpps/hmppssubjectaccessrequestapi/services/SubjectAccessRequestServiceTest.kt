@@ -101,12 +101,14 @@ class SubjectAccessRequestServiceTest {
       Assertions.assertThat(result).isEqualTo(expected)
     }
   }
+
   @Nested
   inner class updateSubjectAccessRequest {
+
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+
     @Test
     fun `updateSubjectAccessRequest calls gateway update method with time 5 minutes ago`() {
-      //Mockito.`when`(authentication.name).thenReturn("aName")
       val mockedCurrentTime = "02/01/2024 00:30"
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val fiveMinutesAgo = "02/01/2024 00:25"

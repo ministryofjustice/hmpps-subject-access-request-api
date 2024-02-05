@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Component
 class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepository) {
