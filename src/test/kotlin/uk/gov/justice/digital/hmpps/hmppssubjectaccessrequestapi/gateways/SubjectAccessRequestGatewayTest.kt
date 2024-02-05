@@ -100,7 +100,7 @@ class SubjectAccessRequestGatewayTest {
       val thresholdTimeFormatted = LocalDateTime.parse(thresholdTime, dateTimeFormatter)
       val result: Int = SubjectAccessRequestGateway(sarRepository)
         .updateSubjectAccessRequest(unclaimedSar, thresholdTimeFormatted, formattedMockedCurrentTime)
-      verify(sarRepository, times(1)).updateClaimDateTimeIfBeforeThreshold(1, thresholdTimeFormatted, formattedMockedCurrentTime)
+      verify(sarRepository, times(1)).updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(1, thresholdTimeFormatted, formattedMockedCurrentTime)
     }
   }
 }

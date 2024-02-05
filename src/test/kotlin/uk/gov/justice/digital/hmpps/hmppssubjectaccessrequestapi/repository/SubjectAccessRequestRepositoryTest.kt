@@ -159,7 +159,7 @@ class SubjectAccessRequestRepositoryTest {
 
       var numberOfDbRecordsUpdated = 0
       if (idOfSarWithPendingStatusClaimedEarlier != null) {
-          numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeIfBeforeThreshold(
+          numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
           idOfSarWithPendingStatusClaimedEarlier,
           thresholdClaimDateTimeFormatted,
           currentDateTimeFormatted
@@ -199,7 +199,7 @@ class SubjectAccessRequestRepositoryTest {
 
       var numberOfDbRecordsUpdated = 0
       if (idOfClaimedSarWithPendingStatusAfterThreshold != null) {
-            numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeIfBeforeThreshold(
+            numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
             idOfClaimedSarWithPendingStatusAfterThreshold,
             thresholdClaimDateTimeFormatted,
             currentDateTimeFormatted
