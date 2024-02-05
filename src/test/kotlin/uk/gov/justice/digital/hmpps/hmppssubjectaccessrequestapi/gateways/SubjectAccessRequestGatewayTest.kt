@@ -38,7 +38,7 @@ class SubjectAccessRequestGatewayTest {
   )
   private val mockSarsWithNoClaims = listOf(unclaimedSar, unclaimedSar, unclaimedSar)
   private val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
-  @Nested:s
+  @Nested
   inner class getSubjectAccessRequests {
 
     @Test
