@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
 import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
@@ -89,5 +90,25 @@ class SubjectAccessRequestControllerTest {
     SubjectAccessRequestController(sarService, auditService)
       .getSubjectAccessRequests()
     verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
+  }
+  @Nested
+  inner class patchSubjectAccessRequest {
+    @Test
+    fun `patch subjectAccessRequest returns 400 if updateSubjectAccessRequest returns 0`() {
+      Mockito.`when`(sarService.updateSubjectAccessRequest(1, requestTime)).thenReturn(0)
+      val result = SubjectAccessRequestController(sarService, auditService)
+        .updateSubjectAccessRequest(1, requestTime)
+      verify(sarService, times(1)).updateSubjectAccessRequest(1, requestTime)
+      Assertions.assertThat(result).isEqualTo(400)
+    }
+
+    @Test
+    fun `patch subjectAccessRequest returns 200 if updateSubjectAccessRequest returns 1`() {
+      Mockito.`when`(sarService.updateSubjectAccessRequest(1, requestTime)).thenReturn(1)
+      val result = SubjectAccessRequestController(sarService, auditService)
+        .updateSubjectAccessRequest(1, requestTime)
+      verify(sarService, times(1)).updateSubjectAccessRequest(1, requestTime)
+      Assertions.assertThat(result).isEqualTo(200)
+    }
   }
 }

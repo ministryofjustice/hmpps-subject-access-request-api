@@ -6,6 +6,7 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -13,7 +14,6 @@ enum class Status {
   Pending,
   Completed,
 }
-
 @Entity
 data class SubjectAccessRequest(
   @Id
