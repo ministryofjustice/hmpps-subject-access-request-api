@@ -49,4 +49,9 @@ class SubjectAccessRequestService(
     val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly)
     return subjectAccessRequests
   }
+
+  fun updateSubjectAccessRequest(id: Int, time: LocalDateTime = LocalDateTime.now()): Int {
+    val thresholdTime = time.minusMinutes(5)
+    return sarDbGateway.updateSubjectAccessRequest(id, thresholdTime)
+  }
 }
