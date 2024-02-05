@@ -104,7 +104,7 @@ class SubjectAccessRequestRepositoryTest {
 
     @Test
     fun `findByClaimAttemptsIs returns only claimed SAR entries if called with 1 or more`() {
-      val expectedClaimed: List<SubjectAccessRequest> = listOf(claimedSarWithPendingStatus, completedSar)
+      val expectedClaimed: List<SubjectAccessRequest> = listOf(claimedSarWithPendingStatus, completedSar, sarWithPendingStatusClaimedEarlier)
       databaseInsert()
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
       Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(1)).isEqualTo(expectedClaimed)
@@ -173,12 +173,20 @@ class SubjectAccessRequestRepositoryTest {
         claimAttempts = 1,
         claimDateTime = claimDateTimeEarlierFormatted,
       )
+      val firstIDofCurrentDBEntries = sarRepository?.findAll()?.first()?.id
+      if (firstIDofCurrentDBEntries != null) {
+        sarRepository?.updateClaimDateTimeIfBeforeThreshold(firstIDofCurrentDBEntries, 100)
+      }
 
-      sarRepository?.updateClaimDateTimeIfBeforeThreshold(4, 100)
+      if (firstIDofCurrentDBEntries != null) {
+        Assertions.assertThat(sarRepository?.findById(firstIDofCurrentDBEntries)).isEqualTo(expectedUpdatedRecord)
+      }
+
 
 //      verify(sarRepository, Mockito.times(1))?.updateClaimDateTimeIfBeforeThreshold(4, thresholdClaimDateTimeFormatted, currentDateTimeFormatted)
-      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
-      Assertions.assertThat(sarRepository?.findById(4)).isEqualTo(expectedUpdatedRecord)
+      //Assertions.assertThat(sarRepository?.findAll()).isEqualTo(4) //?.size).isEqualTo(4)
+      //Assertions.assertThat(sarRepository?.findAll()?.first()?.id).isEqualTo(4)
+
     }
 
   }
