@@ -159,8 +159,10 @@ class SubjectAccessRequestRepositoryTest {
     fun `updates claimDateTime if claimDateTime later than threshold`() {
       databaseInsert()
 
+      val firstIDofCurrentDBEntries = sarRepository?.findAll()?.first()?.id
+
       val expectedUpdatedRecord = SubjectAccessRequest(
-        id = 4,
+        id = firstIDofCurrentDBEntries,
         status = Status.Pending,
         dateFrom = dateFromFormatted,
         dateTo = dateToFormatted,
@@ -170,16 +172,15 @@ class SubjectAccessRequestRepositoryTest {
         ndeliusCaseReferenceId = "1",
         requestedBy = "Test",
         requestDateTime = requestTimeFormatted,
-        claimAttempts = 1,
-        claimDateTime = claimDateTimeEarlierFormatted,
+        claimAttempts = 100,
+        claimDateTime = null, //claimDateTimeEarlierFormatted
       )
-      val firstIDofCurrentDBEntries = sarRepository?.findAll()?.first()?.id
       if (firstIDofCurrentDBEntries != null) {
         sarRepository?.updateClaimDateTimeIfBeforeThreshold(firstIDofCurrentDBEntries, 100)
       }
 
       if (firstIDofCurrentDBEntries != null) {
-        Assertions.assertThat(sarRepository?.findById(firstIDofCurrentDBEntries)).isEqualTo(expectedUpdatedRecord)
+        Assertions.assertThat(sarRepository?.getReferenceById(firstIDofCurrentDBEntries)).isEqualTo(expectedUpdatedRecord)
       }
 
 

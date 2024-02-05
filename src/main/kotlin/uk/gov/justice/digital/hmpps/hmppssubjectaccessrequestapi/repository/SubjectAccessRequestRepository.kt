@@ -16,10 +16,10 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, I
 
   fun findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(status: Status, claimAttempts: Int, claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
 
-//  @Modifying
+//  @Modifying(clearAutomatically = true, flushAutomatically=true)
 //  @Query("UPDATE SubjectAccessRequest report " +
 //    "SET report.claimDateTime = :currentTime " +
-//    "WHERE report.id = :id OR report.claimDateTime < :releaseThreshold")
+//    "WHERE report.id = :id AND report.claimDateTime < :releaseThreshold")
 //  fun updateClaimDateTimeIfBeforeThreshold(@Param("id") id: Int, @Param("releaseThreshold") releaseThreshold: LocalDateTime, @Param("currentTime") currentTime: LocalDateTime)
 
   @Modifying(clearAutomatically = true, flushAutomatically=true)
