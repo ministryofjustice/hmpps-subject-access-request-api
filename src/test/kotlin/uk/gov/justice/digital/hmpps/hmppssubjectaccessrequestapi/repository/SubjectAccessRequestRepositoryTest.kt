@@ -90,6 +90,7 @@ class SubjectAccessRequestRepositoryTest {
     sarRepository?.save(completedSar)
     sarRepository?.save(sarWithPendingStatusClaimedEarlier)
   }
+
   val allSars = listOf(unclaimedSar, claimedSarWithPendingStatus, completedSar, sarWithPendingStatusClaimedEarlier)
 
   @Nested
@@ -104,7 +105,8 @@ class SubjectAccessRequestRepositoryTest {
 
     @Test
     fun `findByClaimAttemptsIs returns only claimed SAR entries if called with 1 or more`() {
-      val expectedClaimed: List<SubjectAccessRequest> = listOf(claimedSarWithPendingStatus, completedSar, sarWithPendingStatusClaimedEarlier)
+      val expectedClaimed: List<SubjectAccessRequest> =
+        listOf(claimedSarWithPendingStatus, completedSar, sarWithPendingStatusClaimedEarlier)
       databaseInsert()
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
       Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(1)).isEqualTo(expectedClaimed)
@@ -118,51 +120,30 @@ class SubjectAccessRequestRepositoryTest {
       val expectedPendingClaimedBefore: List<SubjectAccessRequest> = listOf(sarWithPendingStatusClaimedEarlier)
       databaseInsert()
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
-      Assertions.assertThat(sarRepository?.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, claimDateTimeFormatted)).isEqualTo(expectedPendingClaimedBefore)
+      Assertions.assertThat(
+        sarRepository?.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(
+          Status.Pending,
+          0,
+          claimDateTimeFormatted
+        )
+      ).isEqualTo(expectedPendingClaimedBefore)
     }
   }
 
   @Nested
   inner class updateSubjectAccessRequestIfClaimDateTimeLessThanWithClaimDateTimeIsAndClaimAttemptsIs {
-//    @Test
-//    fun `updates claimDateTime if claimDateTime later than threshold`() {
-//      val thresholdClaimDateTime = "30/06/2023 00:00"
-//      val thresholdClaimDateTimeFormatted = LocalDateTime.parse(thresholdClaimDateTime, dateTimeFormatter)
-//      val currentDateTime = "01/02/2024 00:00"
-//      val currentDateTimeFormatted = LocalDateTime.parse(currentDateTime, dateTimeFormatter)
-//
-//      databaseInsert()
-//
-//      val expectedUpdatedRecord = SubjectAccessRequest(
-//        id = 4,
-//        status = Status.Pending,
-//        dateFrom = dateFromFormatted,
-//        dateTo = dateToFormatted,
-//        sarCaseReferenceNumber = "1234abc",
-//        services = "{1,2,4}",
-//        nomisId = "",
-//        ndeliusCaseReferenceId = "1",
-//        requestedBy = "Test",
-//        requestDateTime = requestTimeFormatted,
-//        claimAttempts = 1,
-//        claimDateTime = currentDateTimeFormatted,
-//      )
-//
-//        sarRepository?.updateClaimDateTimeIfBeforeThreshold(4, thresholdClaimDateTimeFormatted, currentDateTimeFormatted)
-//
-////      verify(sarRepository, Mockito.times(1))?.updateClaimDateTimeIfBeforeThreshold(4, thresholdClaimDateTimeFormatted, currentDateTimeFormatted)
-//      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
-//      Assertions.assertThat(sarRepository?.findById(4)).isEqualTo(expectedUpdatedRecord)
-//    }
-
     @Test
-    fun `updates claimDateTime if claimDateTime later than threshold`() {
+    fun `updates claimDateTime and claimAttempts if claimDateTime before threshold`() {
+      val thresholdClaimDateTime = "30/06/2023 00:00"
+      val thresholdClaimDateTimeFormatted = LocalDateTime.parse(thresholdClaimDateTime, dateTimeFormatter)
+      val currentDateTime = "01/02/2024 00:00"
+      val currentDateTimeFormatted = LocalDateTime.parse(currentDateTime, dateTimeFormatter)
+
       databaseInsert()
 
-      val firstIDofCurrentDBEntries = sarRepository?.findAll()?.first()?.id
-
+      val idOfSarWithPendingStatusClaimedEarlier = sarRepository?.findAll()?.last()?.id
       val expectedUpdatedRecord = SubjectAccessRequest(
-        id = firstIDofCurrentDBEntries,
+        id = idOfSarWithPendingStatusClaimedEarlier,
         status = Status.Pending,
         dateFrom = dateFromFormatted,
         dateTo = dateToFormatted,
@@ -172,28 +153,59 @@ class SubjectAccessRequestRepositoryTest {
         ndeliusCaseReferenceId = "1",
         requestedBy = "Test",
         requestDateTime = requestTimeFormatted,
-        claimAttempts = 100,
-        claimDateTime = null, //claimDateTimeEarlierFormatted
+        claimAttempts = 2,
+        claimDateTime = currentDateTimeFormatted,
       )
-      if (firstIDofCurrentDBEntries != null) {
-        sarRepository?.updateClaimDateTimeIfBeforeThreshold(firstIDofCurrentDBEntries, 100)
+
+      if (idOfSarWithPendingStatusClaimedEarlier != null) {
+        sarRepository?.updateClaimDateTimeIfBeforeThreshold(
+          idOfSarWithPendingStatusClaimedEarlier,
+          thresholdClaimDateTimeFormatted,
+          currentDateTimeFormatted
+        )
       }
 
-      if (firstIDofCurrentDBEntries != null) {
-        Assertions.assertThat(sarRepository?.getReferenceById(firstIDofCurrentDBEntries)).isEqualTo(expectedUpdatedRecord)
-      }
-
-
-//      verify(sarRepository, Mockito.times(1))?.updateClaimDateTimeIfBeforeThreshold(4, thresholdClaimDateTimeFormatted, currentDateTimeFormatted)
-      //Assertions.assertThat(sarRepository?.findAll()).isEqualTo(4) //?.size).isEqualTo(4)
-      //Assertions.assertThat(sarRepository?.findAll()?.first()?.id).isEqualTo(4)
-
+      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
+      Assertions.assertThat(sarRepository?.getReferenceById(idOfSarWithPendingStatusClaimedEarlier))
+        .isEqualTo(expectedUpdatedRecord)
     }
 
-  }
-//    @Test
-//    fun `updates claimDateTime and claimAttempts if claimDateTime later than threshold`() {
-//
-//    }
-}
+    @Test
+    fun `does not update claimDateTime or claimAttempts if claimDateTime after threshold`() {
+      val thresholdClaimDateTime = "30/06/2023 00:00"
+      val thresholdClaimDateTimeFormatted = LocalDateTime.parse(thresholdClaimDateTime, dateTimeFormatter)
+      val currentDateTime = "01/02/2024 00:00"
+      val currentDateTimeFormatted = LocalDateTime.parse(currentDateTime, dateTimeFormatter)
 
+      databaseInsert()
+
+      val idOfClaimedSarWithPendingStatusAfterThreshold = sarRepository?.findAll()?.first()?.id?.plus(1)
+      val expectedUpdatedRecord = SubjectAccessRequest(
+        id = idOfClaimedSarWithPendingStatusAfterThreshold,
+        status = Status.Pending,
+        dateFrom = dateFromFormatted,
+        dateTo = dateToFormatted,
+        sarCaseReferenceNumber = "1234abc",
+        services = "{1,2,4}",
+        nomisId = "",
+        ndeliusCaseReferenceId = "1",
+        requestedBy = "Test",
+        requestDateTime = requestTimeFormatted,
+        claimAttempts = 1,
+        claimDateTime = claimDateTimeFormatted,
+      )
+
+      if (idOfClaimedSarWithPendingStatusAfterThreshold != null) {
+        sarRepository?.updateClaimDateTimeIfBeforeThreshold(
+          idOfClaimedSarWithPendingStatusAfterThreshold,
+          thresholdClaimDateTimeFormatted,
+          currentDateTimeFormatted
+        )
+      }
+
+      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
+      Assertions.assertThat(sarRepository?.getReferenceById(idOfClaimedSarWithPendingStatusAfterThreshold))
+        .isEqualTo(expectedUpdatedRecord)
+    }
+  }
+}
