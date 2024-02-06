@@ -19,7 +19,7 @@ class SubjectAccessRequestService(
   fun createSubjectAccessRequestPost(
     request: String,
     authentication: Authentication,
-    requestTime: LocalDateTime?
+    requestTime: LocalDateTime?,
   ): String {
     val json = JSONObject(request)
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -57,7 +57,7 @@ class SubjectAccessRequestService(
 
   fun updateSubjectAccessRequest(id: Int, time: Boolean, timeNow: LocalDateTime? = LocalDateTime.now(), status: Status?): Int {
     if (time) {
-      if (timeNow != null){
+      if (timeNow != null) {
         val thresholdTime = timeNow.minusMinutes(5)
         return sarDbGateway.updateSubjectAccessRequest(id, thresholdTime, timeNow, null)
       }

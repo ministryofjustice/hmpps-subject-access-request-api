@@ -212,6 +212,7 @@ class SubjectAccessRequestRepositoryTest {
         .isEqualTo(expectedUpdatedRecord)
     }
   }
+
   @Nested
   inner class updateSubjectAccessRequestWithCompletedStatus {
     @Test
@@ -219,7 +220,7 @@ class SubjectAccessRequestRepositoryTest {
       databaseInsert()
 
       val idOfSarWithPendingStatusClaimedEarlier = sarRepository?.findAll()?.last()?.id
-      val  newStatus = Status.Completed
+      val newStatus = Status.Completed
       val expectedUpdatedRecord = SubjectAccessRequest(
         id = idOfSarWithPendingStatusClaimedEarlier,
         status = newStatus,
@@ -239,7 +240,7 @@ class SubjectAccessRequestRepositoryTest {
       if (idOfSarWithPendingStatusClaimedEarlier != null) {
         numberOfDbRecordsUpdated = sarRepository?.updateStatus(
           idOfSarWithPendingStatusClaimedEarlier,
-          newStatus
+          newStatus,
         )!!
       }
 
