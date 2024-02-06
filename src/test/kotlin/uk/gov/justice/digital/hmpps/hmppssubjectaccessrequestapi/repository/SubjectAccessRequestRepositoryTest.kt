@@ -214,9 +214,9 @@ class SubjectAccessRequestRepositoryTest {
   }
 
   @Nested
-  inner class updateSubjectAccessRequestWithCompletedStatus {
+  inner class updateStatus {
     @Test
-    fun `updates status if status is provided`() {
+    fun `updates status`() {
       databaseInsert()
 
       val idOfSarWithPendingStatusClaimedEarlier = sarRepository?.findAll()?.last()?.id

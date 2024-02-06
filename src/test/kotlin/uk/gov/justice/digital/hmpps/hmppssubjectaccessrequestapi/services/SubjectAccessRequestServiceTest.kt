@@ -74,7 +74,7 @@ class SubjectAccessRequestServiceTest {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected = ""
       val result: String = SubjectAccessRequestService(sarGateway)
-        .createSubjectAccessRequestPost(ndeliusRequest, authentication, requestTime)
+        .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
       verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
     }
@@ -85,7 +85,7 @@ class SubjectAccessRequestServiceTest {
       val expected =
         "Both nomisId and ndeliusId are provided - exactly one is required"
       val result: String = SubjectAccessRequestService(sarGateway)
-        .createSubjectAccessRequestPost(ndeliusAndNomisRequest, authentication, requestTime)
+        .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
     }
@@ -96,7 +96,7 @@ class SubjectAccessRequestServiceTest {
       val expected =
         "Neither nomisId nor ndeliusId is provided - exactly one is required"
       val result: String = SubjectAccessRequestService(sarGateway)
-        .createSubjectAccessRequestPost(noIDRequest, authentication, requestTime)
+        .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
     }
@@ -114,14 +114,14 @@ class SubjectAccessRequestServiceTest {
       val fiveMinutesAgo = "02/01/2024 00:25"
       val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
       SubjectAccessRequestService(sarGateway)
-        .updateSubjectAccessRequestClaim(1, formattedMockedCurrentTime)
+        .claimSubjectAccessRequest(1, formattedMockedCurrentTime)
       verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(1, fiveMinutesAgoFormatted, formattedMockedCurrentTime)
     }
 
     @Test
     fun `updateSubjectAccessRequest calls gateway update method with status`() {
       SubjectAccessRequestService(sarGateway)
-        .updateSubjectAccessRequestStatusCompleted(1)
+        .completeSubjectAccessRequest(1)
       verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(1)
     }
   }

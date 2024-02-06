@@ -23,9 +23,9 @@ import java.time.LocalDateTime
 @RequestMapping("/api/")
 class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService) {
   @PostMapping("createSubjectAccessRequest")
-  fun createSubjectAccessRequestPost(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
+  fun createSubjectAccessRequest(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
-    val response = subjectAccessRequestService.createSubjectAccessRequestPost(request, authentication, requestTime)
+    val response = subjectAccessRequestService.createSubjectAccessRequest(request, authentication, requestTime)
     return if (response == "") {
       ResponseEntity(response, HttpStatus.OK)
     } else {
@@ -40,9 +40,9 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     return response
   }
 
-  @PatchMapping("subjectAccessRequest/{id}/claim")
+  @PatchMapping("subjectAccessRequests/{id}/claim")
   fun claimSubjectAccessRequest(@PathVariable("id") id: Int): Int {
-    val response = subjectAccessRequestService.updateSubjectAccessRequestClaim(id)
+    val response = subjectAccessRequestService.claimSubjectAccessRequest(id)
     // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
       400
@@ -51,9 +51,9 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     }
   }
 
-  @PatchMapping("subjectAccessRequest/{id}/complete")
+  @PatchMapping("subjectAccessRequests/{id}/complete")
   fun completeSubjectAccessRequest(@PathVariable("id") id: Int): Int {
-    val response = subjectAccessRequestService.updateSubjectAccessRequestStatusCompleted(id)
+    val response = subjectAccessRequestService.completeSubjectAccessRequest(id)
     // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
       400

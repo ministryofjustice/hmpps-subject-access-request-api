@@ -16,7 +16,7 @@ class SubjectAccessRequestService(
   @Autowired val sarDbGateway: SubjectAccessRequestGateway,
 ) {
 
-  fun createSubjectAccessRequestPost(
+  fun createSubjectAccessRequest(
     request: String,
     authentication: Authentication,
     requestTime: LocalDateTime?,
@@ -55,12 +55,12 @@ class SubjectAccessRequestService(
     return subjectAccessRequests
   }
 
-  fun updateSubjectAccessRequestClaim(id: Int, time: LocalDateTime? = LocalDateTime.now()): Int {
+  fun claimSubjectAccessRequest(id: Int, time: LocalDateTime? = LocalDateTime.now()): Int {
     val thresholdTime = time!!.minusMinutes(5)
     return sarDbGateway.updateSubjectAccessRequestClaim(id, thresholdTime, time)
   }
 
-  fun updateSubjectAccessRequestStatusCompleted(id: Int): Int {
+  fun completeSubjectAccessRequest(id: Int): Int {
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 }
