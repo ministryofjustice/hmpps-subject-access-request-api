@@ -100,8 +100,16 @@ class SubjectAccessRequestGatewayTest {
       val thresholdTime = "30/06/2023 00:00"
       val thresholdTimeFormatted = LocalDateTime.parse(thresholdTime, dateTimeFormatter)
       SubjectAccessRequestGateway(sarRepository)
-        .updateSubjectAccessRequest(1, thresholdTimeFormatted, formattedMockedCurrentTime)
+        .updateSubjectAccessRequest(1, thresholdTimeFormatted, status = null, formattedMockedCurrentTime)
       verify(sarRepository, times(1)).updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(1, thresholdTimeFormatted, formattedMockedCurrentTime)
+    }
+
+    @Test
+    fun `calls updateStatus with correct parameters`() {
+      val status = Status.Completed
+      SubjectAccessRequestGateway(sarRepository)
+        .updateSubjectAccessRequest(1, thresholdTime = null, status)
+      verify(sarRepository, times(1)).updateStatus(1, status)
     }
   }
 }

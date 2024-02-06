@@ -23,8 +23,14 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {
     repo.save(sar)
   }
-  fun updateSubjectAccessRequest(id: Int, thresholdTime: LocalDateTime, currentTime: LocalDateTime = LocalDateTime.now()): Int {
-    val result = repo.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(id, thresholdTime, currentTime)
+  fun updateSubjectAccessRequest(id: Int, thresholdTime: LocalDateTime?, status: Status?, currentTime: LocalDateTime = LocalDateTime.now()): Int {
+    var result = 0
+    if (thresholdTime != null) {
+      result = repo.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(id, thresholdTime, currentTime)
+    } else if (status != null) {
+      result = repo.updateStatus(id, status)
+    }
+
     return result
   }
 }
