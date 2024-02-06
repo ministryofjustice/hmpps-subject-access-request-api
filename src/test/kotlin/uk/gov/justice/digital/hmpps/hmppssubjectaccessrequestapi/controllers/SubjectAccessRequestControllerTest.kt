@@ -9,7 +9,6 @@ import org.mockito.Mockito.verify
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
@@ -122,19 +121,19 @@ class SubjectAccessRequestControllerTest {
 
     @Test
     fun `patch subjectAccessRequestStatus returns 400 if completeSubjectAccessRequest returns 0 with status update`() {
-      Mockito.`when`(sarService.updateSubjectAccessRequestStatus(1)).thenReturn(0)
+      Mockito.`when`(sarService.updateSubjectAccessRequestStatusCompleted(1)).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService)
         .completeSubjectAccessRequest(1)
-      verify(sarService, times(1)).updateSubjectAccessRequestStatus(1)
+      verify(sarService, times(1)).updateSubjectAccessRequestStatusCompleted(1)
       Assertions.assertThat(result).isEqualTo(400)
     }
 
     @Test
     fun `patch subjectAccessRequest returns 200 if completeSubjectAccessRequest returns 1 with status update`() {
-      Mockito.`when`(sarService.updateSubjectAccessRequestStatus(1)).thenReturn(1)
+      Mockito.`when`(sarService.updateSubjectAccessRequestStatusCompleted(1)).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService)
         .completeSubjectAccessRequest(1)
-      verify(sarService, times(1)).updateSubjectAccessRequestStatus(1)
+      verify(sarService, times(1)).updateSubjectAccessRequestStatusCompleted(1)
       Assertions.assertThat(result).isEqualTo(200)
     }
   }

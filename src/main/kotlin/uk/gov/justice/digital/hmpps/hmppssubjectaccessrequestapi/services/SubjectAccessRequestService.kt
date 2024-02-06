@@ -60,7 +60,7 @@ class SubjectAccessRequestService(
     return sarDbGateway.updateSubjectAccessRequestClaim(id, thresholdTime, time)
   }
 
-  fun updateSubjectAccessRequestStatus(id: Int): Int {
+  fun updateSubjectAccessRequestStatusCompleted(id: Int): Int {
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 }

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
@@ -54,7 +53,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
 
   @PatchMapping("subjectAccessRequest/{id}/complete")
   fun completeSubjectAccessRequest(@PathVariable("id") id: Int): Int {
-    val response = subjectAccessRequestService.updateSubjectAccessRequestStatus(id)
+    val response = subjectAccessRequestService.updateSubjectAccessRequestStatusCompleted(id)
     // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
       400
