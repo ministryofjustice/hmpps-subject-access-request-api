@@ -24,7 +24,7 @@ class SubjectAccessRequestGatewayTest {
   private val requestTime = "01/01/2024 00:00"
   private val requestTimeFormatted = LocalDateTime.parse(requestTime, dateTimeFormatter)
   private val unclaimedSar = SubjectAccessRequest(
-    id = null,
+    id = 1,
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -37,11 +37,10 @@ class SubjectAccessRequestGatewayTest {
     claimAttempts = 0,
   )
   private val mockSarsWithNoClaims = listOf(unclaimedSar, unclaimedSar, unclaimedSar)
+  private val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
 
   @Nested
   inner class getSubjectAccessRequests {
-    private val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
-    private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
     @Test
     fun `calls findAll if unclaimed is false`() {
@@ -89,6 +88,28 @@ class SubjectAccessRequestGatewayTest {
         .getSubjectAccessRequests(unclaimedOnly = true, formattedMockedCurrentTime)
       verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, expiredClaimDateTimeFormatted)
       Assertions.assertTrue(result.size == 3)
+    }
+  }
+
+  @Nested
+  inner class updateSubjectAccessRequest {
+    @Test
+    fun `calls updateClaimDateTimeIfBeforeThreshold with correct parameters`() {
+      val mockedCurrentTime = "02/01/2024 00:00"
+      val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
+      val thresholdTime = "30/06/2023 00:00"
+      val thresholdTimeFormatted = LocalDateTime.parse(thresholdTime, dateTimeFormatter)
+      SubjectAccessRequestGateway(sarRepository)
+        .updateSubjectAccessRequestClaim(1, thresholdTimeFormatted, formattedMockedCurrentTime)
+      verify(sarRepository, times(1)).updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(1, thresholdTimeFormatted, formattedMockedCurrentTime)
+    }
+
+    @Test
+    fun `calls updateStatus with correct parameters`() {
+      val status = Status.Completed
+      SubjectAccessRequestGateway(sarRepository)
+        .updateSubjectAccessRequestStatusCompleted(1)
+      verify(sarRepository, times(1)).updateStatus(1, status)
     }
   }
 }

@@ -19,7 +19,17 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
     val response = repo.findAll()
     return response
   }
+
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {
     repo.save(sar)
+  }
+  fun updateSubjectAccessRequestClaim(id: Int, thresholdTime: LocalDateTime, currentTime: LocalDateTime): Int {
+    val result = repo.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(id, thresholdTime, currentTime)
+    return result
+  }
+
+  fun updateSubjectAccessRequestStatusCompleted(id: Int): Int {
+    val result = repo.updateStatus(id, Status.Completed)
+    return result
   }
 }

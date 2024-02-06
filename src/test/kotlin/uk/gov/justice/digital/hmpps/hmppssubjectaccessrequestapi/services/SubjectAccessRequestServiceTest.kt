@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
 import org.assertj.core.api.Assertions
 import org.json.JSONObject
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
@@ -66,35 +67,62 @@ class SubjectAccessRequestServiceTest {
   private val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
 
-  @Test
-  fun `createSubjectAccessRequestPost and returns empty string`() {
-    Mockito.`when`(authentication.name).thenReturn("aName")
-    val expected = ""
-    val result: String = SubjectAccessRequestService(sarGateway)
-      .createSubjectAccessRequestPost(ndeliusRequest, authentication, requestTime)
-    verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
-    Assertions.assertThat(result).isEqualTo(expected)
+  @Nested
+  inner class createSubjectAccessRequestPost {
+    @Test
+    fun `createSubjectAccessRequestPost and returns empty string`() {
+      Mockito.`when`(authentication.name).thenReturn("aName")
+      val expected = ""
+      val result: String = SubjectAccessRequestService(sarGateway)
+        .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
+      verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
+      Assertions.assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun `createSubjectAccessRequestPost returns error string if both IDs are supplied`() {
+      Mockito.`when`(authentication.name).thenReturn("aName")
+      val expected =
+        "Both nomisId and ndeliusId are provided - exactly one is required"
+      val result: String = SubjectAccessRequestService(sarGateway)
+        .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
+      verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
+      Assertions.assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun `createSubjectAccessRequestPost returns error string if neither ID is supplied`() {
+      Mockito.`when`(authentication.name).thenReturn("aName")
+      val expected =
+        "Neither nomisId nor ndeliusId is provided - exactly one is required"
+      val result: String = SubjectAccessRequestService(sarGateway)
+        .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
+      verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
+      Assertions.assertThat(result).isEqualTo(expected)
+    }
   }
 
-  @Test
-  fun `createSubjectAccessRequestPost returns error string if both IDs are supplied`() {
-    Mockito.`when`(authentication.name).thenReturn("aName")
-    val expected =
-      "Both nomisId and ndeliusId are provided - exactly one is required"
-    val result: String = SubjectAccessRequestService(sarGateway)
-      .createSubjectAccessRequestPost(ndeliusAndNomisRequest, authentication, requestTime)
-    verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
-    Assertions.assertThat(result).isEqualTo(expected)
-  }
+  @Nested
+  inner class updateSubjectAccessRequest {
 
-  @Test
-  fun `createSubjectAccessRequestPost returns error string if neither ID is supplied`() {
-    Mockito.`when`(authentication.name).thenReturn("aName")
-    val expected =
-      "Neither nomisId nor ndeliusId is provided - exactly one is required"
-    val result: String = SubjectAccessRequestService(sarGateway)
-      .createSubjectAccessRequestPost(noIDRequest, authentication, requestTime)
-    verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
-    Assertions.assertThat(result).isEqualTo(expected)
+    private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+
+    @Test
+    fun `updateSubjectAccessRequest calls gateway update method with time 5 minutes ago`() {
+      val mockedCurrentTime = "02/01/2024 00:30"
+      val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
+      val fiveMinutesAgo = "02/01/2024 00:25"
+      val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
+      SubjectAccessRequestService(sarGateway)
+        .claimSubjectAccessRequest(1, formattedMockedCurrentTime)
+      verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(1, fiveMinutesAgoFormatted, formattedMockedCurrentTime)
+    }
+
+    @Test
+    fun `updateSubjectAccessRequest calls gateway update method with status`() {
+      SubjectAccessRequestService(sarGateway)
+        .completeSubjectAccessRequest(1)
+      verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(1)
+    }
   }
 }
