@@ -114,7 +114,7 @@ class SubjectAccessRequestServiceTest {
       val fiveMinutesAgo = "02/01/2024 00:25"
       val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
       SubjectAccessRequestService(sarGateway)
-        .updateSubjectAccessRequestClaim(1, time = formattedMockedCurrentTime)
+        .updateSubjectAccessRequestClaim(1, formattedMockedCurrentTime)
       verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(1, fiveMinutesAgoFormatted, formattedMockedCurrentTime)
     }
 

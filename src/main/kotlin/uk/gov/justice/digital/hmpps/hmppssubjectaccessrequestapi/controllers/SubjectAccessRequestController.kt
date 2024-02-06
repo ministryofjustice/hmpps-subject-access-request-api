@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -33,21 +34,27 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     }
   }
 
-  @GetMapping("subjectAccessRequest")
+  @GetMapping("subjectAccessRequests")
   fun getSubjectAccessRequests(@RequestParam(required = false, name = "unclaimed") unclaimed: Boolean = false): List<SubjectAccessRequest?> {
     val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
     // auditService.createEvent(SAR DEETS)
     return response
   }
 
-  @PatchMapping("subjectAccessRequest")
-  fun updateSubjectAccessRequest(@RequestParam(name = "id") id: Int, @RequestParam(name = "time") time: LocalDateTime?): Int {
-    val response: Int
-    if (time != null) {
-      response = subjectAccessRequestService.updateSubjectAccessRequestClaim(id, time)
+  @PatchMapping("subjectAccessRequest/{id}/claim")
+  fun claimSubjectAccessRequest(@PathVariable("id") id: Int): Int {
+    val response = subjectAccessRequestService.updateSubjectAccessRequestClaim(id)
+    // auditService.createEvent(SAR DEETS)
+    return if (response == 0) {
+      400
     } else {
-      response = subjectAccessRequestService.updateSubjectAccessRequestStatus(id)
+      200
     }
+  }
+
+  @PatchMapping("subjectAccessRequest/{id}/complete")
+  fun completeSubjectAccessRequest(@PathVariable("id") id: Int): Int {
+    val response = subjectAccessRequestService.updateSubjectAccessRequestStatus(id)
     // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
       400

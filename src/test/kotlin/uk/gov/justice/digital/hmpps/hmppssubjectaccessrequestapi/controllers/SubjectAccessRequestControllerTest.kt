@@ -101,10 +101,10 @@ class SubjectAccessRequestControllerTest {
       val mockedCurrentTime = "02/01/2024 00:30"
       val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, formatter)
-      Mockito.`when`(sarService.updateSubjectAccessRequestClaim(1, time = formattedMockedCurrentTime)).thenReturn(0)
+      Mockito.`when`(sarService.updateSubjectAccessRequestClaim(1)).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService)
-        .updateSubjectAccessRequest(1, time = formattedMockedCurrentTime)
-      verify(sarService, times(1)).updateSubjectAccessRequestClaim(1, time = formattedMockedCurrentTime)
+        .claimSubjectAccessRequest(1)
+      verify(sarService, times(1)).updateSubjectAccessRequestClaim(1)
       Assertions.assertThat(result).isEqualTo(400)
     }
 
@@ -113,27 +113,27 @@ class SubjectAccessRequestControllerTest {
       val mockedCurrentTime = "02/01/2024 00:30"
       val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, formatter)
-      Mockito.`when`(sarService.updateSubjectAccessRequestClaim(1, time = formattedMockedCurrentTime)).thenReturn(1)
+      Mockito.`when`(sarService.updateSubjectAccessRequestClaim(1)).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService)
-        .updateSubjectAccessRequest(1, time = formattedMockedCurrentTime)
-      verify(sarService, times(1)).updateSubjectAccessRequestClaim(1, time = formattedMockedCurrentTime)
+        .claimSubjectAccessRequest(1)
+      verify(sarService, times(1)).updateSubjectAccessRequestClaim(1)
       Assertions.assertThat(result).isEqualTo(200)
     }
 
     @Test
-    fun `patch subjectAccessRequestStatus returns 400 if updateSubjectAccessRequest returns 0 with status update`() {
+    fun `patch subjectAccessRequestStatus returns 400 if completeSubjectAccessRequest returns 0 with status update`() {
       Mockito.`when`(sarService.updateSubjectAccessRequestStatus(1)).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService)
-        .updateSubjectAccessRequest(1, time = null)
+        .completeSubjectAccessRequest(1)
       verify(sarService, times(1)).updateSubjectAccessRequestStatus(1)
       Assertions.assertThat(result).isEqualTo(400)
     }
 
     @Test
-    fun `patch subjectAccessRequest returns 200 if updateSubjectAccessRequest returns 1 with status update`() {
+    fun `patch subjectAccessRequest returns 200 if completeSubjectAccessRequest returns 1 with status update`() {
       Mockito.`when`(sarService.updateSubjectAccessRequestStatus(1)).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService)
-        .updateSubjectAccessRequest(1, time = null)
+        .completeSubjectAccessRequest(1)
       verify(sarService, times(1)).updateSubjectAccessRequestStatus(1)
       Assertions.assertThat(result).isEqualTo(200)
     }
