@@ -120,7 +120,6 @@ class SubjectAccessRequestServiceTest {
 
     @Test
     fun `updateSubjectAccessRequest calls gateway update method with status`() {
-      val newStatus = Status.Completed
       SubjectAccessRequestService(sarGateway)
         .updateSubjectAccessRequestStatusCompleted(1)
       verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(1)

@@ -4,8 +4,7 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -14,6 +13,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditS
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
 
 class SubjectAccessRequestControllerTest {
   private val requestTime = LocalDateTime.now()
@@ -100,10 +100,10 @@ class SubjectAccessRequestControllerTest {
       val mockedCurrentTime = "02/01/2024 00:30"
       val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, formatter)
-      Mockito.`when`(sarService.updateSubjectAccessRequestClaim(1)).thenReturn(0)
+      Mockito.`when`(sarService.updateSubjectAccessRequestClaim(eq(1), any(LocalDateTime::class.java))).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService)
         .claimSubjectAccessRequest(1)
-      verify(sarService, times(1)).updateSubjectAccessRequestClaim(1)
+      verify(sarService, times(1)).updateSubjectAccessRequestClaim(eq(1), any(LocalDateTime::class.java))
       Assertions.assertThat(result).isEqualTo(400)
     }
 
@@ -112,10 +112,10 @@ class SubjectAccessRequestControllerTest {
       val mockedCurrentTime = "02/01/2024 00:30"
       val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, formatter)
-      Mockito.`when`(sarService.updateSubjectAccessRequestClaim(1)).thenReturn(1)
+      Mockito.`when`(sarService.updateSubjectAccessRequestClaim(eq(1), any(LocalDateTime::class.java))).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService)
         .claimSubjectAccessRequest(1)
-      verify(sarService, times(1)).updateSubjectAccessRequestClaim(1)
+      verify(sarService, times(1)).updateSubjectAccessRequestClaim(eq(1), any(LocalDateTime::class.java))
       Assertions.assertThat(result).isEqualTo(200)
     }
 
