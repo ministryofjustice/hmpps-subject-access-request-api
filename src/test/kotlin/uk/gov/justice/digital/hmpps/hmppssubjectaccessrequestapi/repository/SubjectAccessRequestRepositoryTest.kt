@@ -212,4 +212,41 @@ class SubjectAccessRequestRepositoryTest {
         .isEqualTo(expectedUpdatedRecord)
     }
   }
+  @Nested
+  inner class updateSubjectAccessRequestWithCompletedStatus {
+    @Test
+    fun `updates status if status is provided`() {
+      databaseInsert()
+
+      val idOfSarWithPendingStatusClaimedEarlier = sarRepository?.findAll()?.last()?.id
+      val  newStatus = Status.Completed
+      val expectedUpdatedRecord = SubjectAccessRequest(
+        id = idOfSarWithPendingStatusClaimedEarlier,
+        status = newStatus,
+        dateFrom = dateFromFormatted,
+        dateTo = dateToFormatted,
+        sarCaseReferenceNumber = "1234abc",
+        services = "{1,2,4}",
+        nomisId = "",
+        ndeliusCaseReferenceId = "1",
+        requestedBy = "Test",
+        requestDateTime = requestTimeFormatted,
+        claimAttempts = 1,
+        claimDateTime = claimDateTimeEarlierFormatted,
+      )
+
+      var numberOfDbRecordsUpdated = 0
+      if (idOfSarWithPendingStatusClaimedEarlier != null) {
+        numberOfDbRecordsUpdated = sarRepository?.updateStatus(
+          idOfSarWithPendingStatusClaimedEarlier,
+          newStatus
+        )!!
+      }
+
+      Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
+      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
+      Assertions.assertThat(sarRepository?.getReferenceById(idOfSarWithPendingStatusClaimedEarlier))
+        .isEqualTo(expectedUpdatedRecord)
+    }
+  }
 }

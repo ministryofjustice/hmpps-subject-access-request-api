@@ -22,4 +22,13 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, I
       "WHERE (report.id = :id AND report.claimDateTime < :releaseThreshold) OR (report.id = :id AND report.claimDateTime = null)",
   )
   fun updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(@Param("id") id: Int, @Param("releaseThreshold") releaseThreshold: LocalDateTime, @Param("currentTime") currentTime: LocalDateTime): Int
+
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query(
+    "UPDATE SubjectAccessRequest report " +
+      "SET report.status = :status " +
+      "WHERE (report.id = :id)",
+  )
+  fun updateStatus(@Param("id") id: Int, @Param("status") status: Status): Int
+
 }
