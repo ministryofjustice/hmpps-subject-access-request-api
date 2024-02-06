@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
@@ -40,12 +41,12 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   }
 
   @PatchMapping("subjectAccessRequest")
-  fun updateSubjectAccessRequest(@RequestParam(name = "id") id: Int, time: LocalDateTime?): Int {
-    val response: Int
+  fun updateSubjectAccessRequest(@RequestParam(name = "id") id: Int, @RequestParam(name = "time") time: Boolean? = false, @RequestParam(name = "timeNow") timeNow: LocalDateTime?, @RequestParam(name = "status") status: Status?): Int {
+    var response = 0
     if (time != null) {
-      response = subjectAccessRequestService.updateSubjectAccessRequest(id, time, status = null)
-    } else {
-      response = subjectAccessRequestService.updateSubjectAccessRequest(id, status = null)
+      response = subjectAccessRequestService.updateSubjectAccessRequest(id, time, timeNow, status = null)
+    } else if (status != null) {
+      response = subjectAccessRequestService.updateSubjectAccessRequest(id, time = false, timeNow = null, status)
     }
     // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
