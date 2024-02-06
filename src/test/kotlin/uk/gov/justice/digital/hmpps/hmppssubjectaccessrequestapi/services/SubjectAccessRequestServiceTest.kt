@@ -114,16 +114,16 @@ class SubjectAccessRequestServiceTest {
       val fiveMinutesAgo = "02/01/2024 00:25"
       val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
       SubjectAccessRequestService(sarGateway)
-        .updateSubjectAccessRequest(1, time = true, formattedMockedCurrentTime, status = null)
-      verify(sarGateway, times(1)).updateSubjectAccessRequest(1, fiveMinutesAgoFormatted, formattedMockedCurrentTime, status = null)
+        .updateSubjectAccessRequestClaim(1, time = formattedMockedCurrentTime)
+      verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(1, fiveMinutesAgoFormatted, formattedMockedCurrentTime)
     }
 
     @Test
     fun `updateSubjectAccessRequest calls gateway update method with status`() {
       val newStatus = Status.Completed
       SubjectAccessRequestService(sarGateway)
-        .updateSubjectAccessRequest(1, time = false, timeNow = null, newStatus)
-      verify(sarGateway, times(1)).updateSubjectAccessRequest(1, thresholdTime = null, currentTime = null, newStatus)
+        .updateSubjectAccessRequestStatus(1)
+      verify(sarGateway, times(1)).updateSubjectAccessRequestStatus(1)
     }
   }
 }

@@ -55,15 +55,12 @@ class SubjectAccessRequestService(
     return subjectAccessRequests
   }
 
-  fun updateSubjectAccessRequest(id: Int, time: Boolean, timeNow: LocalDateTime? = LocalDateTime.now(), status: Status?): Int {
-    if (time) {
-      if (timeNow != null) {
-        val thresholdTime = timeNow.minusMinutes(5)
-        return sarDbGateway.updateSubjectAccessRequest(id, thresholdTime, timeNow, null)
-      }
-    } else {
-      return sarDbGateway.updateSubjectAccessRequest(id, null, null, status)
-    }
-    return 0
+  fun updateSubjectAccessRequestClaim(id: Int, time: LocalDateTime): Int {
+    val thresholdTime = time.minusMinutes(5)
+    return sarDbGateway.updateSubjectAccessRequestClaim(id, thresholdTime, time)
+  }
+
+  fun updateSubjectAccessRequestStatus(id: Int): Int {
+    return sarDbGateway.updateSubjectAccessRequestStatus(id)
   }
 }

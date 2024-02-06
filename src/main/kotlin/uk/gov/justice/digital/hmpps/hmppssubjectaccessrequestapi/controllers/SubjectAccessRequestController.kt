@@ -41,12 +41,12 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   }
 
   @PatchMapping("subjectAccessRequest")
-  fun updateSubjectAccessRequest(@RequestParam(name = "id") id: Int, @RequestParam(name = "time") time: Boolean? = false, @RequestParam(name = "timeNow") timeNow: LocalDateTime?, @RequestParam(name = "status") status: Status?): Int {
-    var response = 0
+  fun updateSubjectAccessRequest(@RequestParam(name = "id") id: Int, @RequestParam(name = "time") time: LocalDateTime?): Int {
+    val response: Int
     if (time != null) {
-      response = subjectAccessRequestService.updateSubjectAccessRequest(id, time, timeNow, status = null)
-    } else if (status != null) {
-      response = subjectAccessRequestService.updateSubjectAccessRequest(id, time = false, timeNow = null, status)
+      response = subjectAccessRequestService.updateSubjectAccessRequestClaim(id, time)
+    } else {
+      response = subjectAccessRequestService.updateSubjectAccessRequestStatus(id)
     }
     // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
