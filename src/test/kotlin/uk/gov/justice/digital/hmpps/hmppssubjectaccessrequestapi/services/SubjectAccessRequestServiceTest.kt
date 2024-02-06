@@ -123,7 +123,7 @@ class SubjectAccessRequestServiceTest {
       val newStatus = Status.Completed
       SubjectAccessRequestService(sarGateway)
         .updateSubjectAccessRequestStatus(1)
-      verify(sarGateway, times(1)).updateSubjectAccessRequestStatus(1)
+      verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(1)
     }
   }
 }

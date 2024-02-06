@@ -28,7 +28,7 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
     return result
   }
 
-  fun updateSubjectAccessRequestStatus(id: Int): Int {
+  fun updateSubjectAccessRequestStatusCompleted(id: Int): Int {
     val result = repo.updateStatus(id, Status.Completed)
     return result
   }

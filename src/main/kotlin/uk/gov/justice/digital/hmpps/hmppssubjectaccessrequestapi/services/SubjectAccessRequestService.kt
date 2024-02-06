@@ -61,6 +61,6 @@ class SubjectAccessRequestService(
   }
 
   fun updateSubjectAccessRequestStatus(id: Int): Int {
-    return sarDbGateway.updateSubjectAccessRequestStatus(id)
+    return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 }
