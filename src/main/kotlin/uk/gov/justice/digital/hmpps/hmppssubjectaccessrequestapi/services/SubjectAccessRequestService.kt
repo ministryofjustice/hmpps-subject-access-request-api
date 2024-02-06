@@ -16,7 +16,11 @@ class SubjectAccessRequestService(
   @Autowired val sarDbGateway: SubjectAccessRequestGateway,
 ) {
 
-  fun createSubjectAccessRequestPost(request: String, authentication: Authentication, requestTime: LocalDateTime?): String {
+  fun createSubjectAccessRequestPost(
+    request: String,
+    authentication: Authentication,
+    requestTime: LocalDateTime?
+  ): String {
     val json = JSONObject(request)
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val dateFrom = json.get("dateFrom").toString()
@@ -45,13 +49,19 @@ class SubjectAccessRequestService(
     )
     return "" // Maybe want to return Report ID?
   }
+
   fun getSubjectAccessRequests(unclaimedOnly: Boolean): List<SubjectAccessRequest?> {
     val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly)
     return subjectAccessRequests
   }
 
-  fun updateSubjectAccessRequest(id: Int, time: LocalDateTime = LocalDateTime.now()): Int {
-    val thresholdTime = time.minusMinutes(5)
-    return sarDbGateway.updateSubjectAccessRequest(id, thresholdTime, status = null)
+  fun updateSubjectAccessRequest(id: Int, time: LocalDateTime? = LocalDateTime.now(), status: Status?): Int {
+    if (time != null) {
+      val thresholdTime = time.minusMinutes(5)
+      return sarDbGateway.updateSubjectAccessRequest(id, thresholdTime, status = null)
+    } else if (status != null) {
+      return sarDbGateway.updateSubjectAccessRequest(id, thresholdTime = null, status = status)
+    }
+    return 0
   }
 }

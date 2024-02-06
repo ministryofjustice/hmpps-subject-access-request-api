@@ -43,9 +43,9 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   fun updateSubjectAccessRequest(@RequestParam(name = "id") id: Int, time: LocalDateTime?): Int {
     val response: Int
     if (time != null) {
-      response = subjectAccessRequestService.updateSubjectAccessRequest(id, time)
+      response = subjectAccessRequestService.updateSubjectAccessRequest(id, time, status = null)
     } else {
-      response = subjectAccessRequestService.updateSubjectAccessRequest(id)
+      response = subjectAccessRequestService.updateSubjectAccessRequest(id, status = null)
     }
     // auditService.createEvent(SAR DEETS)
     return if (response == 0) {

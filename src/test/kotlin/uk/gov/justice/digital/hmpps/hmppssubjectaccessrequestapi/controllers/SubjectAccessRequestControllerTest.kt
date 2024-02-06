@@ -96,19 +96,19 @@ class SubjectAccessRequestControllerTest {
   inner class patchSubjectAccessRequest {
     @Test
     fun `patch subjectAccessRequest returns 400 if updateSubjectAccessRequest returns 0`() {
-      Mockito.`when`(sarService.updateSubjectAccessRequest(1, requestTime)).thenReturn(0)
+      Mockito.`when`(sarService.updateSubjectAccessRequest(1, requestTime, status = null)).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService)
         .updateSubjectAccessRequest(1, requestTime)
-      verify(sarService, times(1)).updateSubjectAccessRequest(1, requestTime)
+      verify(sarService, times(1)).updateSubjectAccessRequest(1, requestTime, status = null)
       Assertions.assertThat(result).isEqualTo(400)
     }
 
     @Test
     fun `patch subjectAccessRequest returns 200 if updateSubjectAccessRequest returns 1`() {
-      Mockito.`when`(sarService.updateSubjectAccessRequest(1, requestTime)).thenReturn(1)
+      Mockito.`when`(sarService.updateSubjectAccessRequest(1, requestTime, status = null)).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService)
         .updateSubjectAccessRequest(1, requestTime)
-      verify(sarService, times(1)).updateSubjectAccessRequest(1, requestTime)
+      verify(sarService, times(1)).updateSubjectAccessRequest(1, requestTime, status = null)
       Assertions.assertThat(result).isEqualTo(200)
     }
   }
