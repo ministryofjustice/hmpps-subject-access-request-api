@@ -4,6 +4,7 @@ import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
@@ -14,6 +15,7 @@ import java.time.format.DateTimeFormatter
 @Service
 class SubjectAccessRequestService(
   @Autowired val sarDbGateway: SubjectAccessRequestGateway,
+  @Autowired val documentStorageGateway: DocumentStorageGateway
 ) {
 
   fun createSubjectAccessRequest(
@@ -58,6 +60,10 @@ class SubjectAccessRequestService(
   fun claimSubjectAccessRequest(id: Int, time: LocalDateTime? = LocalDateTime.now()): Int {
     val thresholdTime = time!!.minusMinutes(5)
     return sarDbGateway.updateSubjectAccessRequestClaim(id, thresholdTime, time)
+  }
+
+  fun retrieveSubjectAccessRequestDocument(sarId: String) {
+    documentStorageGateway.retrieveDocument("SAR_$sarId")
   }
 
   fun completeSubjectAccessRequest(id: Int): Int {
