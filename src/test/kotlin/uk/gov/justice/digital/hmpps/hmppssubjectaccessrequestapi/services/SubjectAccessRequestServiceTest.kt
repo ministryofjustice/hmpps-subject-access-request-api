@@ -120,7 +120,7 @@ class SubjectAccessRequestServiceTest {
       verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(
         1,
         fiveMinutesAgoFormatted,
-        formattedMockedCurrentTime
+        formattedMockedCurrentTime,
       )
     }
 
@@ -134,25 +134,28 @@ class SubjectAccessRequestServiceTest {
 
   @Nested
   inner class documentRetrieval {
-    private val expectedRetrievalResponse = JSONObject("{\n" +
-      "  \"documentUuid\": \"MockUUID\",\n" +
-      "  \"documentType\": \"HMCTS_WARRANT\",\n" +
-      "  \"documentFilename\": \"warrant_for_remand\",\n" +
-      "  \"filename\": \"warrant_for_remand\",\n" +
-      "  \"fileExtension\": \"pdf\",\n" +
-      "  \"fileSize\": 48243,\n" +
-      "  \"fileHash\": \"d58e3582afa99040e27b92b13c8f2280\",\n" +
-      "  \"mimeType\": \"pdf\",\n" +
-      "  \"metadata\": {\n" +
-      "    \"prisonCode\": \"KMI\",\n" +
-      "    \"prisonNumber\": \"C3456DE\",\n" +
-      "    \"court\": \"Birmingham Magistrates\",\n" +
-      "    \"warrantDate\": \"2023-11-14\"\n" +
-      "  },\n" +
-      "  \"createdTime\": \"2024-02-14T07:19:32.931Z\",\n" +
-      "  \"createdByServiceName\": \"Remand and Sentencing\",\n" +
-      "  \"createdByUsername\": \"AAA01U\"\n" +
-      "}")
+    private val expectedRetrievalResponse = JSONObject(
+      "{\n" +
+        "  \"documentUuid\": \"MockUUID\",\n" +
+        "  \"documentType\": \"HMCTS_WARRANT\",\n" +
+        "  \"documentFilename\": \"warrant_for_remand\",\n" +
+        "  \"filename\": \"warrant_for_remand\",\n" +
+        "  \"fileExtension\": \"pdf\",\n" +
+        "  \"fileSize\": 48243,\n" +
+        "  \"fileHash\": \"d58e3582afa99040e27b92b13c8f2280\",\n" +
+        "  \"mimeType\": \"pdf\",\n" +
+        "  \"metadata\": {\n" +
+        "    \"prisonCode\": \"KMI\",\n" +
+        "    \"prisonNumber\": \"C3456DE\",\n" +
+        "    \"court\": \"Birmingham Magistrates\",\n" +
+        "    \"warrantDate\": \"2023-11-14\"\n" +
+        "  },\n" +
+        "  \"createdTime\": \"2024-02-14T07:19:32.931Z\",\n" +
+        "  \"createdByServiceName\": \"Remand and Sentencing\",\n" +
+        "  \"createdByUsername\": \"AAA01U\"\n" +
+        "}",
+    )
+
     @Test
     fun `retrieveSubjectAccessRequestDocument calls document gateway retrieve method with id`() {
       SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument("MockUUID")
