@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 @Service
 class SubjectAccessRequestService(
@@ -57,12 +58,12 @@ class SubjectAccessRequestService(
     return subjectAccessRequests
   }
 
-  fun claimSubjectAccessRequest(id: Int, time: LocalDateTime? = LocalDateTime.now()): Int {
+  fun claimSubjectAccessRequest(id: UUID, time: LocalDateTime? = LocalDateTime.now()): Int {
     val thresholdTime = time!!.minusMinutes(5)
     return sarDbGateway.updateSubjectAccessRequestClaim(id, thresholdTime, time)
   }
 
-  fun completeSubjectAccessRequest(id: Int): Int {
+  fun completeSubjectAccessRequest(id: UUID): Int {
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 

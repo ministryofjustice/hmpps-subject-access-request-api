@@ -16,12 +16,14 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditS
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 class SubjectAccessRequestControllerTest {
   private val requestTime = LocalDateTime.now()
   private val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
   private val auditService = Mockito.mock(AuditService::class.java)
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
+  private val uuid = UUID.randomUUID()
 
   @Test
   fun `createSubjectAccessRequestPost calls service createSubjectAccessRequestPost with same parameters`() {
@@ -99,43 +101,37 @@ class SubjectAccessRequestControllerTest {
   inner class patchSubjectAccessRequest {
     @Test
     fun `claimSubjectAccessRequest returns 400 if updateSubjectAccessRequest returns 0 with time update`() {
-      val mockedCurrentTime = "02/01/2024 00:30"
-      val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-      val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, formatter)
-      Mockito.`when`(sarService.claimSubjectAccessRequest(eq(1), any(LocalDateTime::class.java))).thenReturn(0)
+      Mockito.`when`(sarService.claimSubjectAccessRequest(eq(uuid), any(LocalDateTime::class.java))).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService)
-        .claimSubjectAccessRequest(1)
-      verify(sarService, times(1)).claimSubjectAccessRequest(eq(1), any(LocalDateTime::class.java))
+        .claimSubjectAccessRequest(uuid)
+      verify(sarService, times(1)).claimSubjectAccessRequest(eq(uuid), any(LocalDateTime::class.java))
       Assertions.assertThat(result).isEqualTo(400)
     }
 
     @Test
     fun `claimSubjectAccessRequest returns 200 if updateSubjectAccessRequest returns 1 with time update`() {
-      val mockedCurrentTime = "02/01/2024 00:30"
-      val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-      val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, formatter)
-      Mockito.`when`(sarService.claimSubjectAccessRequest(eq(1), any(LocalDateTime::class.java))).thenReturn(1)
+      Mockito.`when`(sarService.claimSubjectAccessRequest(eq(uuid), any(LocalDateTime::class.java))).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService)
-        .claimSubjectAccessRequest(1)
-      verify(sarService, times(1)).claimSubjectAccessRequest(eq(1), any(LocalDateTime::class.java))
+        .claimSubjectAccessRequest(uuid)
+      verify(sarService, times(1)).claimSubjectAccessRequest(eq(uuid), any(LocalDateTime::class.java))
       Assertions.assertThat(result).isEqualTo(200)
     }
 
     @Test
     fun `completeSubjectAccessRequest returns 400 if completeSubjectAccessRequest returns 0 with status update`() {
-      Mockito.`when`(sarService.completeSubjectAccessRequest(1)).thenReturn(0)
+      Mockito.`when`(sarService.completeSubjectAccessRequest(uuid)).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService)
-        .completeSubjectAccessRequest(1)
-      verify(sarService, times(1)).completeSubjectAccessRequest(1)
+        .completeSubjectAccessRequest(uuid)
+      verify(sarService, times(1)).completeSubjectAccessRequest(uuid)
       Assertions.assertThat(result).isEqualTo(400)
     }
 
     @Test
     fun `completeSubjectAccessRequest returns 200 if completeSubjectAccessRequest returns 1 with status update`() {
-      Mockito.`when`(sarService.completeSubjectAccessRequest(1)).thenReturn(1)
+      Mockito.`when`(sarService.completeSubjectAccessRequest(uuid)).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService)
-        .completeSubjectAccessRequest(1)
-      verify(sarService, times(1)).completeSubjectAccessRequest(1)
+        .completeSubjectAccessRequest(uuid)
+      verify(sarService, times(1)).completeSubjectAccessRequest(uuid)
       Assertions.assertThat(result).isEqualTo(200)
     }
   }

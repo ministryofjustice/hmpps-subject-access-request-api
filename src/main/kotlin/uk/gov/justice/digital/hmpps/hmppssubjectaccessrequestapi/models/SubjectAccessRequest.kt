@@ -1,8 +1,9 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.EnumType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -19,6 +20,7 @@ enum class Status {
 data class SubjectAccessRequest(
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(length=16)
   val id: UUID? = null,
   @Enumerated(EnumType.STRING)
   val status: Status = Status.Pending,

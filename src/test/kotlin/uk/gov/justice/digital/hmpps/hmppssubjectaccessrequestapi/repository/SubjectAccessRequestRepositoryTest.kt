@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 @DataJpaTest
 class SubjectAccessRequestRepositoryTest {
@@ -158,17 +159,19 @@ class SubjectAccessRequestRepositoryTest {
       )
 
       var numberOfDbRecordsUpdated = 0
+      var record: SubjectAccessRequest? = null
       if (idOfSarWithPendingStatusClaimedEarlier != null) {
         numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
           idOfSarWithPendingStatusClaimedEarlier,
           thresholdClaimDateTimeFormatted,
           currentDateTimeFormatted,
         )!!
+        record = sarRepository.findByIdIs(idOfSarWithPendingStatusClaimedEarlier)
       }
 
       Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
-      Assertions.assertThat(sarRepository?.getReferenceById(idOfSarWithPendingStatusClaimedEarlier))
+      Assertions.assertThat(record)
         .isEqualTo(expectedUpdatedRecord)
     }
 
@@ -181,7 +184,7 @@ class SubjectAccessRequestRepositoryTest {
 
       databaseInsert()
 
-      val idOfClaimedSarWithPendingStatusAfterThreshold = sarRepository?.findAll()?.first()?.id?.plus(1)
+      val idOfClaimedSarWithPendingStatusAfterThreshold = UUID.randomUUID() //sarRepository?.findAll()?.first()?.id?.plus(1)
       val expectedUpdatedRecord = SubjectAccessRequest(
         id = idOfClaimedSarWithPendingStatusAfterThreshold,
         status = Status.Pending,
@@ -198,17 +201,19 @@ class SubjectAccessRequestRepositoryTest {
       )
 
       var numberOfDbRecordsUpdated = 0
+      var record: SubjectAccessRequest? = null
       if (idOfClaimedSarWithPendingStatusAfterThreshold != null) {
         numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
           idOfClaimedSarWithPendingStatusAfterThreshold,
           thresholdClaimDateTimeFormatted,
           currentDateTimeFormatted,
         )!!
+        record = sarRepository.findByIdIs(idOfClaimedSarWithPendingStatusAfterThreshold)
       }
 
       Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(0)
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
-      Assertions.assertThat(sarRepository?.getReferenceById(idOfClaimedSarWithPendingStatusAfterThreshold))
+      Assertions.assertThat(record)
         .isEqualTo(expectedUpdatedRecord)
     }
   }
@@ -237,16 +242,18 @@ class SubjectAccessRequestRepositoryTest {
       )
 
       var numberOfDbRecordsUpdated = 0
+      var record: SubjectAccessRequest? = null
       if (idOfSarWithPendingStatusClaimedEarlier != null) {
         numberOfDbRecordsUpdated = sarRepository?.updateStatus(
           idOfSarWithPendingStatusClaimedEarlier,
           newStatus,
         )!!
+        record = sarRepository.findByIdIs(idOfSarWithPendingStatusClaimedEarlier)
       }
 
       Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
-      Assertions.assertThat(sarRepository?.getReferenceById(idOfSarWithPendingStatusClaimedEarlier))
+      Assertions.assertThat(record)
         .isEqualTo(expectedUpdatedRecord)
     }
   }
