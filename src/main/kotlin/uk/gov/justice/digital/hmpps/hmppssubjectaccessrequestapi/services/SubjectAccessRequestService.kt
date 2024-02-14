@@ -62,11 +62,12 @@ class SubjectAccessRequestService(
     return sarDbGateway.updateSubjectAccessRequestClaim(id, thresholdTime, time)
   }
 
-  fun retrieveSubjectAccessRequestDocument(sarId: String) {
-    documentStorageGateway.retrieveDocument("SAR_$sarId")
-  }
-
   fun completeSubjectAccessRequest(id: Int): Int {
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
+  }
+
+  fun retrieveSubjectAccessRequestDocument(sarId: String): JSONObject? {
+    val document = documentStorageGateway.retrieveDocument(sarId)
+    return document
   }
 }

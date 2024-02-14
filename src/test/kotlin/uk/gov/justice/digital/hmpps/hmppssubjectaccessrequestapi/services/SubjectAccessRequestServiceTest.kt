@@ -110,21 +110,61 @@ class SubjectAccessRequestServiceTest {
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
     @Test
-    fun `updateSubjectAccessRequest calls gateway update method with time 5 minutes ago`() {
+    fun `claimSubjectAccessRequest calls gateway update method with time 5 minutes ago`() {
       val mockedCurrentTime = "02/01/2024 00:30"
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val fiveMinutesAgo = "02/01/2024 00:25"
       val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
       SubjectAccessRequestService(sarGateway, documentGateway)
         .claimSubjectAccessRequest(1, formattedMockedCurrentTime)
-      verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(1, fiveMinutesAgoFormatted, formattedMockedCurrentTime)
+      verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(
+        1,
+        fiveMinutesAgoFormatted,
+        formattedMockedCurrentTime
+      )
     }
 
     @Test
-    fun `updateSubjectAccessRequest calls gateway update method with status`() {
+    fun `completeSubjectAccessRequest calls gateway update method with status`() {
       SubjectAccessRequestService(sarGateway, documentGateway)
         .completeSubjectAccessRequest(1)
       verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(1)
+    }
+  }
+
+  @Nested
+  inner class documentRetrieval {
+    private val expectedRetrievalResponse = JSONObject("{\n" +
+      "  \"documentUuid\": \"MockUUID\",\n" +
+      "  \"documentType\": \"HMCTS_WARRANT\",\n" +
+      "  \"documentFilename\": \"warrant_for_remand\",\n" +
+      "  \"filename\": \"warrant_for_remand\",\n" +
+      "  \"fileExtension\": \"pdf\",\n" +
+      "  \"fileSize\": 48243,\n" +
+      "  \"fileHash\": \"d58e3582afa99040e27b92b13c8f2280\",\n" +
+      "  \"mimeType\": \"pdf\",\n" +
+      "  \"metadata\": {\n" +
+      "    \"prisonCode\": \"KMI\",\n" +
+      "    \"prisonNumber\": \"C3456DE\",\n" +
+      "    \"court\": \"Birmingham Magistrates\",\n" +
+      "    \"warrantDate\": \"2023-11-14\"\n" +
+      "  },\n" +
+      "  \"createdTime\": \"2024-02-14T07:19:32.931Z\",\n" +
+      "  \"createdByServiceName\": \"Remand and Sentencing\",\n" +
+      "  \"createdByUsername\": \"AAA01U\"\n" +
+      "}")
+    @Test
+    fun `retrieveSubjectAccessRequestDocument calls document gateway retrieve method with id`() {
+      SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument("MockUUID")
+      verify(documentGateway, times(1)).retrieveDocument("MockUUID")
+    }
+
+    @Test
+    fun `retrieveSubjectAccessRequestDocument returns JSONObject`() {
+      Mockito.`when`(documentGateway.retrieveDocument("MockUUID")).thenReturn(expectedRetrievalResponse)
+      val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument("MockUUID")
+      verify(documentGateway, times(1)).retrieveDocument("MockUUID")
+      Assertions.assertThat(result).isEqualTo(expectedRetrievalResponse)
     }
   }
 }

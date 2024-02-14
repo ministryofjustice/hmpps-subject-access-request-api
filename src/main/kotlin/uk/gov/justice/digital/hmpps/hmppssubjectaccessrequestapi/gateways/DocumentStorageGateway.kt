@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways
 
+import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -20,8 +21,9 @@ class DocumentStorageGateway(
     // TODO: POST request to /documents/SUBJECT_ACCESS_REQUEST_REPORT/{UUID}
   }
 
-  fun retrieveDocument(documentId: String): String? {
+  fun retrieveDocument(documentId: String): JSONObject? {
     val token = hmppsAuthGateway.getClientToken()
-    return webClient.get().uri("/documents/" + { documentId }).header("Authorization", "Bearer $token").retrieve().bodyToMono(String::class.java).block()
+    val response = webClient.get().uri("/documents/" + { documentId }).header("Authorization", "Bearer $token").retrieve().bodyToMono(JSONObject::class.java).block()
+    return response
   }
 }
