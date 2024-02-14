@@ -8,6 +8,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.springframework.security.core.Authentication
+import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
@@ -66,6 +67,7 @@ class SubjectAccessRequestServiceTest {
   )
   private val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
+  private val documentGateway: DocumentStorageGateway = Mockito.mock(DocumentStorageGateway::class.java)
 
   @Nested
   inner class createSubjectAccessRequestPost {
@@ -73,7 +75,7 @@ class SubjectAccessRequestServiceTest {
     fun `createSubjectAccessRequestPost and returns empty string`() {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected = ""
-      val result: String = SubjectAccessRequestService(sarGateway)
+      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
         .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
       verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
@@ -84,7 +86,7 @@ class SubjectAccessRequestServiceTest {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected =
         "Both nomisId and ndeliusId are provided - exactly one is required"
-      val result: String = SubjectAccessRequestService(sarGateway)
+      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
         .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
@@ -95,7 +97,7 @@ class SubjectAccessRequestServiceTest {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected =
         "Neither nomisId nor ndeliusId is provided - exactly one is required"
-      val result: String = SubjectAccessRequestService(sarGateway)
+      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
         .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
@@ -113,14 +115,14 @@ class SubjectAccessRequestServiceTest {
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val fiveMinutesAgo = "02/01/2024 00:25"
       val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
-      SubjectAccessRequestService(sarGateway)
+      SubjectAccessRequestService(sarGateway, documentGateway)
         .claimSubjectAccessRequest(1, formattedMockedCurrentTime)
       verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(1, fiveMinutesAgoFormatted, formattedMockedCurrentTime)
     }
 
     @Test
     fun `updateSubjectAccessRequest calls gateway update method with status`() {
-      SubjectAccessRequestService(sarGateway)
+      SubjectAccessRequestService(sarGateway, documentGateway)
         .completeSubjectAccessRequest(1)
       verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(1)
     }

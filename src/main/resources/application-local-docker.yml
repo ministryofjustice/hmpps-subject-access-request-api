@@ -1,0 +1,20 @@
+hmpps:
+  auth:
+    url: http://hmpps-auth:9090/auth
+
+hmpps.sqs:
+  provider: localstack
+  localstackUrl: http://local-stack-aws:4566
+  queues:
+    audit:
+      queueName: "audit"
+
+spring:
+  datasource:
+    url: 'jdbc:postgresql://db:5432/postgres'
+    username: 'demo_dev_rw'
+    password: 'dev_database_passwd'
+
+  flyway:
+    enabled: false
+    locations: classpath:db/migration

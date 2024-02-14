@@ -15,7 +15,7 @@ import java.time.format.DateTimeFormatter
 @Service
 class SubjectAccessRequestService(
   @Autowired val sarDbGateway: SubjectAccessRequestGateway,
-  @Autowired val documentStorageGateway: DocumentStorageGateway
+  @Autowired val documentStorageGateway: DocumentStorageGateway,
 ) {
 
   fun createSubjectAccessRequest(

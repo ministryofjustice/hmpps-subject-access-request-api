@@ -35,3 +35,8 @@ ALTER TABLE subject_access_request DROP COLUMN hmpps_id;
 ALTER TABLE subject_access_request DROP COLUMN subject;
 ALTER TABLE subject_access_request DROP COLUMN presigned_url;
 DROP TYPE status_enum;
+
+ALTER TABLE subject_access_request DROP COLUMN id;
+ALTER TABLE subject_access_request ADD COLUMN id UUID;
+ALTER TABLE subject_access_request ALTER COLUMN id SET DEFAULT gen_random_uuid();
+ALTER TABLE subject_access_request ADD PRIMARY KEY (id);
