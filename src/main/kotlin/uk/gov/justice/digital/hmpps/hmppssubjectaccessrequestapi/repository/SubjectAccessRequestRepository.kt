@@ -32,5 +32,4 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, I
       "WHERE (report.id = :id)",
   )
   fun updateStatus(@Param("id") id: UUID, @Param("status") status: Status): Int
-
 }

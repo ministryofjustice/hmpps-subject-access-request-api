@@ -184,7 +184,7 @@ class SubjectAccessRequestRepositoryTest {
 
       databaseInsert()
 
-      val idOfClaimedSarWithPendingStatusAfterThreshold = UUID.randomUUID() //sarRepository?.findAll()?.first()?.id?.plus(1)
+      val idOfClaimedSarWithPendingStatusAfterThreshold = UUID.randomUUID() // sarRepository?.findAll()?.first()?.id?.plus(1)
       val expectedUpdatedRecord = SubjectAccessRequest(
         id = idOfClaimedSarWithPendingStatusAfterThreshold,
         status = Status.Pending,

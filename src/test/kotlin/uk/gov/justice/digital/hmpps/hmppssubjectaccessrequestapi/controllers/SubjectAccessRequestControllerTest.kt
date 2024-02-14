@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class SubjectAccessRequestControllerTest {
