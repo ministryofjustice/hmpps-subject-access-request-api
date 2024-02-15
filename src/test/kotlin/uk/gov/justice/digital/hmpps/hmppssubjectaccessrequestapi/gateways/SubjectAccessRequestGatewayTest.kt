@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.Subj
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 class SubjectAccessRequestGatewayTest {
 
@@ -23,8 +24,9 @@ class SubjectAccessRequestGatewayTest {
   private val dateToFormatted = LocalDate.parse(dateTo, dateFormatter)
   private val requestTime = "01/01/2024 00:00"
   private val requestTimeFormatted = LocalDateTime.parse(requestTime, dateTimeFormatter)
+  private val uuid = UUID.randomUUID()
   private val unclaimedSar = SubjectAccessRequest(
-    id = 1,
+    id = uuid,
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -44,21 +46,21 @@ class SubjectAccessRequestGatewayTest {
 
     @Test
     fun `calls findAll if unclaimed is false`() {
-      val result = SubjectAccessRequestGateway(sarRepository)
+      SubjectAccessRequestGateway(sarRepository)
         .getSubjectAccessRequests(unclaimedOnly = false)
       verify(sarRepository, times(1)).findAll()
     }
 
     @Test
     fun `calls findByClaimAttemptsIs if unclaimed is true`() {
-      val result = SubjectAccessRequestGateway(sarRepository)
+      SubjectAccessRequestGateway(sarRepository)
         .getSubjectAccessRequests(unclaimedOnly = true)
       verify(sarRepository, times(1)).findByClaimAttemptsIs(0)
     }
 
     @Test
     fun `calls findByClaimAttemptsIs(0) if unclaimed is true`() {
-      val result = SubjectAccessRequestGateway(sarRepository)
+      SubjectAccessRequestGateway(sarRepository)
         .getSubjectAccessRequests(unclaimedOnly = true)
       verify(sarRepository, times(1)).findByClaimAttemptsIs(0)
     }
@@ -69,7 +71,7 @@ class SubjectAccessRequestGatewayTest {
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val expiredClaimDateTime = "01/01/2024 23:55"
       val expiredClaimDateTimeFormatted = LocalDateTime.parse(expiredClaimDateTime, dateTimeFormatter)
-      val result: List<SubjectAccessRequest?> = SubjectAccessRequestGateway(sarRepository)
+      SubjectAccessRequestGateway(sarRepository)
         .getSubjectAccessRequests(unclaimedOnly = true, formattedMockedCurrentTime)
       verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, expiredClaimDateTimeFormatted)
     }
@@ -100,16 +102,16 @@ class SubjectAccessRequestGatewayTest {
       val thresholdTime = "30/06/2023 00:00"
       val thresholdTimeFormatted = LocalDateTime.parse(thresholdTime, dateTimeFormatter)
       SubjectAccessRequestGateway(sarRepository)
-        .updateSubjectAccessRequestClaim(1, thresholdTimeFormatted, formattedMockedCurrentTime)
-      verify(sarRepository, times(1)).updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(1, thresholdTimeFormatted, formattedMockedCurrentTime)
+        .updateSubjectAccessRequestClaim(uuid, thresholdTimeFormatted, formattedMockedCurrentTime)
+      verify(sarRepository, times(1)).updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(uuid, thresholdTimeFormatted, formattedMockedCurrentTime)
     }
 
     @Test
     fun `calls updateStatus with correct parameters`() {
       val status = Status.Completed
       SubjectAccessRequestGateway(sarRepository)
-        .updateSubjectAccessRequestStatusCompleted(1)
-      verify(sarRepository, times(1)).updateStatus(1, status)
+        .updateSubjectAccessRequestStatusCompleted(uuid)
+      verify(sarRepository, times(1)).updateStatus(uuid, status)
     }
   }
 }

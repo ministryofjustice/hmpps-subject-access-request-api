@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 class SubjectAccessRequestServiceTest {
 
@@ -66,6 +67,7 @@ class SubjectAccessRequestServiceTest {
   )
   private val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
+  private val uuid = UUID.randomUUID()
 
   @Nested
   inner class createSubjectAccessRequestPost {
@@ -108,21 +110,25 @@ class SubjectAccessRequestServiceTest {
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
     @Test
-    fun `updateSubjectAccessRequest calls gateway update method with time 5 minutes ago`() {
+    fun `claimSubjectAccessRequest calls gateway update method with time 5 minutes ago`() {
       val mockedCurrentTime = "02/01/2024 00:30"
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val fiveMinutesAgo = "02/01/2024 00:25"
       val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
       SubjectAccessRequestService(sarGateway)
-        .claimSubjectAccessRequest(1, formattedMockedCurrentTime)
-      verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(1, fiveMinutesAgoFormatted, formattedMockedCurrentTime)
+        .claimSubjectAccessRequest(uuid, formattedMockedCurrentTime)
+      verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(
+        uuid,
+        fiveMinutesAgoFormatted,
+        formattedMockedCurrentTime,
+      )
     }
 
     @Test
-    fun `updateSubjectAccessRequest calls gateway update method with status`() {
+    fun `completeSubjectAccessRequest calls gateway update method with status`() {
       SubjectAccessRequestService(sarGateway)
-        .completeSubjectAccessRequest(1)
-      verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(1)
+        .completeSubjectAccessRequest(uuid)
+      verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(uuid)
     }
   }
 }
