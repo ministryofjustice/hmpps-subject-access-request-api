@@ -1,3 +1,5 @@
-hmpps:
-  auth:
-    url: https://sign-in-dev.hmpps.service.justice.gov.uk
+services:
+  hmpps-auth:
+    base-url: https://sign-in-dev.hmpps.service.justice.gov.uk
+    username: hmpps-integration-api-client # until we get a client seeded
+    password: clientsecret
