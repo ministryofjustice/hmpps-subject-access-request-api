@@ -68,7 +68,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/ping"]
     environment:
       - SERVER_PORT=8080
-      - SPRING_PROFILES_ACTIVE=local-docker
+      - SPRING_PROFILES_ACTIVE=dev
       - DATABASE_ENDPOINT=db:5432
       - DATABASE_NAME=postgres
       - DATABASE_USERNAME=postgres
@@ -83,7 +83,7 @@ services:
     ports:
       - '5432:5432'
     networks:
-      - hmpps
+      - db-network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
@@ -96,3 +96,4 @@ services:
 
 networks:
   hmpps:
+  db-network:

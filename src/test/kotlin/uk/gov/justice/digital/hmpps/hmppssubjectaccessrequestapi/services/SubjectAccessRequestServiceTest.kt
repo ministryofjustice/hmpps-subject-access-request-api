@@ -8,7 +8,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.springframework.security.core.Authentication
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
@@ -68,7 +67,6 @@ class SubjectAccessRequestServiceTest {
   )
   private val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
-  private val documentGateway: DocumentStorageGateway = Mockito.mock(DocumentStorageGateway::class.java)
   private val uuid = UUID.randomUUID()
 
   @Nested
@@ -77,7 +75,7 @@ class SubjectAccessRequestServiceTest {
     fun `createSubjectAccessRequestPost and returns empty string`() {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected = ""
-      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
+      val result: String = SubjectAccessRequestService(sarGateway)
         .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
       verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
@@ -88,7 +86,7 @@ class SubjectAccessRequestServiceTest {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected =
         "Both nomisId and ndeliusId are provided - exactly one is required"
-      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
+      val result: String = SubjectAccessRequestService(sarGateway)
         .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
@@ -99,7 +97,7 @@ class SubjectAccessRequestServiceTest {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected =
         "Neither nomisId nor ndeliusId is provided - exactly one is required"
-      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
+      val result: String = SubjectAccessRequestService(sarGateway)
         .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
@@ -117,7 +115,7 @@ class SubjectAccessRequestServiceTest {
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val fiveMinutesAgo = "02/01/2024 00:25"
       val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
-      SubjectAccessRequestService(sarGateway, documentGateway)
+      SubjectAccessRequestService(sarGateway)
         .claimSubjectAccessRequest(uuid, formattedMockedCurrentTime)
       verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(
         uuid,
@@ -128,48 +126,9 @@ class SubjectAccessRequestServiceTest {
 
     @Test
     fun `completeSubjectAccessRequest calls gateway update method with status`() {
-      SubjectAccessRequestService(sarGateway, documentGateway)
+      SubjectAccessRequestService(sarGateway)
         .completeSubjectAccessRequest(uuid)
       verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(uuid)
-    }
-  }
-
-  @Nested
-  inner class documentRetrieval {
-    private val expectedRetrievalResponse = JSONObject(
-      "{\n" +
-        "  \"documentUuid\": \"MockUUID\",\n" +
-        "  \"documentType\": \"HMCTS_WARRANT\",\n" +
-        "  \"documentFilename\": \"warrant_for_remand\",\n" +
-        "  \"filename\": \"warrant_for_remand\",\n" +
-        "  \"fileExtension\": \"pdf\",\n" +
-        "  \"fileSize\": 48243,\n" +
-        "  \"fileHash\": \"d58e3582afa99040e27b92b13c8f2280\",\n" +
-        "  \"mimeType\": \"pdf\",\n" +
-        "  \"metadata\": {\n" +
-        "    \"prisonCode\": \"KMI\",\n" +
-        "    \"prisonNumber\": \"C3456DE\",\n" +
-        "    \"court\": \"Birmingham Magistrates\",\n" +
-        "    \"warrantDate\": \"2023-11-14\"\n" +
-        "  },\n" +
-        "  \"createdTime\": \"2024-02-14T07:19:32.931Z\",\n" +
-        "  \"createdByServiceName\": \"Remand and Sentencing\",\n" +
-        "  \"createdByUsername\": \"AAA01U\"\n" +
-        "}",
-    )
-
-    @Test
-    fun `retrieveSubjectAccessRequestDocument calls document gateway retrieve method with id`() {
-      SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument("MockUUID")
-      verify(documentGateway, times(1)).retrieveDocument("MockUUID")
-    }
-
-    @Test
-    fun `retrieveSubjectAccessRequestDocument returns JSONObject`() {
-      Mockito.`when`(documentGateway.retrieveDocument("MockUUID")).thenReturn(expectedRetrievalResponse)
-      val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument("MockUUID")
-      verify(documentGateway, times(1)).retrieveDocument("MockUUID")
-      Assertions.assertThat(result).isEqualTo(expectedRetrievalResponse)
     }
   }
 }

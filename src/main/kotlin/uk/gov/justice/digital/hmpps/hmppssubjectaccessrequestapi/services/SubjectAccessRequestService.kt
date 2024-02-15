@@ -4,7 +4,6 @@ import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
@@ -16,7 +15,6 @@ import java.util.UUID
 @Service
 class SubjectAccessRequestService(
   @Autowired val sarDbGateway: SubjectAccessRequestGateway,
-  @Autowired val documentStorageGateway: DocumentStorageGateway,
 ) {
 
   fun createSubjectAccessRequest(
@@ -65,10 +63,5 @@ class SubjectAccessRequestService(
 
   fun completeSubjectAccessRequest(id: UUID): Int {
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
-  }
-
-  fun retrieveSubjectAccessRequestDocument(sarId: String): JSONObject? {
-    val document = documentStorageGateway.retrieveDocument(sarId)
-    return document
   }
 }
