@@ -19,8 +19,6 @@ class DocumentStorageGateway(
     val token = hmppsAuthGateway.getClientToken()
     webClient.post().uri("/documents/SUBJECT_ACCESS_REQUEST_REPORT" + { documentId.toString() }).header("Authorization", "Bearer $token").retrieve().bodyToMono(String::class.java).block()
     return documentId.toString() + uuid.toString()
-    // TODO: Generate UUID from ID? Change our DB IDs to UUID v4s?
-    // TODO: POST request to /documents/SUBJECT_ACCESS_REQUEST_REPORT/{UUID}
   }
 
   fun retrieveDocument(documentId: UUID): JSONObject? {
