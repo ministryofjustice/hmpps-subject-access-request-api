@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 class SubjectAccessRequestServiceTest {
 
@@ -155,18 +156,19 @@ class SubjectAccessRequestServiceTest {
         "  \"createdByUsername\": \"AAA01U\"\n" +
         "}",
     )
+    val mockUUID = UUID.randomUUID()
 
     @Test
     fun `retrieveSubjectAccessRequestDocument calls document gateway retrieve method with id`() {
-      SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument("MockUUID")
-      verify(documentGateway, times(1)).retrieveDocument("MockUUID")
+      SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
+      verify(documentGateway, times(1)).retrieveDocument(mockUUID)
     }
 
     @Test
     fun `retrieveSubjectAccessRequestDocument returns JSONObject`() {
-      Mockito.`when`(documentGateway.retrieveDocument("MockUUID")).thenReturn(expectedRetrievalResponse)
-      val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument("MockUUID")
-      verify(documentGateway, times(1)).retrieveDocument("MockUUID")
+      Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(expectedRetrievalResponse)
+      val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
+      verify(documentGateway, times(1)).retrieveDocument(mockUUID)
       Assertions.assertThat(result).isEqualTo(expectedRetrievalResponse)
     }
   }
