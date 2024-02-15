@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 @Service
 class SubjectAccessRequestService(
@@ -66,7 +67,7 @@ class SubjectAccessRequestService(
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 
-  fun retrieveSubjectAccessRequestDocument(sarId: String): JSONObject? {
+  fun retrieveSubjectAccessRequestDocument(sarId: UUID): JSONObject? {
     val document = documentStorageGateway.retrieveDocument(sarId)
     return document
   }

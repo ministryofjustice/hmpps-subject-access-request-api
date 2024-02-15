@@ -8,7 +8,7 @@ services:
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=sns,sqs
+      - SERVICES=sns,sqs,s3
       - DEBUG=${DEBUG- }
       - DATA_DIR=${DATA_DIR- }
       - PORT_WEB_UI=${PORT_WEB_UI- }
@@ -94,5 +94,33 @@ services:
       - ./db/dev/schema.sql:/docker-entrypoint-initdb.d/1-dev-database.sql
       - ./db/dev/roles.sql:/docker-entrypoint-initdb.d/2-dev-roles.sql
 
+  document-store:
+    container_name: document-store
+    image: quay.io/hmpps/hmpps-document-management-api:latest
+    restart: always
+    ports:
+      - '5434:5434'
+    networks:
+      - hmpps
+    environment:
+      - SERVER_PORT=5434
+      - SPRING_PROFILES_ACTIVE=local-docker
+      - DB_SSL_MODE=disable
+      - DB_SERVER=doc-db:5433
+      - DB_NAME=document-management
+      - DB_USER=document-management
+      - DB_PASS=document-management
+  doc-db:
+    image: postgres:16
+    networks:
+      - hmpps
+    container_name: document-management-db
+    restart: always
+    ports:
+      - "5433:5433"
+    environment:
+      - POSTGRES_DB=document-management
+      - POSTGRES_PASSWORD=document-management
+      - POSTGRES_USER=document-management
 networks:
   hmpps:

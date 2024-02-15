@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import java.util.UUID
 
 @Component
 class DocumentStorageGateway(
@@ -13,17 +14,18 @@ class DocumentStorageGateway(
 ) {
   private val webClient: WebClient = WebClient.builder().baseUrl(hmppsDocumentApiUrl).build()
 
-  fun storeDocument(documentId: String, documentBody: String) {
+  fun storeDocument(documentId: Int, documentBody: String): String {
+    val uuid = UUID.randomUUID()
     val token = hmppsAuthGateway.getClientToken()
-    webClient.post().uri("/documents/SUBJECT_ACCESS_REQUEST_REPORT" + { documentId }).header("Authorization", "Bearer $token").retrieve().bodyToMono(String::class.java).block()
-
+    webClient.post().uri("/documents/SUBJECT_ACCESS_REQUEST_REPORT" + { documentId.toString() }).header("Authorization", "Bearer $token").retrieve().bodyToMono(String::class.java).block()
+    return documentId.toString() + uuid.toString()
     // TODO: Generate UUID from ID? Change our DB IDs to UUID v4s?
     // TODO: POST request to /documents/SUBJECT_ACCESS_REQUEST_REPORT/{UUID}
   }
 
-  fun retrieveDocument(documentId: String): JSONObject? {
+  fun retrieveDocument(documentId: UUID): JSONObject? {
     val token = hmppsAuthGateway.getClientToken()
-    val response = webClient.get().uri("/documents/" + { documentId }).header("Authorization", "Bearer $token").retrieve().bodyToMono(JSONObject::class.java).block()
+    val response = webClient.get().uri("/documents/" + { documentId.toString() }).header("Authorization", "Bearer $token").retrieve().bodyToMono(JSONObject::class.java).block()
     return response
   }
 }
