@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class SubjectAccessRequestControllerTest {
   private val requestTime = LocalDateTime.now()
@@ -99,9 +98,6 @@ class SubjectAccessRequestControllerTest {
   inner class patchSubjectAccessRequest {
     @Test
     fun `claimSubjectAccessRequest returns 400 if updateSubjectAccessRequest returns 0 with time update`() {
-      val mockedCurrentTime = "02/01/2024 00:30"
-      val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-      val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, formatter)
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(1), any(LocalDateTime::class.java))).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService)
         .claimSubjectAccessRequest(1)
@@ -111,9 +107,6 @@ class SubjectAccessRequestControllerTest {
 
     @Test
     fun `claimSubjectAccessRequest returns 200 if updateSubjectAccessRequest returns 1 with time update`() {
-      val mockedCurrentTime = "02/01/2024 00:30"
-      val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-      val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, formatter)
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(1), any(LocalDateTime::class.java))).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService)
         .claimSubjectAccessRequest(1)
