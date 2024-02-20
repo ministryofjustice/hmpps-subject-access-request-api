@@ -14,7 +14,7 @@ spring:
     baseline-on-migrate: true
 
   datasource:
-    url: 'jdbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}?sslmode=disable'
+    url: 'jdbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}?sslmode=verify-full'
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
 
@@ -68,10 +68,10 @@ management:
     info:
       cache:
         time-to-live: 2000ms
-hmpps:
-  auth:
-    url: http://localhost:9090/auth
+services:
+  hmpps-auth:
+    base-url: http://localhost:9090/auth
     username: test
     password: test
   document-storage:
-    url: http://localhost:4040
+    base-url: http://localhost:4040

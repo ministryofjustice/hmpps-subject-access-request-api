@@ -1,10 +1,11 @@
-hmpps:
-  auth:
-    url: http://localhost:9090/auth
+services:
+  hmpps-auth:
+    base-url: http://localhost:9090/auth
     username: test
     password: test
+
   document-storage:
-    url: http://localhost:4040
+    base-url: http://localhost:4040
 
 hmpps.sqs:
   provider: localstack
