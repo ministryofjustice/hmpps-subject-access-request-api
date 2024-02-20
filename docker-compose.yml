@@ -8,7 +8,7 @@ services:
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=sns,sqs,s3
+      - SERVICES=sns,sqs
       - DEBUG=${DEBUG- }
       - DATA_DIR=${DATA_DIR- }
       - PORT_WEB_UI=${PORT_WEB_UI- }
@@ -68,7 +68,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/ping"]
     environment:
       - SERVER_PORT=8080
-      - SPRING_PROFILES_ACTIVE=local-docker
+      - SPRING_PROFILES_ACTIVE=dev
       - DATABASE_ENDPOINT=db:5432
       - DATABASE_NAME=postgres
       - DATABASE_USERNAME=postgres
@@ -83,7 +83,7 @@ services:
     ports:
       - '5432:5432'
     networks:
-      - hmpps
+      - db-network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
@@ -94,42 +94,6 @@ services:
       - ./db/dev/schema.sql:/docker-entrypoint-initdb.d/1-dev-database.sql
       - ./db/dev/roles.sql:/docker-entrypoint-initdb.d/2-dev-roles.sql
 
-# The below was an attempt to run the document storage service in Docker which didn't really work.
-#  document-store:
-#    container_name: document-store
-#    image: quay.io/hmpps/hmpps-document-management-api:latest
-#    restart: always
-#    ports:
-#      - '5434:5434'
-#    networks:
-#      - hmpps
-#    environment:
-#      - SERVER_PORT=5434
-#      - SPRING_PROFILES_ACTIVE=dev
-#      - DB_SSL_MODE=disable
-#      - DB_SERVER=doc-db:5433
-#      - DB_NAME=document-management
-#      - DB_USER=document-management
-#      - DB_PASS=document-management
-#  doc-db:
-#    image: postgres:16
-#    networks:
-#      - hmpps
-#    container_name: document-management-db
-#    restart: always
-#    ports:
-#      - "5433:5432"
-#    environment:
-#      - POSTGRES_DB=document-management
-#      - POSTGRES_PASSWORD=document-management
-#      - POSTGRES_USER=document-management
-#  clamav:
-#    image: ghcr.io/ministryofjustice/hmpps-clamav-freshclammed:latest
-#    networks:
-#      - hmpps
-#    container_name: clamav
-#    ports:
-#      - "3310:3310"
-
 networks:
   hmpps:
+  db-network:
