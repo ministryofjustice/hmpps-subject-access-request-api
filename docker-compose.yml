@@ -62,8 +62,6 @@ services:
         condition: service_healthy
       manage-users-api:
         condition: service_healthy
-    networks:
-      - hmpps
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/ping"]
     environment:
