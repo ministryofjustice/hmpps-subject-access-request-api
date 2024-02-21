@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
+import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -24,7 +25,11 @@ import java.time.LocalDateTime
 class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService) {
   @PostMapping("createSubjectAccessRequest")
   fun createSubjectAccessRequest(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
-    auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", "Create Subject Access Request Report")
+    val json = JSONObject(request)
+    val nomisId = json.get("nomisId").toString()
+    val ndeliusId = json.get("ndeliusId").toString()
+    val auditDetails = "{\\\"nomisId\\\": $nomisId\\\"ndeliusId\\\"\": $ndeliusId}"
+    auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
     val response = subjectAccessRequestService.createSubjectAccessRequest(request, authentication, requestTime)
     return if (response == "") {
       ResponseEntity(response, HttpStatus.OK)
