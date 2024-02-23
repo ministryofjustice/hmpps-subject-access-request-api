@@ -28,7 +28,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     val json = JSONObject(request)
     val nomisId = json.get("nomisId").toString()
     val ndeliusId = json.get("ndeliusId").toString()
-    val auditDetails = "{\\\"nomisId\\\": $nomisId\\\"ndeliusId\\\"\": $ndeliusId}"
+    val auditDetails = mapOf("nomisId" to nomisId, "ndeliusId" to ndeliusId).toString()
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
     val response = subjectAccessRequestService.createSubjectAccessRequest(request, authentication, requestTime)
     return if (response == "") {
