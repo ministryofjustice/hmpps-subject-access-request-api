@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -29,7 +32,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     val json = JSONObject(request)
     val nomisId = json.get("nomisId").toString()
     val ndeliusId = json.get("ndeliusId").toString()
-    val auditDetails = ObjectMapper().writeValueAsString(mapOf("nomisId" to nomisId, "ndeliusId" to ndeliusId).toString())
+    val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
     val response = subjectAccessRequestService.createSubjectAccessRequest(request, authentication, requestTime)
     return if (response == "") {
@@ -68,3 +71,5 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     }
   }
 }
+@Serializable
+data class AuditDetails(val nomisId: String, val ndeliusId: String)
