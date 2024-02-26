@@ -1,9 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
-import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.Serializable
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -71,5 +70,6 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     }
   }
 }
+
 @Serializable
 data class AuditDetails(val nomisId: String, val ndeliusId: String)
