@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 @DataJpaTest
 class SubjectAccessRequestRepositoryTest {
@@ -29,7 +30,7 @@ class SubjectAccessRequestRepositoryTest {
   private val claimDateTimeEarlierFormatted = LocalDateTime.parse(claimDateTimeEarlier, dateTimeFormatter)
 
   val unclaimedSar = SubjectAccessRequest(
-    id = null,
+    id = null,// UUID.fromString("11111111-1111-1111-1111-111111111111"),
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -42,7 +43,7 @@ class SubjectAccessRequestRepositoryTest {
     claimAttempts = 0,
   )
   val claimedSarWithPendingStatus = SubjectAccessRequest(
-    id = null,
+    id = null,// UUID.fromString("22222222-2222-2222-2222-222222222222"),
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -56,7 +57,7 @@ class SubjectAccessRequestRepositoryTest {
     claimDateTime = claimDateTimeFormatted,
   )
   val completedSar = SubjectAccessRequest(
-    id = null,
+    id = null,// UUID.fromString("33333333-3333-3333-3333-333333333333"),
     status = Status.Completed, // here
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -70,7 +71,7 @@ class SubjectAccessRequestRepositoryTest {
     claimDateTime = claimDateTimeFormatted,
   )
   val sarWithPendingStatusClaimedEarlier = SubjectAccessRequest(
-    id = null,
+    id = null,// UUID.fromString("44444444-4444-4444-4444-444444444444"),
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -141,7 +142,7 @@ class SubjectAccessRequestRepositoryTest {
 
       databaseInsert()
 
-      val idOfSarWithPendingStatusClaimedEarlier = sarRepository?.findAll()?.last()?.id
+      val idOfSarWithPendingStatusClaimedEarlier = UUID.fromString("44444444-4444-4444-4444-444444444444")
       val expectedUpdatedRecord = SubjectAccessRequest(
         id = idOfSarWithPendingStatusClaimedEarlier,
         status = Status.Pending,
@@ -181,7 +182,7 @@ class SubjectAccessRequestRepositoryTest {
 
       databaseInsert()
 
-      val idOfClaimedSarWithPendingStatusAfterThreshold = sarRepository?.findAll()?.first()?.id?.plus(1)
+      val idOfClaimedSarWithPendingStatusAfterThreshold: UUID = UUID.randomUUID() //sarRepository?.findAll()?.first()?.id
       val expectedUpdatedRecord = SubjectAccessRequest(
         id = idOfClaimedSarWithPendingStatusAfterThreshold,
         status = Status.Pending,

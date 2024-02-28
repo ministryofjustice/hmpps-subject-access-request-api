@@ -1,0 +1,4 @@
+ALTER TABLE subject_access_request ALTER COLUMN id DROP DEFAULT;
+DROP SEQUENCE subject_access_request_id_seq;
+ALTER TABLE subject_access_request ALTER COLUMN id TYPE UUID USING (gen_random_uuid());
+ALTER TABLE subject_access_request ALTER COLUMN id SET DEFAULT gen_random_uuid();

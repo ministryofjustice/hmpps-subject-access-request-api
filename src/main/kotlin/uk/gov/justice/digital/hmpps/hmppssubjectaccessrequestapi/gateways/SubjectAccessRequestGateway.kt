@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.time.LocalDateTime
+import java.util.*
 
 @Component
 class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepository) {
@@ -23,12 +24,12 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {
     repo.save(sar)
   }
-  fun updateSubjectAccessRequestClaim(id: Int, thresholdTime: LocalDateTime, currentTime: LocalDateTime): Int {
+  fun updateSubjectAccessRequestClaim(id: UUID, thresholdTime: LocalDateTime, currentTime: LocalDateTime): Int {
     val result = repo.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(id, thresholdTime, currentTime)
     return result
   }
 
-  fun updateSubjectAccessRequestStatusCompleted(id: Int): Int {
+  fun updateSubjectAccessRequestStatusCompleted(id: UUID): Int {
     val result = repo.updateStatus(id, Status.Completed)
     return result
   }

@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
+import java.util.*
 
 @RestController
 @Transactional
@@ -49,7 +50,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   }
 
   @PatchMapping("subjectAccessRequests/{id}/claim")
-  fun claimSubjectAccessRequest(@PathVariable("id") id: Int): Int {
+  fun claimSubjectAccessRequest(@PathVariable("id") id: UUID): Int {
     val response = subjectAccessRequestService.claimSubjectAccessRequest(id)
     // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
@@ -60,7 +61,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   }
 
   @PatchMapping("subjectAccessRequests/{id}/complete")
-  fun completeSubjectAccessRequest(@PathVariable("id") id: Int): Int {
+  fun completeSubjectAccessRequest(@PathVariable("id") id: UUID): Int {
     val response = subjectAccessRequestService.completeSubjectAccessRequest(id)
     // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
