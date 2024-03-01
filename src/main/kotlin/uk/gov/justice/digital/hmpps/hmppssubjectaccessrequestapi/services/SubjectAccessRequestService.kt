@@ -23,6 +23,7 @@ class SubjectAccessRequestService(
     request: String,
     authentication: Authentication,
     requestTime: LocalDateTime?,
+    id: UUID? = null,
   ): String {
     val json = JSONObject(request)
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -38,7 +39,7 @@ class SubjectAccessRequestService(
     }
     sarDbGateway.saveSubjectAccessRequest(
       SubjectAccessRequest(
-        id = null,
+        id = id ?: UUID.randomUUID(),
         status = Status.Pending,
         dateFrom = dateFromFormatted,
         dateTo = dateToFormatted,

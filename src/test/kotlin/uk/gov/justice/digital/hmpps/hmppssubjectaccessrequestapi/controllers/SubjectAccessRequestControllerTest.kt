@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.eq
 import org.mockito.Mockito
 import org.mockito.Mockito.any
-import org.mockito.kotlin.eq
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.springframework.http.HttpStatus
@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.Subjec
 import java.time.LocalDateTime
 import java.util.UUID
 
-const val SAMPLE_UUID: String = "55555555-5555-5555-5555-555555555555"
 
 class SubjectAccessRequestControllerTest {
   private val requestTime = LocalDateTime.now()

@@ -1,4 +1,5 @@
-/* --- v2.0 - Recreated Schema with UUID --- */
+DROP TABLE IF EXISTS subject_access_request;
+
 CREATE TABLE IF NOT EXISTS subject_access_request (
     id UUID PRIMARY KEY,
     status TEXT NOT NULL DEFAULT 'Pending',

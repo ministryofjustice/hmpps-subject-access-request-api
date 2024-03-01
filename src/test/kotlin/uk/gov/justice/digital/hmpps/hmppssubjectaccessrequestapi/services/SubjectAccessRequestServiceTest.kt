@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions
 import org.json.JSONObject
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -54,7 +55,7 @@ class SubjectAccessRequestServiceTest {
   private val dateToFormatted = LocalDate.parse(dateTo, formatter)
   private val requestTime = LocalDateTime.now()
   private val sampleSAR = SubjectAccessRequest(
-    id = null,
+    id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -71,35 +72,35 @@ class SubjectAccessRequestServiceTest {
   private val documentGateway: DocumentStorageGateway = Mockito.mock(DocumentStorageGateway::class.java)
 
   @Nested
-  inner class createSubjectAccessRequestPost {
+  inner class createSubjectAccessRequest {
     @Test
-    fun `createSubjectAccessRequestPost and returns empty string`() {
+    fun `createSubjectAccessRequest and returns empty string`() {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected = ""
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
-        .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
+        .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime, sampleSAR.id)
       verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
     }
 
     @Test
-    fun `createSubjectAccessRequestPost returns error string if both IDs are supplied`() {
+    fun `createSubjectAccessRequest returns error string if both IDs are supplied`() {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected =
         "Both nomisId and ndeliusId are provided - exactly one is required"
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
-        .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
+        .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime, sampleSAR.id)
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
     }
 
     @Test
-    fun `createSubjectAccessRequestPost returns error string if neither ID is supplied`() {
+    fun `createSubjectAccessRequest returns error string if neither subject ID is supplied`() {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected =
         "Neither nomisId nor ndeliusId is provided - exactly one is required"
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
-        .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
+        .createSubjectAccessRequest(noIDRequest, authentication, requestTime, sampleSAR.id)
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
     }
