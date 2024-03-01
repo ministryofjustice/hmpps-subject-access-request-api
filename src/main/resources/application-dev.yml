@@ -1,6 +1,6 @@
 services:
   hmpps-auth:
-    base-url: https://sign-in-dev.hmpps.service.justice.gov.uk
+    base-url: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
 
   document-storage:
     base-url: https://document-api-dev.hmpps.service.justice.gov.uk
