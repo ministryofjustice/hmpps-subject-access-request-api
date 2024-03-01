@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectA
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 @DataJpaTest
 class SubjectAccessRequestRepositoryTest {
@@ -29,7 +30,7 @@ class SubjectAccessRequestRepositoryTest {
   private val claimDateTimeEarlierFormatted = LocalDateTime.parse(claimDateTimeEarlier, dateTimeFormatter)
 
   val unclaimedSar = SubjectAccessRequest(
-    id = null,
+    id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -42,7 +43,7 @@ class SubjectAccessRequestRepositoryTest {
     claimAttempts = 0,
   )
   val claimedSarWithPendingStatus = SubjectAccessRequest(
-    id = null,
+    id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -56,7 +57,7 @@ class SubjectAccessRequestRepositoryTest {
     claimDateTime = claimDateTimeFormatted,
   )
   val completedSar = SubjectAccessRequest(
-    id = null,
+    id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
     status = Status.Completed, // here
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -70,7 +71,7 @@ class SubjectAccessRequestRepositoryTest {
     claimDateTime = claimDateTimeFormatted,
   )
   val sarWithPendingStatusClaimedEarlier = SubjectAccessRequest(
-    id = null,
+    id = UUID.fromString("44444444-4444-4444-4444-444444444444"),
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -141,9 +142,8 @@ class SubjectAccessRequestRepositoryTest {
 
       databaseInsert()
 
-      val idOfSarWithPendingStatusClaimedEarlier = sarRepository?.findAll()?.last()?.id
       val expectedUpdatedRecord = SubjectAccessRequest(
-        id = idOfSarWithPendingStatusClaimedEarlier,
+        id = sarWithPendingStatusClaimedEarlier.id,
         status = Status.Pending,
         dateFrom = dateFromFormatted,
         dateTo = dateToFormatted,
@@ -157,18 +157,15 @@ class SubjectAccessRequestRepositoryTest {
         claimDateTime = currentDateTimeFormatted,
       )
 
-      var numberOfDbRecordsUpdated = 0
-      if (idOfSarWithPendingStatusClaimedEarlier != null) {
-        numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
-          idOfSarWithPendingStatusClaimedEarlier,
-          thresholdClaimDateTimeFormatted,
-          currentDateTimeFormatted,
-        )!!
-      }
+      val numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
+        sarWithPendingStatusClaimedEarlier.id,
+        thresholdClaimDateTimeFormatted,
+        currentDateTimeFormatted,
+      )
 
       Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
-      Assertions.assertThat(sarRepository?.getReferenceById(idOfSarWithPendingStatusClaimedEarlier))
+      Assertions.assertThat(sarRepository?.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
         .isEqualTo(expectedUpdatedRecord)
     }
 
@@ -181,9 +178,8 @@ class SubjectAccessRequestRepositoryTest {
 
       databaseInsert()
 
-      val idOfClaimedSarWithPendingStatusAfterThreshold = sarRepository?.findAll()?.first()?.id?.plus(1)
       val expectedUpdatedRecord = SubjectAccessRequest(
-        id = idOfClaimedSarWithPendingStatusAfterThreshold,
+        id = claimedSarWithPendingStatus.id,
         status = Status.Pending,
         dateFrom = dateFromFormatted,
         dateTo = dateToFormatted,
@@ -197,18 +193,15 @@ class SubjectAccessRequestRepositoryTest {
         claimDateTime = claimDateTimeFormatted,
       )
 
-      var numberOfDbRecordsUpdated = 0
-      if (idOfClaimedSarWithPendingStatusAfterThreshold != null) {
-        numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
-          idOfClaimedSarWithPendingStatusAfterThreshold,
-          thresholdClaimDateTimeFormatted,
-          currentDateTimeFormatted,
-        )!!
-      }
+      val numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
+        claimedSarWithPendingStatus.id,
+        thresholdClaimDateTimeFormatted,
+        currentDateTimeFormatted,
+      )
 
       Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(0)
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
-      Assertions.assertThat(sarRepository?.getReferenceById(idOfClaimedSarWithPendingStatusAfterThreshold))
+      Assertions.assertThat(sarRepository?.getReferenceById(claimedSarWithPendingStatus.id))
         .isEqualTo(expectedUpdatedRecord)
     }
   }
@@ -219,10 +212,9 @@ class SubjectAccessRequestRepositoryTest {
     fun `updates status`() {
       databaseInsert()
 
-      val idOfSarWithPendingStatusClaimedEarlier = sarRepository?.findAll()?.last()?.id
       val newStatus = Status.Completed
       val expectedUpdatedRecord = SubjectAccessRequest(
-        id = idOfSarWithPendingStatusClaimedEarlier,
+        id = sarWithPendingStatusClaimedEarlier.id,
         status = newStatus,
         dateFrom = dateFromFormatted,
         dateTo = dateToFormatted,
@@ -236,17 +228,14 @@ class SubjectAccessRequestRepositoryTest {
         claimDateTime = claimDateTimeEarlierFormatted,
       )
 
-      var numberOfDbRecordsUpdated = 0
-      if (idOfSarWithPendingStatusClaimedEarlier != null) {
-        numberOfDbRecordsUpdated = sarRepository?.updateStatus(
-          idOfSarWithPendingStatusClaimedEarlier,
-          newStatus,
-        )!!
-      }
+      val numberOfDbRecordsUpdated = sarRepository?.updateStatus(
+        sarWithPendingStatusClaimedEarlier.id,
+        newStatus,
+      )
 
       Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
-      Assertions.assertThat(sarRepository?.getReferenceById(idOfSarWithPendingStatusClaimedEarlier))
+      Assertions.assertThat(sarRepository?.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
         .isEqualTo(expectedUpdatedRecord)
     }
   }

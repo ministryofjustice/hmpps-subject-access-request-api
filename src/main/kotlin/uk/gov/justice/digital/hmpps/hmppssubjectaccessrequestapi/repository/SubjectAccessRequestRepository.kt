@@ -8,9 +8,10 @@ import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Repository
-interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, Int> {
+interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, UUID> {
   fun findByClaimAttemptsIs(claimAttempts: Int): List<SubjectAccessRequest?>
 
   fun findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(status: Status, claimAttempts: Int, claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
@@ -21,7 +22,7 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, I
       "SET report.claimDateTime = :currentTime, report.claimAttempts = report.claimAttempts + 1" +
       "WHERE (report.id = :id AND report.claimDateTime < :releaseThreshold) OR (report.id = :id AND report.claimDateTime = null)",
   )
-  fun updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(@Param("id") id: Int, @Param("releaseThreshold") releaseThreshold: LocalDateTime, @Param("currentTime") currentTime: LocalDateTime): Int
+  fun updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(@Param("id") id: UUID, @Param("releaseThreshold") releaseThreshold: LocalDateTime, @Param("currentTime") currentTime: LocalDateTime): Int
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
@@ -29,5 +30,5 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, I
       "SET report.status = :status " +
       "WHERE (report.id = :id)",
   )
-  fun updateStatus(@Param("id") id: Int, @Param("status") status: Status): Int
+  fun updateStatus(@Param("id") id: UUID, @Param("status") status: Status): Int
 }

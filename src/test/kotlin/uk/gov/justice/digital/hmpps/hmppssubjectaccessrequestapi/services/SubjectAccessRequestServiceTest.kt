@@ -54,7 +54,7 @@ class SubjectAccessRequestServiceTest {
   private val dateToFormatted = LocalDate.parse(dateTo, formatter)
   private val requestTime = LocalDateTime.now()
   private val sampleSAR = SubjectAccessRequest(
-    id = null,
+    id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -71,35 +71,35 @@ class SubjectAccessRequestServiceTest {
   private val documentGateway: DocumentStorageGateway = Mockito.mock(DocumentStorageGateway::class.java)
 
   @Nested
-  inner class createSubjectAccessRequestPost {
+  inner class createSubjectAccessRequest {
     @Test
-    fun `createSubjectAccessRequestPost and returns empty string`() {
+    fun `createSubjectAccessRequest and returns empty string`() {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected = ""
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
-        .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
+        .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime, sampleSAR.id)
       verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
     }
 
     @Test
-    fun `createSubjectAccessRequestPost returns error string if both IDs are supplied`() {
+    fun `createSubjectAccessRequest returns error string if both IDs are supplied`() {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected =
         "Both nomisId and ndeliusId are provided - exactly one is required"
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
-        .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
+        .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime, sampleSAR.id)
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
     }
 
     @Test
-    fun `createSubjectAccessRequestPost returns error string if neither ID is supplied`() {
+    fun `createSubjectAccessRequest returns error string if neither subject ID is supplied`() {
       Mockito.`when`(authentication.name).thenReturn("aName")
       val expected =
         "Neither nomisId nor ndeliusId is provided - exactly one is required"
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
-        .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
+        .createSubjectAccessRequest(noIDRequest, authentication, requestTime, sampleSAR.id)
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
     }
@@ -112,14 +112,15 @@ class SubjectAccessRequestServiceTest {
 
     @Test
     fun `claimSubjectAccessRequest calls gateway update method with time 5 minutes ago`() {
+      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       val mockedCurrentTime = "02/01/2024 00:30"
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val fiveMinutesAgo = "02/01/2024 00:25"
       val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
       SubjectAccessRequestService(sarGateway, documentGateway)
-        .claimSubjectAccessRequest(1, formattedMockedCurrentTime)
+        .claimSubjectAccessRequest(testUuid, formattedMockedCurrentTime)
       verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(
-        1,
+        testUuid,
         fiveMinutesAgoFormatted,
         formattedMockedCurrentTime,
       )
@@ -127,9 +128,10 @@ class SubjectAccessRequestServiceTest {
 
     @Test
     fun `completeSubjectAccessRequest calls gateway update method with status`() {
+      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       SubjectAccessRequestService(sarGateway, documentGateway)
-        .completeSubjectAccessRequest(1)
-      verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(1)
+        .completeSubjectAccessRequest(testUuid)
+      verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(testUuid)
     }
   }
 

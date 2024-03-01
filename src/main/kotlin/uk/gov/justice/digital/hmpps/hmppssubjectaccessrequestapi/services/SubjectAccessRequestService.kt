@@ -23,6 +23,7 @@ class SubjectAccessRequestService(
     request: String,
     authentication: Authentication,
     requestTime: LocalDateTime?,
+    id: UUID? = null,
   ): String {
     val json = JSONObject(request)
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -38,7 +39,7 @@ class SubjectAccessRequestService(
     }
     sarDbGateway.saveSubjectAccessRequest(
       SubjectAccessRequest(
-        id = null,
+        id = id ?: UUID.randomUUID(),
         status = Status.Pending,
         dateFrom = dateFromFormatted,
         dateTo = dateToFormatted,
@@ -58,12 +59,12 @@ class SubjectAccessRequestService(
     return subjectAccessRequests
   }
 
-  fun claimSubjectAccessRequest(id: Int, time: LocalDateTime? = LocalDateTime.now()): Int {
+  fun claimSubjectAccessRequest(id: UUID, time: LocalDateTime? = LocalDateTime.now()): Int {
     val thresholdTime = time!!.minusMinutes(5)
     return sarDbGateway.updateSubjectAccessRequestClaim(id, thresholdTime, time)
   }
 
-  fun completeSubjectAccessRequest(id: Int): Int {
+  fun completeSubjectAccessRequest(id: UUID): Int {
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 

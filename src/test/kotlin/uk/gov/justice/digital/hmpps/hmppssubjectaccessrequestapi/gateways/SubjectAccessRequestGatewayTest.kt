@@ -12,9 +12,11 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.Subj
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 class SubjectAccessRequestGatewayTest {
 
+  val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
   private val dateFrom = "01/12/2023"
@@ -24,7 +26,7 @@ class SubjectAccessRequestGatewayTest {
   private val requestTime = "01/01/2024 00:00"
   private val requestTimeFormatted = LocalDateTime.parse(requestTime, dateTimeFormatter)
   private val unclaimedSar = SubjectAccessRequest(
-    id = 1,
+    id = testUuid,
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
@@ -95,21 +97,23 @@ class SubjectAccessRequestGatewayTest {
   inner class updateSubjectAccessRequest {
     @Test
     fun `calls updateClaimDateTimeIfBeforeThreshold with correct parameters`() {
+      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       val mockedCurrentTime = "02/01/2024 00:00"
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val thresholdTime = "30/06/2023 00:00"
       val thresholdTimeFormatted = LocalDateTime.parse(thresholdTime, dateTimeFormatter)
       SubjectAccessRequestGateway(sarRepository)
-        .updateSubjectAccessRequestClaim(1, thresholdTimeFormatted, formattedMockedCurrentTime)
-      verify(sarRepository, times(1)).updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(1, thresholdTimeFormatted, formattedMockedCurrentTime)
+        .updateSubjectAccessRequestClaim(testUuid, thresholdTimeFormatted, formattedMockedCurrentTime)
+      verify(sarRepository, times(1)).updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(testUuid, thresholdTimeFormatted, formattedMockedCurrentTime)
     }
 
     @Test
     fun `calls updateStatus with correct parameters`() {
+      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       val status = Status.Completed
       SubjectAccessRequestGateway(sarRepository)
-        .updateSubjectAccessRequestStatusCompleted(1)
-      verify(sarRepository, times(1)).updateStatus(1, status)
+        .updateSubjectAccessRequestStatusCompleted(testUuid)
+      verify(sarRepository, times(1)).updateStatus(testUuid, status)
     }
   }
 }
