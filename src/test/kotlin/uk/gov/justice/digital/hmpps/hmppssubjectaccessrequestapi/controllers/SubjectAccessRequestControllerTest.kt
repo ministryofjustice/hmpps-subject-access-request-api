@@ -3,11 +3,11 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.eq
 import org.mockito.Mockito
 import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.eq
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditS
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
 import java.util.UUID
-
 
 class SubjectAccessRequestControllerTest {
   private val requestTime = LocalDateTime.now()

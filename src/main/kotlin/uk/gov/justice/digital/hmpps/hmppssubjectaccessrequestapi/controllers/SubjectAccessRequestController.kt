@@ -24,8 +24,6 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.Subjec
 import java.time.LocalDateTime
 import java.util.*
 
-
-
 @RestController
 @Transactional
 @RequestMapping("/api/")
