@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
+import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -22,6 +23,7 @@ class SubjectAccessRequestControllerTest {
   private val sarService = Mockito.mock(SubjectAccessRequestService::class.java)
   private val auditService = Mockito.mock(AuditService::class.java)
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
+  private val telemetryClient = Mockito.mock(TelemetryClient::class.java)
 
   @Test
   fun `createSubjectAccessRequestPost calls service createSubjectAccessRequestPost with same parameters`() {
@@ -35,7 +37,7 @@ class SubjectAccessRequestControllerTest {
       "}"
     Mockito.`when`(authentication.name).thenReturn("aName")
     Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)).thenReturn("")
-    val result = SubjectAccessRequestController(sarService, auditService)
+    val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
     val expected: ResponseEntity<String> = ResponseEntity("", HttpStatus.OK)
     verify(sarService, times(1)).createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
@@ -54,7 +56,7 @@ class SubjectAccessRequestControllerTest {
       "ndeliusId: '1' " +
       "}"
     Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)).thenReturn("Both nomisId and ndeliusId are provided - exactly one is required")
-    val response = SubjectAccessRequestController(sarService, auditService)
+    val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
     verify(sarService, times(1)).createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
     val expected: ResponseEntity<String> = ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
@@ -73,7 +75,7 @@ class SubjectAccessRequestControllerTest {
       "ndeliusId: '' " +
       "}"
     Mockito.`when`(sarService.createSubjectAccessRequest(noIDRequest, authentication, requestTime)).thenReturn("Neither nomisId nor ndeliusId is provided - exactly one is required")
-    val response = SubjectAccessRequestController(sarService, auditService)
+    val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
     verify(sarService, times(1)).createSubjectAccessRequest(noIDRequest, authentication, requestTime)
     val expected: ResponseEntity<String> = ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
@@ -82,7 +84,7 @@ class SubjectAccessRequestControllerTest {
 
   @Test
   fun `getSubjectAccessRequests is called with unclaimedOnly = true if specified in controller and returns list`() {
-    val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(sarService, auditService)
+    val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .getSubjectAccessRequests(unclaimed = true)
     verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true)
     Assertions.assertThatList(result)
@@ -90,7 +92,7 @@ class SubjectAccessRequestControllerTest {
 
   @Test
   fun `getSubjectAccessRequests is called with unclaimedOnly = false if unspecified in controller`() {
-    SubjectAccessRequestController(sarService, auditService)
+    SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .getSubjectAccessRequests()
     verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
   }
@@ -101,7 +103,7 @@ class SubjectAccessRequestControllerTest {
     fun `claimSubjectAccessRequest returns 400 if updateSubjectAccessRequest returns 0 with time update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))).thenReturn(0)
-      val result = SubjectAccessRequestController(sarService, auditService)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .claimSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))
       Assertions.assertThat(result).isEqualTo(400)
@@ -111,7 +113,7 @@ class SubjectAccessRequestControllerTest {
     fun `claimSubjectAccessRequest returns 200 if updateSubjectAccessRequest returns 1 with time update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))).thenReturn(1)
-      val result = SubjectAccessRequestController(sarService, auditService)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .claimSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))
       Assertions.assertThat(result).isEqualTo(200)
@@ -121,7 +123,7 @@ class SubjectAccessRequestControllerTest {
     fun `completeSubjectAccessRequest returns 400 if completeSubjectAccessRequest returns 0 with status update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(0)
-      val result = SubjectAccessRequestController(sarService, auditService)
+      val result = SubjectAccessRequestController(sarService, auditService ,telemetryClient)
         .completeSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
       Assertions.assertThat(result).isEqualTo(400)
@@ -131,7 +133,7 @@ class SubjectAccessRequestControllerTest {
     fun `completeSubjectAccessRequest returns 200 if completeSubjectAccessRequest returns 1 with status update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(1)
-      val result = SubjectAccessRequestController(sarService, auditService)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .completeSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
       Assertions.assertThat(result).isEqualTo(200)
