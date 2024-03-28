@@ -29,7 +29,7 @@ import java.util.*
 @RestController
 @Transactional
 @RequestMapping("/api/")
-class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, val telemetryClient: TelemetryClient,) {
+class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, val telemetryClient: TelemetryClient) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
   @PostMapping("createSubjectAccessRequest")

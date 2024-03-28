@@ -123,7 +123,7 @@ class SubjectAccessRequestControllerTest {
     fun `completeSubjectAccessRequest returns 400 if completeSubjectAccessRequest returns 0 with status update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(0)
-      val result = SubjectAccessRequestController(sarService, auditService ,telemetryClient)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .completeSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
       Assertions.assertThat(result).isEqualTo(400)
