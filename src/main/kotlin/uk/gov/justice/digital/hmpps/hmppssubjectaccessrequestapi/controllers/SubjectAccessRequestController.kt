@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
+import com.microsoft.applicationinsights.TelemetryClient
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.config.trackEvent
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
@@ -27,7 +29,7 @@ import java.util.*
 @RestController
 @Transactional
 @RequestMapping("/api/")
-class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService) {
+class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, val telemetryClient: TelemetryClient) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
   @PostMapping("createSubjectAccessRequest")
@@ -36,6 +38,14 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     val json = JSONObject(request)
     val nomisId = json.get("nomisId").toString()
     val ndeliusId = json.get("ndeliusId").toString()
+    telemetryClient.trackEvent(
+      "createSubjectAccessRequest",
+      mapOf(
+        "nomisId" to nomisId,
+        "ndeliusId" to ndeliusId,
+        "requestTime" to requestTime.toString(),
+      ),
+    )
     val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
     val response = subjectAccessRequestService.createSubjectAccessRequest(
@@ -59,6 +69,12 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
 
   @PatchMapping("subjectAccessRequests/{id}/claim")
   fun claimSubjectAccessRequest(@PathVariable("id") id: UUID): Int {
+    telemetryClient.trackEvent(
+      "claimSubjectAccessRequest",
+      mapOf(
+        "id" to id.toString(),
+      ),
+    )
     val response = subjectAccessRequestService.claimSubjectAccessRequest(id)
     // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
@@ -70,6 +86,12 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
 
   @PatchMapping("subjectAccessRequests/{id}/complete")
   fun completeSubjectAccessRequest(@PathVariable("id") id: UUID): Int {
+    telemetryClient.trackEvent(
+      "completeSubjectAccessRequest",
+      mapOf(
+        "id" to id.toString(),
+      ),
+    )
     val response = subjectAccessRequestService.completeSubjectAccessRequest(id)
     // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
