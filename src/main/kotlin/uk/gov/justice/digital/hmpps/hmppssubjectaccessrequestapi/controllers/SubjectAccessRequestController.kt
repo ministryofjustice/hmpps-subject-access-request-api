@@ -1,6 +1,11 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
 import com.microsoft.applicationinsights.TelemetryClient
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -33,6 +38,37 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   private val log = LoggerFactory.getLogger(this::class.java)
 
   @PostMapping("createSubjectAccessRequest")
+  @Operation(summary = "Create a Subject Access Request.", description = "Returns a person.")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200", description = "Successfully created a SAR report request with the information provided.",
+        content = [
+          Content(
+            mediaType = "application/json"
+          )
+        ]
+      ),
+      ApiResponse(
+        responseCode = "404", description = "Failed to create a SAR report request with the information provided.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class)
+          )
+        ]
+      ),
+      ApiResponse(
+        responseCode = "500", description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class)
+          )
+        ]
+      ),
+    ]
+  )
   fun createSubjectAccessRequest(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
     log.info("Creating SAR Request")
     val json = JSONObject(request)
@@ -60,6 +96,19 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     }
   }
 
+//  @Operation(summary = "Get Subject Access Requests.", description = "Returns a list of Subject Access Requests.")
+//  @ApiResponses(
+//    value = [
+//      ApiResponse(
+//        responseCode = "200", description = "Successfully returned a list of Subject Access Requests.",
+//        content = [
+//          Content(
+//            mediaType = "application/json"
+//          )
+//        ]
+//      ),
+//    ]
+//  )
   @GetMapping("subjectAccessRequests")
   fun getSubjectAccessRequests(@RequestParam(required = false, name = "unclaimed") unclaimed: Boolean = false): List<SubjectAccessRequest?> {
     val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
@@ -67,6 +116,19 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     return response
   }
 
+  @Operation(summary = "Claim Subject Access Request.", description = "Update claim attempts and claim datetime of a Subject Access Request.")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200", description = "Successfully returned a list of Subject Access Requests.",
+        content = [
+          Content(
+            mediaType = "application/json"
+          )
+        ]
+      ),
+    ]
+  )
   @PatchMapping("subjectAccessRequests/{id}/claim")
   fun claimSubjectAccessRequest(@PathVariable("id") id: UUID): Int {
     telemetryClient.trackEvent(
