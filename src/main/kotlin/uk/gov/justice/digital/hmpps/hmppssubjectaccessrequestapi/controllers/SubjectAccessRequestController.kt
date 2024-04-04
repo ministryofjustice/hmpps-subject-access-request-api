@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
 import com.microsoft.applicationinsights.TelemetryClient
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -38,37 +40,56 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   private val log = LoggerFactory.getLogger(this::class.java)
 
   @PostMapping("createSubjectAccessRequest")
-  @Operation(summary = "Create a Subject Access Request.", description = "Returns a person.")
+  @Operation(summary = "Create a Subject Access Request.", description = "Create a request for a Subject Access Request report.")
   @ApiResponses(
     value = [
       ApiResponse(
-        responseCode = "200", description = "Successfully created a SAR report request with the information provided.",
-        content = [
-          Content(
-            mediaType = "application/json"
-          )
-        ]
-      ),
-      ApiResponse(
-        responseCode = "404", description = "Failed to create a SAR report request with the information provided.",
+        responseCode = "200",
+        description = "Successfully created a Subject Access Request.",
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = String::class)
-          )
-        ]
+          ),
+        ],
       ),
       ApiResponse(
-        responseCode = "500", description = "Unable to serve request.",
+        responseCode = "403",
+        description = "Forbidden - user not authorised to create a Subject Access Request.",
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = String::class)
-          )
-        ]
+            schema = Schema(implementation = String::class),
+          ),
+        ],
       ),
-    ]
+      ApiResponse(
+        responseCode = "404",
+        description = "Failed to create a Subject Access Request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
   )
+  @Parameter(name = "nomisId", description = "Subject's NOMIS prisoner number. Either nomisId OR ndeliusId is required.", required = false, example = "A1234BC")
+  @Parameter(name = "ndeliusId", description = "Subject's nDelius case reference number. Either nomisId OR ndeliusId is required.", required = false, example = "A123456")
+  @Parameter(name = "dateFrom", description = "Start date of the period of time the requested SAR report must cover.", required = true, example = "31/12/1999")
+  @Parameter(name = "dateTo", description = "End date of the period of time the requested SAR report must cover.", required = true, example = "31/12/2000")
+  @Parameter(name = "sarCaseReferenceNumber", description = "Case reference number of the Subject Access Request.", required = true, example = "exampleCaseReferenceNumber")
+  @Parameter(name = "services", description = "List of services from which subject data must be retrieved.", required = true, example = "[\"service1, service1.prison.service.justice.gov.uk\"]")
   fun createSubjectAccessRequest(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
     log.info("Creating SAR Request")
     val json = JSONObject(request)
@@ -96,40 +117,88 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     }
   }
 
-//  @Operation(summary = "Get Subject Access Requests.", description = "Returns a list of Subject Access Requests.")
-//  @ApiResponses(
-//    value = [
-//      ApiResponse(
-//        responseCode = "200", description = "Successfully returned a list of Subject Access Requests.",
-//        content = [
-//          Content(
-//            mediaType = "application/json"
-//          )
-//        ]
-//      ),
-//    ]
-//  )
   @GetMapping("subjectAccessRequests")
-  fun getSubjectAccessRequests(@RequestParam(required = false, name = "unclaimed") unclaimed: Boolean = false): List<SubjectAccessRequest?> {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
-    // auditService.createEvent(SAR DEETS)
-    return response
-  }
-
-  @Operation(summary = "Claim Subject Access Request.", description = "Update claim attempts and claim datetime of a Subject Access Request.")
+  @Operation(summary = "Get Subject Access Requests.", description = "Return a list of Subject Access Requests.")
   @ApiResponses(
     value = [
       ApiResponse(
-        responseCode = "200", description = "Successfully returned a list of Subject Access Requests.",
+        responseCode = "200"
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden - user not authorised to retrieve Subject Access Requests.",
         content = [
           Content(
-            mediaType = "application/json"
-          )
-        ]
+            mediaType = "application/json" ,
+            schema = Schema(implementation = String::class),
+          ),
+        ],
       ),
-    ]
+      ApiResponse(
+        responseCode = "404",
+        description = "Failed to retrieve Subject Access Requests.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
   )
+  @Parameter(name = "unclaimed", description = "Return only Subject Access Requests that are unclaimed by a worker for report generation. Defaults to false.", required = false, example = "false")
+  fun getSubjectAccessRequests(@RequestParam(required = false, name = "unclaimed") unclaimed: Boolean = false): List<SubjectAccessRequest?> {
+    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
+    return response
+  }
+
   @PatchMapping("subjectAccessRequests/{id}/claim")
+  @Operation(summary = "Claim Subject Access Request.", description = "Claim a Subject Access Request for a limited time to generate the requested report.")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Successfully claimed Subject Access Request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = Int::class),
+            examples = [ExampleObject(1.toString())]
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Failed to claim Subject Access Request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
   fun claimSubjectAccessRequest(@PathVariable("id") id: UUID): Int {
     telemetryClient.trackEvent(
       "claimSubjectAccessRequest",
@@ -138,7 +207,6 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     )
     val response = subjectAccessRequestService.claimSubjectAccessRequest(id)
-    // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
       400
     } else {
@@ -147,6 +215,42 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   }
 
   @PatchMapping("subjectAccessRequests/{id}/complete")
+  @Operation(summary = "Complete Subject Access Request.", description = "Mark a Subject Access Request as complete when the report has been successfully generated.")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Successfully completed Subject Access Request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = Int::class),
+            examples = [ExampleObject(1.toString())]
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Failed to complete Subject Access Request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
   fun completeSubjectAccessRequest(@PathVariable("id") id: UUID): Int {
     telemetryClient.trackEvent(
       "completeSubjectAccessRequest",
@@ -155,7 +259,6 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     )
     val response = subjectAccessRequestService.completeSubjectAccessRequest(id)
-    // auditService.createEvent(SAR DEETS)
     return if (response == 0) {
       400
     } else {

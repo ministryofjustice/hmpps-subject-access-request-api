@@ -20,13 +20,11 @@ class OpenApiConfiguration {
         Server().url("https://subject-access-request-dev.hmpps.service.justice.gov.uk")
           .description("Development"),
         Server().url("http://localhost:8080").description("Local"),
-      )
+      ),
     )
     .info(
       Info().title("HMPPS Subject Access Request API Documentation")
-        .description(
-          "A long-lived API for fetching data and generating reports on subject’s data across prison and probation services."
-        )
-        .license(License().name("MIT").url("https://opensource.org/licenses/MIT"))
+        .description(this.javaClass.getResource("/documentation/service-description.html")!!.readText())
+        .license(License().name("MIT").url("https://opensource.org/licenses/MIT")),
     )
 }
