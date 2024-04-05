@@ -34,6 +34,8 @@ class OAuth2ResourceServerSecurityConfiguration {
         auth
           .requestMatchers("/health/**").permitAll()
           .requestMatchers("/info").permitAll()
+          .requestMatchers("/swagger-ui/**").permitAll()
+          .requestMatchers("/v3/api-docs/**").permitAll()
           .anyRequest().authenticated()
       }
       .anonymous { anonymous ->
