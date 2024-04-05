@@ -122,14 +122,14 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   @ApiResponses(
     value = [
       ApiResponse(
-        responseCode = "200"
+        responseCode = "200",
       ),
       ApiResponse(
         responseCode = "403",
         description = "Forbidden - user not authorised to retrieve Subject Access Requests.",
         content = [
           Content(
-            mediaType = "application/json" ,
+            mediaType = "application/json",
             schema = Schema(implementation = String::class),
           ),
         ],
@@ -173,7 +173,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
           Content(
             mediaType = "application/json",
             schema = Schema(implementation = Int::class),
-            examples = [ExampleObject(1.toString())]
+            examples = [ExampleObject(1.toString())],
           ),
         ],
       ),
@@ -225,7 +225,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
           Content(
             mediaType = "application/json",
             schema = Schema(implementation = Int::class),
-            examples = [ExampleObject(1.toString())]
+            examples = [ExampleObject(1.toString())],
           ),
         ],
       ),
