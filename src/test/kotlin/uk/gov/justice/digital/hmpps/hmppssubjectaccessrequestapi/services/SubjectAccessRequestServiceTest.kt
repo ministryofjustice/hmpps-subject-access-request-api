@@ -176,13 +176,14 @@ class SubjectAccessRequestServiceTest {
       Assertions.assertThat(result).isEqualTo(expectedRetrievalResponse)
     }
   }
+
   @Nested
   inner class getAllReports {
     @Test
     fun `getAllReports calls document gateway getAllReports method with pagination`() {
-      Mockito.`when`(sarGateway.getAllReports(PageRequest.of(0,1))).thenReturn(any())
+      Mockito.`when`(sarGateway.getAllReports(PageRequest.of(0, 1))).thenReturn(any())
       SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(PageRequest.of(0, 1))
-      verify(sarGateway, times(1)).getAllReports(PageRequest.of(0,1))
+      verify(sarGateway, times(1)).getAllReports(PageRequest.of(0, 1))
     }
   }
 }

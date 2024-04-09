@@ -118,13 +118,14 @@ class SubjectAccessRequestGatewayTest {
       verify(sarRepository, times(1)).updateStatus(testUuid, status)
     }
   }
+
   @Nested
   inner class getAllReports {
     @Test
     fun `getReports calls repository findAll method with pagination`() {
-      Mockito.`when`(sarRepository.findAll(PageRequest.of(0,1))).thenReturn(any())
+      Mockito.`when`(sarRepository.findAll(PageRequest.of(0, 1))).thenReturn(any())
       SubjectAccessRequestGateway(sarRepository).getAllReports(PageRequest.of(0, 1))
-      verify(sarRepository, times(1)).findAll(PageRequest.of(0,1))
+      verify(sarRepository, times(1)).findAll(PageRequest.of(0, 1))
     }
   }
 }
