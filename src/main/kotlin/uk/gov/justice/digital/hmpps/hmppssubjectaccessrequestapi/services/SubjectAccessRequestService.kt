@@ -76,6 +76,10 @@ class SubjectAccessRequestService(
 
   fun getAllReports(pagination: PageRequest): List<SubjectAccessRequest?> {
     val reports = sarDbGateway.getAllReports(pagination)
-    return reports!!.content
+    if (reports == null) {
+      return emptyList()
+    } else {
+      return reports.content
+    }
   }
 }
