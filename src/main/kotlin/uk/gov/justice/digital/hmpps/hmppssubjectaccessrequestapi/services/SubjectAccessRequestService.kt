@@ -75,8 +75,8 @@ class SubjectAccessRequestService(
     return document
   }
 
-  fun getAllReports(pagination: PageRequest): Page<SubjectAccessRequest?>? {
+  fun getAllReports(pagination: PageRequest): List<SubjectAccessRequest?> {
     val reports = sarDbGateway.getAllReports(pagination)
-    return reports
+    return reports!!.content
   }
 }
