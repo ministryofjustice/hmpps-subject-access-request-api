@@ -146,7 +146,7 @@ class SubjectAccessRequestControllerTest {
   inner class getSubjectAccessRequestReports {
     @Test
     fun `getSubjectAccessRequestReports is called with pagination parameters`() {
-      val result: Page<SubjectAccessRequest?>? = SubjectAccessRequestController(sarService, auditService, telemetryClient)
+      SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getSubjectAccessRequestReports(1, 1)
       verify(sarService, times(1)).getAllReports(PageRequest.of(1, 1))
     }
