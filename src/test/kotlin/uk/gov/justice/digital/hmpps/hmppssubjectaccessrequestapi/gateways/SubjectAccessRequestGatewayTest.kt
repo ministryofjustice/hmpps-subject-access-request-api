@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.springframework.data.domain.PageRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
@@ -114,6 +116,15 @@ class SubjectAccessRequestGatewayTest {
       SubjectAccessRequestGateway(sarRepository)
         .updateSubjectAccessRequestStatusCompleted(testUuid)
       verify(sarRepository, times(1)).updateStatus(testUuid, status)
+    }
+  }
+  @Nested
+  inner class getReports {
+    @Test
+    fun `getReports calls document gateway findAll method with pagination`() {
+      Mockito.`when`(sarRepository.findAll(PageRequest.of(0,1))).thenReturn(any())
+      SubjectAccessRequestGateway(sarRepository).getAllReports(PageRequest.of(0, 1))
+      verify(sarRepository, times(1)).findAll(PageRequest.of(0,1))
     }
   }
 }
