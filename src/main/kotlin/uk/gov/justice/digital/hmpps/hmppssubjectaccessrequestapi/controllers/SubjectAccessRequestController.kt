@@ -90,11 +90,13 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   @Parameter(name = "dateTo", description = "End date of the period of time the requested SAR report must cover.", required = true, example = "31/12/2000")
   @Parameter(name = "sarCaseReferenceNumber", description = "Case reference number of the Subject Access Request.", required = true, example = "exampleCaseReferenceNumber")
   @Parameter(name = "services", description = "List of services from which subject data must be retrieved.", required = true, example = "[\"service1, service1.prison.service.justice.gov.uk\"]")
+  @Parameter(name = "requestedBy", description = "ID of the user that requested the SAR report.", required = true, example = "exampleUUID")
   fun createSubjectAccessRequest(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
     log.info("Creating SAR Request")
     val json = JSONObject(request)
     val nomisId = json.get("nomisId").toString()
     val ndeliusId = json.get("ndeliusId").toString()
+    val requestedBy = json.get("requestedBy").toString()
     telemetryClient.trackEvent(
       "createSubjectAccessRequest",
       mapOf(
@@ -104,7 +106,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     )
     val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
-    auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
+    auditService.createEvent(requestedBy, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
     val response = subjectAccessRequestService.createSubjectAccessRequest(
       request = request,
       authentication = authentication,

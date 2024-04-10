@@ -25,7 +25,8 @@ class SubjectAccessRequestServiceTest {
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
     "nomisId: '', " +
-    "ndeliusId: '1' " +
+    "ndeliusId: '1', " +
+    "requestedBy: 'mockUserId' " +
     "}"
 
   private val ndeliusAndNomisRequest = "{ " +
@@ -34,7 +35,8 @@ class SubjectAccessRequestServiceTest {
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
     "nomisId: '1', " +
-    "ndeliusId: '1' " +
+    "ndeliusId: '1', " +
+    "requestedBy: 'mockUserId' " +
     "}"
 
   private val noIDRequest = "{ " +
@@ -43,7 +45,8 @@ class SubjectAccessRequestServiceTest {
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
     "nomisId: '', " +
-    "ndeliusId: '' " +
+    "ndeliusId: '', " +
+    "requestedBy: 'mockUserId' " +
     "}"
 
   private val json = JSONObject(ndeliusRequest)
@@ -62,7 +65,7 @@ class SubjectAccessRequestServiceTest {
     services = "{1,2,4}",
     nomisId = "",
     ndeliusCaseReferenceId = "1",
-    requestedBy = "aName",
+    requestedBy = "mockUserId",
     requestDateTime = requestTime,
     claimAttempts = 0,
   )
@@ -73,8 +76,7 @@ class SubjectAccessRequestServiceTest {
   @Nested
   inner class createSubjectAccessRequest {
     @Test
-    fun `createSubjectAccessRequest and returns empty string`() {
-      Mockito.`when`(authentication.name).thenReturn("aName")
+    fun `createSubjectAccessRequest returns empty string`() {
       val expected = ""
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
         .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime, sampleSAR.id)
@@ -84,7 +86,6 @@ class SubjectAccessRequestServiceTest {
 
     @Test
     fun `createSubjectAccessRequest returns error string if both IDs are supplied`() {
-      Mockito.`when`(authentication.name).thenReturn("aName")
       val expected =
         "Both nomisId and ndeliusId are provided - exactly one is required"
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
@@ -95,7 +96,6 @@ class SubjectAccessRequestServiceTest {
 
     @Test
     fun `createSubjectAccessRequest returns error string if neither subject ID is supplied`() {
-      Mockito.`when`(authentication.name).thenReturn("aName")
       val expected =
         "Neither nomisId nor ndeliusId is provided - exactly one is required"
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)

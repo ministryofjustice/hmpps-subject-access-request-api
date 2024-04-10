@@ -47,7 +47,7 @@ class SubjectAccessRequestService(
         services = json.get("services").toString(),
         nomisId = json.get("nomisId").toString(),
         ndeliusCaseReferenceId = json.get("ndeliusId").toString(),
-        requestedBy = authentication.name,
+        requestedBy = json.get("requestedBy").toString(),
         requestDateTime = requestTime ?: LocalDateTime.now(),
       ),
     )

@@ -33,9 +33,9 @@ class SubjectAccessRequestControllerTest {
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
       "nomisId: '', " +
-      "ndeliusId: '1' " +
+      "ndeliusId: '1', " +
+      "requestedBy: 'mockUserId' " +
       "}"
-    Mockito.`when`(authentication.name).thenReturn("aName")
     Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)).thenReturn("")
     val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
@@ -53,7 +53,8 @@ class SubjectAccessRequestControllerTest {
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
       "nomisId: '1', " +
-      "ndeliusId: '1' " +
+      "ndeliusId: '1', " +
+      "requestedBy: 'mockUserId' " +
       "}"
     Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)).thenReturn("Both nomisId and ndeliusId are provided - exactly one is required")
     val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
@@ -72,7 +73,8 @@ class SubjectAccessRequestControllerTest {
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
       "nomisId: '', " +
-      "ndeliusId: '' " +
+      "ndeliusId: '', " +
+      "requestedBy: 'mockUserId' " +
       "}"
     Mockito.`when`(sarService.createSubjectAccessRequest(noIDRequest, authentication, requestTime)).thenReturn("Neither nomisId nor ndeliusId is provided - exactly one is required")
     val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
