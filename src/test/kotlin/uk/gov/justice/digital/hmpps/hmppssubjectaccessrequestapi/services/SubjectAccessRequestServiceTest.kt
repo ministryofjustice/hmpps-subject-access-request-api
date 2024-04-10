@@ -180,7 +180,7 @@ class SubjectAccessRequestServiceTest {
   @Nested
   inner class getAllReports {
     @Test
-    fun `getAllReports calls document gateway getAllReports method with pagination`() {
+    fun `getAllReports calls SAR gateway getAllReports method with pagination`() {
       Mockito.`when`(sarGateway.getAllReports(PageRequest.of(0, 1))).thenReturn(any())
       SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(PageRequest.of(0, 1))
       verify(sarGateway, times(1)).getAllReports(PageRequest.of(0, 1))
