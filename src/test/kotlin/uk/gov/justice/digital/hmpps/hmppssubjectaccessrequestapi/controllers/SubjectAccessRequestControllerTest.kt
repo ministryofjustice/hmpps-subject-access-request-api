@@ -9,6 +9,7 @@ import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.eq
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -26,7 +27,7 @@ class SubjectAccessRequestControllerTest {
   private val telemetryClient = Mockito.mock(TelemetryClient::class.java)
 
   @Test
-  fun `createSubjectAccessRequestPost calls service createSubjectAccessRequestPost with same parameters`() {
+  fun `createSubjectAccessRequest post calls service createSubjectAccessRequest with same parameters`() {
     val ndeliusRequest = "{ " +
       "dateFrom: '01/12/2023', " +
       "dateTo: '03/01/2024', " +
@@ -45,7 +46,7 @@ class SubjectAccessRequestControllerTest {
   }
 
   @Test
-  fun `createSubjectAccessRequestPost returns http error if both nomis and ndelius ids are provided`() {
+  fun `createSubjectAccessRequest post returns http error if both nomis and ndelius ids are provided`() {
     Mockito.`when`(authentication.name).thenReturn("aName")
     val ndeliusAndNomisRequest = "{ " +
       "dateFrom: '01/12/2023', " +
@@ -64,7 +65,7 @@ class SubjectAccessRequestControllerTest {
   }
 
   @Test
-  fun `createSubjectAccessRequestPost returns http error if neither nomis nor ndelius ids are provided`() {
+  fun `createSubjectAccessRequest post returns http error if neither nomis nor ndelius ids are provided`() {
     Mockito.`when`(authentication.name).thenReturn("aName")
     val noIDRequest = "{ " +
       "dateFrom: '01/12/2023', " +
@@ -137,6 +138,16 @@ class SubjectAccessRequestControllerTest {
         .completeSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
       Assertions.assertThat(result).isEqualTo(200)
+    }
+  }
+
+  @Nested
+  inner class getSubjectAccessRequestReports {
+    @Test
+    fun `getSubjectAccessRequestReports is called with pagination parameters`() {
+      SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .getSubjectAccessRequestReports(1, 1)
+      verify(sarService, times(1)).getAllReports(PageRequest.of(1, 1))
     }
   }
 }

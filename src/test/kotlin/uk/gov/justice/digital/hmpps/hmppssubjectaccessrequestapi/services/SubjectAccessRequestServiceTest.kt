@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
@@ -172,6 +174,16 @@ class SubjectAccessRequestServiceTest {
       val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
       verify(documentGateway, times(1)).retrieveDocument(mockUUID)
       Assertions.assertThat(result).isEqualTo(expectedRetrievalResponse)
+    }
+  }
+
+  @Nested
+  inner class getAllReports {
+    @Test
+    fun `getAllReports calls SAR gateway getAllReports method with pagination`() {
+      Mockito.`when`(sarGateway.getAllReports(PageRequest.of(0, 1))).thenReturn(any())
+      SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(PageRequest.of(0, 1))
+      verify(sarGateway, times(1)).getAllReports(PageRequest.of(0, 1))
     }
   }
 }
