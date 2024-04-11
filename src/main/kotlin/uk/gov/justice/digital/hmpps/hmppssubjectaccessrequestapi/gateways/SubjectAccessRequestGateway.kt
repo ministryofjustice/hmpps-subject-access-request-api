@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
@@ -32,5 +34,10 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
   fun updateSubjectAccessRequestStatusCompleted(id: UUID): Int {
     val result = repo.updateStatus(id, Status.Completed)
     return result
+  }
+
+  fun getAllReports(pagination: PageRequest): Page<SubjectAccessRequest?>? {
+    val reports = repo.findAll(pagination)
+    return reports
   }
 }

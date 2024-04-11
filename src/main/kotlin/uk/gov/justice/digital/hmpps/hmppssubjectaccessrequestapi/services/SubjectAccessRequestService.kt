@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
@@ -48,7 +49,7 @@ class SubjectAccessRequestService(
         services = json.get("services").toString(),
         nomisId = json.get("nomisId").toString(),
         ndeliusCaseReferenceId = json.get("ndeliusId").toString(),
-        requestedBy = authentication.name,
+        requestedBy = json.get("requestedBy").toString(),
         requestDateTime = requestTime ?: LocalDateTime.now(),
       ),
     )
@@ -72,5 +73,14 @@ class SubjectAccessRequestService(
   fun retrieveSubjectAccessRequestDocument(sarId: UUID): ByteArrayInputStream? {
     val document = documentStorageGateway.retrieveDocument(sarId)
     return document
+  }
+
+  fun getAllReports(pagination: PageRequest): List<SubjectAccessRequest?> {
+    val reports = sarDbGateway.getAllReports(pagination)
+    if (reports == null) {
+      return emptyList()
+    } else {
+      return reports.content
+    }
   }
 }

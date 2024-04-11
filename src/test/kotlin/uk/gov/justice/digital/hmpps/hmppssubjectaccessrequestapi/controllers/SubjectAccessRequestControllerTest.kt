@@ -10,6 +10,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.eq
 import org.springframework.core.io.InputStreamResource
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -29,16 +30,16 @@ class SubjectAccessRequestControllerTest {
   private val telemetryClient = Mockito.mock(TelemetryClient::class.java)
 
   @Test
-  fun `createSubjectAccessRequestPost calls service createSubjectAccessRequestPost with same parameters`() {
+  fun `createSubjectAccessRequest post calls service createSubjectAccessRequest with same parameters`() {
     val ndeliusRequest = "{ " +
       "dateFrom: '01/12/2023', " +
       "dateTo: '03/01/2024', " +
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
       "nomisId: '', " +
-      "ndeliusId: '1' " +
+      "ndeliusId: '1', " +
+      "requestedBy: 'mockUserId' " +
       "}"
-    Mockito.`when`(authentication.name).thenReturn("aName")
     Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)).thenReturn("")
     val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
@@ -48,7 +49,7 @@ class SubjectAccessRequestControllerTest {
   }
 
   @Test
-  fun `createSubjectAccessRequestPost returns http error if both nomis and ndelius ids are provided`() {
+  fun `createSubjectAccessRequest post returns http error if both nomis and ndelius ids are provided`() {
     Mockito.`when`(authentication.name).thenReturn("aName")
     val ndeliusAndNomisRequest = "{ " +
       "dateFrom: '01/12/2023', " +
@@ -56,7 +57,8 @@ class SubjectAccessRequestControllerTest {
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
       "nomisId: '1', " +
-      "ndeliusId: '1' " +
+      "ndeliusId: '1', " +
+      "requestedBy: 'mockUserId' " +
       "}"
     Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)).thenReturn("Both nomisId and ndeliusId are provided - exactly one is required")
     val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
@@ -67,7 +69,7 @@ class SubjectAccessRequestControllerTest {
   }
 
   @Test
-  fun `createSubjectAccessRequestPost returns http error if neither nomis nor ndelius ids are provided`() {
+  fun `createSubjectAccessRequest post returns http error if neither nomis nor ndelius ids are provided`() {
     Mockito.`when`(authentication.name).thenReturn("aName")
     val noIDRequest = "{ " +
       "dateFrom: '01/12/2023', " +
@@ -75,7 +77,8 @@ class SubjectAccessRequestControllerTest {
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
       "nomisId: '', " +
-      "ndeliusId: '' " +
+      "ndeliusId: '', " +
+      "requestedBy: 'mockUserId' " +
       "}"
     Mockito.`when`(sarService.createSubjectAccessRequest(noIDRequest, authentication, requestTime)).thenReturn("Neither nomisId nor ndeliusId is provided - exactly one is required")
     val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
@@ -175,12 +178,20 @@ class SubjectAccessRequestControllerTest {
     fun `getReport returns 500 if retrieveSubjectAccessRequestDocument throws an exception`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       val errorMessage = "An error has occurred!"
-      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenThrow(RuntimeException(errorMessage))
+      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid))
+        .thenThrow(RuntimeException(errorMessage))
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
       verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
       Assertions.assertThat(result).isEqualTo(
         ResponseEntity(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR),
       )
+    }
+
+    @Test
+    fun `getSubjectAccessRequestReports is called with pagination parameters`() {
+      SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .getSubjectAccessRequestReports(1, 1)
+      verify(sarService, times(1)).getAllReports(PageRequest.of(1, 1))
     }
   }
 }

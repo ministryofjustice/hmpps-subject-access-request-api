@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDate
@@ -237,6 +240,19 @@ class SubjectAccessRequestRepositoryTest {
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(4)
       Assertions.assertThat(sarRepository?.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
         .isEqualTo(expectedUpdatedRecord)
+    }
+  }
+
+  @Nested
+  inner class getReports {
+    @Test
+    fun `gets reports from database`() {
+      databaseInsert()
+
+      val dbReports = sarRepository?.findAll(PageRequest.of(0, 4))
+      val page: Page<SubjectAccessRequest> = PageImpl(allSars)
+      Assertions.assertThat(dbReports?.content).isEqualTo(page.content)
+      Assertions.assertThat(dbReports?.size).isEqualTo(4)
     }
   }
 }
