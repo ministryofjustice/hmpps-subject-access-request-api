@@ -14,7 +14,9 @@ import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
@@ -160,6 +162,60 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   fun getSubjectAccessRequests(@RequestParam(required = false, name = "unclaimed") unclaimed: Boolean = false): List<SubjectAccessRequest?> {
     val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
     return response
+  }
+
+  @GetMapping("report")
+  @Operation(summary = "Get Subject Access Request Report.", description = "Return a completed Subject Access Request Report.")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden - user not authorised to retrieve Subject Access Request Reports.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Failed to retrieve Subject Access Request Report.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @Parameter(name = "id", description = "ID for the Subject Access Request Report to download.", required = true, example = "11111111-2222-3333-4444-555555555555")
+  fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<Any> {
+    try {
+      val response = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)
+      if (response === null) {
+        return ResponseEntity("Report Not Found", HttpStatus.NOT_FOUND)
+      }
+      return ResponseEntity.ok()
+        .contentType(MediaType.parseMediaType(MediaType.APPLICATION_PDF_VALUE))
+        .body(InputStreamResource(response))
+    } catch (exception: Exception) {
+      return ResponseEntity(exception.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
   @PatchMapping("subjectAccessRequests/{id}/claim")

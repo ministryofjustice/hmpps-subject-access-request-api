@@ -9,12 +9,15 @@ import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.eq
+import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
+import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -137,6 +140,47 @@ class SubjectAccessRequestControllerTest {
         .completeSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
       Assertions.assertThat(result).isEqualTo(200)
+    }
+  }
+
+  @Nested
+  inner class GetReport {
+    @Test
+    fun `getReport returns 200 if retrieveSubjectAccessRequestDocument returns a document`() {
+      val mockByteArrayInputStream = Mockito.mock(ByteArrayInputStream::class.java)
+      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
+      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenReturn(mockByteArrayInputStream)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
+      verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
+      Assertions.assertThat(result).isEqualTo(
+        ResponseEntity.ok()
+          .contentType(MediaType.parseMediaType("application/pdf"))
+          .body(InputStreamResource(mockByteArrayInputStream)),
+      )
+    }
+
+    @Test
+    fun `getReport returns 404 if retrieveSubjectAccessRequestDocument does not returns a document`() {
+      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
+      val errorMessage = "Report Not Found"
+      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenReturn(null)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
+      verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
+      Assertions.assertThat(result).isEqualTo(
+        ResponseEntity(errorMessage, HttpStatus.NOT_FOUND),
+      )
+    }
+
+    @Test
+    fun `getReport returns 500 if retrieveSubjectAccessRequestDocument throws an exception`() {
+      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
+      val errorMessage = "An error has occurred!"
+      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenThrow(RuntimeException(errorMessage))
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
+      verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
+      Assertions.assertThat(result).isEqualTo(
+        ResponseEntity(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR),
+      )
     }
   }
 }

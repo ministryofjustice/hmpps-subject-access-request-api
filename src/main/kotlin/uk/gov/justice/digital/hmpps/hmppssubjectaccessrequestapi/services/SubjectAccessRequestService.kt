@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.Docume
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
+import java.io.ByteArrayInputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -68,7 +69,7 @@ class SubjectAccessRequestService(
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 
-  fun retrieveSubjectAccessRequestDocument(sarId: UUID): JSONObject? {
+  fun retrieveSubjectAccessRequestDocument(sarId: UUID): ByteArrayInputStream? {
     val document = documentStorageGateway.retrieveDocument(sarId)
     return document
   }
