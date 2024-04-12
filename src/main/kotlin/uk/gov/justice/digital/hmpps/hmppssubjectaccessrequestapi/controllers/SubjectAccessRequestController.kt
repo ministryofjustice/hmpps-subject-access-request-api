@@ -326,7 +326,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   }
 
   @GetMapping("reports")
-  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageSize") pageSize: Int, @RequestParam(required = true, name = "pageNumber") pageNumber: Int): List<SubjectAccessRequest?> {
+  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageSize") pageSize: Int, @RequestParam(required = true, name = "pageNumber") pageNumber: Int): List<JSONObject> {
     val response = subjectAccessRequestService.getAllReports(PageRequest.of(pageNumber, pageSize))
     // auditService.createEvent(SAR DEETS)
     // Date requested, Status, Case ref, subject ID, UUID

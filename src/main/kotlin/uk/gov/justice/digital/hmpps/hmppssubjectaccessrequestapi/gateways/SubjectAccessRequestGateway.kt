@@ -36,8 +36,13 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
     return result
   }
 
-  fun getAllReports(pagination: PageRequest): Page<SubjectAccessRequest?>? {
+  fun getAllReports(pagination: PageRequest): Page<SubjectAccessRequest?> {
     val reports = repo.findAll(pagination)
-    return reports
+    try {
+      reports.content
+      return reports
+    } catch (exception: NullPointerException) {
+      return Page.empty()
+    }
   }
 }

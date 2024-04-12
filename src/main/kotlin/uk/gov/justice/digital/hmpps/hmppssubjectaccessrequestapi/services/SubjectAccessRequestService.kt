@@ -75,12 +75,32 @@ class SubjectAccessRequestService(
     return document
   }
 
-  fun getAllReports(pagination: PageRequest): List<SubjectAccessRequest?> {
+  fun getAllReports(pagination: PageRequest): List<JSONObject> {
     val reports = sarDbGateway.getAllReports(pagination)
-    if (reports == null) {
+    try {
+      val reportInfo = reports.content
+      val condensedReportInfo = emptyList<JSONObject>().toMutableList()
+      reportInfo.forEach {
+        if (it != null) {
+          val subjectId: String
+          if (it.nomisId == "") {
+            subjectId = it.ndeliusCaseReferenceId!!
+          } else {
+            subjectId = it.nomisId!!
+          }
+          val infoString = "{ " +
+            "uuid: '" + it.id.toString() + "'," +
+            "dateOfRequest: '" + it.requestDateTime.toString() + "'," +
+            "sarCaseReference: '" + it.sarCaseReferenceNumber + "'," +
+            "subjectId: '" + subjectId + "'," +
+            "status: '" + it.status.toString() + "'" +
+            "}"
+          condensedReportInfo += JSONObject(infoString)
+        }
+      }
+      return condensedReportInfo
+    } catch (e: NullPointerException) {
       return emptyList()
-    } else {
-      return reports.content
     }
   }
 }
