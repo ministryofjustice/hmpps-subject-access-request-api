@@ -8,7 +8,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
@@ -182,13 +181,15 @@ class SubjectAccessRequestServiceTest {
       Mockito.`when`(sarGateway.getAllReports(PageRequest.of(0, 1))).thenReturn(PageImpl(listOf(sampleSAR)))
       val arrayList = emptyList<JSONObject>().toMutableList()
       arrayList +=
-        JSONObject("{ " +
-        "uuid: '11111111-1111-1111-1111-111111111111', " +
-        "dateOfRequest: '" + requestTime.toString() + "', " +
-        "sarCaseReference: '1234abc', " +
-        "subjectId: '1', " +
-        "status: 'Pending'" +
-        "}")
+        JSONObject(
+          "{ " +
+            "uuid: '11111111-1111-1111-1111-111111111111', " +
+            "dateOfRequest: '" + requestTime.toString() + "', " +
+            "sarCaseReference: '1234abc', " +
+            "subjectId: '1', " +
+            "status: 'Pending'" +
+            "}",
+        )
       val result = SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(PageRequest.of(0, 1))
       Assertions.assertThat(result[0].get("dateOfRequest")).isEqualTo(arrayList[0].get("dateOfRequest"))
       Assertions.assertThat(result[0].toString()).isEqualTo(arrayList[0].toString())
