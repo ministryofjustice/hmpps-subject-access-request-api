@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.Docume
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
+import java.io.ByteArrayInputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -138,28 +139,8 @@ class SubjectAccessRequestServiceTest {
   }
 
   @Nested
-  inner class documentRetrieval {
-    private val expectedRetrievalResponse = JSONObject(
-      "{\n" +
-        "  \"documentUuid\": \"MockUUID\",\n" +
-        "  \"documentType\": \"HMCTS_WARRANT\",\n" +
-        "  \"documentFilename\": \"warrant_for_remand\",\n" +
-        "  \"filename\": \"warrant_for_remand\",\n" +
-        "  \"fileExtension\": \"pdf\",\n" +
-        "  \"fileSize\": 48243,\n" +
-        "  \"fileHash\": \"d58e3582afa99040e27b92b13c8f2280\",\n" +
-        "  \"mimeType\": \"pdf\",\n" +
-        "  \"metadata\": {\n" +
-        "    \"prisonCode\": \"KMI\",\n" +
-        "    \"prisonNumber\": \"C3456DE\",\n" +
-        "    \"court\": \"Birmingham Magistrates\",\n" +
-        "    \"warrantDate\": \"2023-11-14\"\n" +
-        "  },\n" +
-        "  \"createdTime\": \"2024-02-14T07:19:32.931Z\",\n" +
-        "  \"createdByServiceName\": \"Remand and Sentencing\",\n" +
-        "  \"createdByUsername\": \"AAA01U\"\n" +
-        "}",
-    )
+  inner class DocumentRetrieval {
+    private val expectedRetrievalResponse = Mockito.mock(ByteArrayInputStream::class.java)
     val mockUUID = UUID.randomUUID()
 
     @Test
@@ -169,11 +150,19 @@ class SubjectAccessRequestServiceTest {
     }
 
     @Test
-    fun `retrieveSubjectAccessRequestDocument returns JSONObject`() {
+    fun `retrieveSubjectAccessRequestDocument returns ByteArray if provided`() {
       Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(expectedRetrievalResponse)
       val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
       verify(documentGateway, times(1)).retrieveDocument(mockUUID)
       Assertions.assertThat(result).isEqualTo(expectedRetrievalResponse)
+    }
+
+    @Test
+    fun `retrieveSubjectAccessRequestDocument returns null if not provided`() {
+      Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(null)
+      val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
+      verify(documentGateway, times(1)).retrieveDocument(mockUUID)
+      Assertions.assertThat(result).isEqualTo(null)
     }
   }
 
