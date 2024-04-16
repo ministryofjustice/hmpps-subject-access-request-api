@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
@@ -75,11 +78,11 @@ class SubjectAccessRequestService(
     return document
   }
 
-  fun getAllReports(pagination: PageRequest): List<JSONObject> {
+  fun getAllReports(pagination: PageRequest): List<SubjectAccessRequestReport> {
     val reports = sarDbGateway.getAllReports(pagination)
     try {
       val reportInfo = reports.content
-      val condensedReportInfo = emptyList<JSONObject>().toMutableList()
+      val condensedReportInfo = emptyList<SubjectAccessRequestReport>().toMutableList()
       reportInfo.forEach {
         if (it != null) {
           val subjectId: String
@@ -88,14 +91,13 @@ class SubjectAccessRequestService(
           } else {
             subjectId = it.nomisId!!
           }
-          val infoString = "{ " +
-            "uuid: '" + it.id.toString() + "'," +
-            "dateOfRequest: '" + it.requestDateTime.toString() + "'," +
-            "sarCaseReference: '" + it.sarCaseReferenceNumber + "'," +
-            "subjectId: '" + subjectId + "'," +
-            "status: '" + it.status.toString() + "'" +
-            "}"
-          condensedReportInfo += JSONObject(infoString)
+          condensedReportInfo += SubjectAccessRequestReport(
+            it.id.toString(),
+            it.requestDateTime.toString(),
+            it.sarCaseReferenceNumber,
+            subjectId,
+            it.status.toString(),
+          )
         }
       }
       return condensedReportInfo
@@ -104,3 +106,12 @@ class SubjectAccessRequestService(
     }
   }
 }
+
+@Serializable
+data class SubjectAccessRequestReport(
+  val uuid: String,
+  val dateOfRequest: String,
+  val sarCaseReference: String,
+  val subjectId: String,
+  val status: String,
+)

@@ -8,7 +8,10 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
+<<<<<<< HEAD
 import org.springframework.data.domain.Page
+=======
+>>>>>>> origin
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
@@ -180,6 +183,7 @@ class SubjectAccessRequestServiceTest {
     @Test
     fun `getAllReports extracts condensed report info`() {
       Mockito.`when`(sarGateway.getAllReports(PageRequest.of(0, 1))).thenReturn(PageImpl(listOf(sampleSAR)))
+<<<<<<< HEAD
       val arrayList = emptyList<JSONObject>().toMutableList()
       arrayList +=
         JSONObject("{ " +
@@ -192,6 +196,22 @@ class SubjectAccessRequestServiceTest {
       val result = SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(PageRequest.of(0, 1))
       Assertions.assertThat(result[0].get("dateOfRequest")).isEqualTo(arrayList[0].get("dateOfRequest"))
       Assertions.assertThat(result[0].toString()).isEqualTo(arrayList[0].toString())
+=======
+      val expectedCondensedReportInfo = emptyList<JSONObject>().toMutableList()
+      expectedCondensedReportInfo +=
+        JSONObject(
+          "{ " +
+            "uuid: '11111111-1111-1111-1111-111111111111', " +
+            "dateOfRequest: '" + requestTime.toString() + "', " +
+            "sarCaseReference: '1234abc', " +
+            "subjectId: '1', " +
+            "status: 'Pending'" +
+            "}",
+        )
+      val result = SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(PageRequest.of(0, 1))
+      Assertions.assertThat(result[0].get("dateOfRequest")).isEqualTo(expectedCondensedReportInfo[0].get("dateOfRequest"))
+      Assertions.assertThat(result[0].toString()).isEqualTo(expectedCondensedReportInfo[0].toString())
+>>>>>>> origin
     }
   }
 }
