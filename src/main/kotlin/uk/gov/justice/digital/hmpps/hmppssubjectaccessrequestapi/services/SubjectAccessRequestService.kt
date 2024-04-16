@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
@@ -75,12 +78,44 @@ class SubjectAccessRequestService(
     return document
   }
 
-  fun getAllReports(pagination: PageRequest): List<SubjectAccessRequest?> {
+  fun getAllReports(pagination: PageRequest): List<JSONObject> {
     val reports = sarDbGateway.getAllReports(pagination)
-    if (reports == null) {
+    try {
+      val reportInfo = reports.content
+      val condensedReportInfo = emptyList<JSONObject>().toMutableList()
+      reportInfo.forEach {
+        if (it != null) {
+          val subjectId: String
+          if (it.nomisId == "") {
+            subjectId = it.ndeliusCaseReferenceId!!
+          } else {
+            subjectId = it.nomisId!!
+          }
+
+          val infoString = Json.encodeToString(
+            SubjectAccessRequestReport(
+              it.id.toString(),
+              it.requestDateTime.toString(),
+              it.sarCaseReferenceNumber,
+              subjectId,
+              it.status.toString(),
+            ),
+          )
+          condensedReportInfo += JSONObject(infoString)
+        }
+      }
+      return condensedReportInfo
+    } catch (e: NullPointerException) {
       return emptyList()
-    } else {
-      return reports.content
     }
   }
 }
+
+@Serializable
+data class SubjectAccessRequestReport(
+  val uuid: String,
+  val dateOfRequest: String,
+  val sarCaseReference: String,
+  val subjectId: String,
+  val status: String,
+)
