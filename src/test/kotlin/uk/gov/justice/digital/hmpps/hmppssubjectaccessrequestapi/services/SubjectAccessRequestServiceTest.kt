@@ -179,8 +179,8 @@ class SubjectAccessRequestServiceTest {
     @Test
     fun `getAllReports extracts condensed report info`() {
       Mockito.`when`(sarGateway.getAllReports(PageRequest.of(0, 1))).thenReturn(PageImpl(listOf(sampleSAR)))
-      val arrayList = emptyList<JSONObject>().toMutableList()
-      arrayList +=
+      val expectedCondensedReportInfo = emptyList<JSONObject>().toMutableList()
+      expectedCondensedReportInfo +=
         JSONObject(
           "{ " +
             "uuid: '11111111-1111-1111-1111-111111111111', " +
@@ -191,8 +191,8 @@ class SubjectAccessRequestServiceTest {
             "}",
         )
       val result = SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(PageRequest.of(0, 1))
-      Assertions.assertThat(result[0].get("dateOfRequest")).isEqualTo(arrayList[0].get("dateOfRequest"))
-      Assertions.assertThat(result[0].toString()).isEqualTo(arrayList[0].toString())
+      Assertions.assertThat(result[0].get("dateOfRequest")).isEqualTo(expectedCondensedReportInfo[0].get("dateOfRequest"))
+      Assertions.assertThat(result[0].toString()).isEqualTo(expectedCondensedReportInfo[0].toString())
     }
   }
 }
