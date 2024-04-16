@@ -86,10 +86,10 @@ class SubjectAccessRequestService(
       reportInfo.forEach {
         if (it != null) {
           val subjectId: String
-          if (it.nomisId == "") {
+          if (it.nomisId == null) {
             subjectId = it.ndeliusCaseReferenceId!!
           } else {
-            subjectId = it.nomisId!!
+            subjectId = it.nomisId
           }
           condensedReportInfo += SubjectAccessRequestReport(
             it.id.toString(),
