@@ -182,7 +182,7 @@ class SubjectAccessRequestServiceTest {
       val expectedResult =
         SubjectAccessRequestReport(
           uuid = "11111111-1111-1111-1111-111111111111",
-          dateOfRequest =  requestTime.toString(),
+          dateOfRequest = requestTime.toString(),
           sarCaseReference = "1234abc",
           subjectId = "1",
           status = "Pending",
