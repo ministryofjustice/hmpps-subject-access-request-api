@@ -8,10 +8,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
-<<<<<<< HEAD
-import org.springframework.data.domain.Page
-=======
->>>>>>> origin
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
