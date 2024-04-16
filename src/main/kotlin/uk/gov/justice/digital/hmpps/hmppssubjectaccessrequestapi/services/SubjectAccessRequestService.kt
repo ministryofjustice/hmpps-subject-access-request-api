@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
@@ -92,13 +92,15 @@ class SubjectAccessRequestService(
             subjectId = it.nomisId!!
           }
 
-          val infoString = Json.encodeToString(SubjectAccessRequestReport(
-            it.id.toString(),
-            it.requestDateTime.toString(),
-            it.sarCaseReferenceNumber,
-            subjectId,
-            it.status.toString()
-          ))
+          val infoString = Json.encodeToString(
+            SubjectAccessRequestReport(
+              it.id.toString(),
+              it.requestDateTime.toString(),
+              it.sarCaseReferenceNumber,
+              subjectId,
+              it.status.toString(),
+            ),
+          )
           condensedReportInfo += JSONObject(infoString)
         }
       }
@@ -110,9 +112,10 @@ class SubjectAccessRequestService(
 }
 
 @Serializable
-data class SubjectAccessRequestReport(val uuid: String,
-                                val dateOfRequest: String,
-                                val sarCaseReference: String,
-                                val subjectId: String,
-                                val status: String,
-  )
+data class SubjectAccessRequestReport(
+  val uuid: String,
+  val dateOfRequest: String,
+  val sarCaseReference: String,
+  val subjectId: String,
+  val status: String,
+)
