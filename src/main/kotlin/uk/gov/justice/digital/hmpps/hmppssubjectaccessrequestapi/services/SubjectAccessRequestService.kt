@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
