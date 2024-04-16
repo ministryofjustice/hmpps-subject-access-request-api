@@ -43,7 +43,7 @@ import java.util.*
 class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, val telemetryClient: TelemetryClient) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  @PostMapping("createSubjectAccessRequest")
+  @PostMapping("subjectAccessRequest")
   @Operation(summary = "Create a Subject Access Request.", description = "Create a request for a Subject Access Request report.")
   @ApiResponses(
     value = [
