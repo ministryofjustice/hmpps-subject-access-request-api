@@ -329,7 +329,6 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   @GetMapping("reports")
   fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageSize") pageSize: Int, @RequestParam(required = true, name = "pageNumber") pageNumber: Int): List<SubjectAccessRequestReport> {
     val response = subjectAccessRequestService.getAllReports(PageRequest.of(pageNumber, pageSize))
-    // TODO auditService.createEvent()
     return response
   }
 }
