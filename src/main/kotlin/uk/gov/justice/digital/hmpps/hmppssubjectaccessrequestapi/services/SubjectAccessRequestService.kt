@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
@@ -78,30 +76,26 @@ class SubjectAccessRequestService(
     return document
   }
 
-  fun getAllReports(pagination: PageRequest): List<JSONObject> {
+  fun getAllReports(pagination: PageRequest): List<SubjectAccessRequestReport> {
     val reports = sarDbGateway.getAllReports(pagination)
     try {
       val reportInfo = reports.content
-      val condensedReportInfo = emptyList<JSONObject>().toMutableList()
+      val condensedReportInfo = emptyList<SubjectAccessRequestReport>().toMutableList()
       reportInfo.forEach {
         if (it != null) {
           val subjectId: String
-          if (it.nomisId == "") {
+          if (it.nomisId == null || it.nomisId == "") {
             subjectId = it.ndeliusCaseReferenceId!!
           } else {
-            subjectId = it.nomisId!!
+            subjectId = it.nomisId
           }
-
-          val infoString = Json.encodeToString(
-            SubjectAccessRequestReport(
-              it.id.toString(),
-              it.requestDateTime.toString(),
-              it.sarCaseReferenceNumber,
-              subjectId,
-              it.status.toString(),
-            ),
+          condensedReportInfo += SubjectAccessRequestReport(
+            it.id.toString(),
+            it.requestDateTime.toString(),
+            it.sarCaseReferenceNumber,
+            subjectId,
+            it.status.toString(),
           )
-          condensedReportInfo += JSONObject(infoString)
         }
       }
       return condensedReportInfo
