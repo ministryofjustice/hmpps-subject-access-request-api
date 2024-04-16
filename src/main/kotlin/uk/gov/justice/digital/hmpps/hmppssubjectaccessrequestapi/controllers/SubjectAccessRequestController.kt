@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.config.trackEvent
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
+import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestReport
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
 import java.util.*
@@ -326,10 +327,8 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   }
 
   @GetMapping("reports")
-  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageSize") pageSize: Int, @RequestParam(required = true, name = "pageNumber") pageNumber: Int): List<JSONObject> {
+  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageSize") pageSize: Int, @RequestParam(required = true, name = "pageNumber") pageNumber: Int): List<SubjectAccessRequestReport> {
     val response = subjectAccessRequestService.getAllReports(PageRequest.of(pageNumber, pageSize))
-    // auditService.createEvent(SAR DEETS)
-    // Date requested, Status, Case ref, subject ID, UUID
     return response
   }
 }
