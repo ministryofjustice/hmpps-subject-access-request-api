@@ -29,8 +29,7 @@ class SubjectAccessRequestServiceTest {
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
     "nomisId: '', " +
-    "ndeliusId: '1', " +
-    "requestedBy: 'mockUserId' " +
+    "ndeliusId: '1' " +
     "}"
 
   private val ndeliusAndNomisRequest = "{ " +
@@ -39,8 +38,7 @@ class SubjectAccessRequestServiceTest {
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
     "nomisId: '1', " +
-    "ndeliusId: '1', " +
-    "requestedBy: 'mockUserId' " +
+    "ndeliusId: '1' " +
     "}"
 
   private val noIDRequest = "{ " +
@@ -49,8 +47,7 @@ class SubjectAccessRequestServiceTest {
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
     "nomisId: '', " +
-    "ndeliusId: '', " +
-    "requestedBy: 'mockUserId' " +
+    "ndeliusId: '' " +
     "}"
 
   private val json = JSONObject(ndeliusRequest)
@@ -69,7 +66,7 @@ class SubjectAccessRequestServiceTest {
     services = "{1,2,4}",
     nomisId = "",
     ndeliusCaseReferenceId = "1",
-    requestedBy = "mockUserId",
+    requestedBy = "mockUserName",
     requestDateTime = requestTime,
     claimAttempts = 0,
   )
@@ -81,6 +78,8 @@ class SubjectAccessRequestServiceTest {
   inner class createSubjectAccessRequest {
     @Test
     fun `createSubjectAccessRequest returns empty string`() {
+      Mockito.`when`(authentication.name).thenReturn("mockUserName")
+
       val expected = ""
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
         .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime, sampleSAR.id)
