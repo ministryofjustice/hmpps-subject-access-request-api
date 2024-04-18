@@ -90,8 +90,8 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   )
   @Parameter(name = "nomisId", description = "Subject's NOMIS prisoner number. Either nomisId OR ndeliusId is required.", required = false, example = "A1234BC")
   @Parameter(name = "ndeliusId", description = "Subject's nDelius case reference number. Either nomisId OR ndeliusId is required.", required = false, example = "A123456")
-  @Parameter(name = "dateFrom", description = "Start date of the period of time the requested SAR report must cover.", required = true, example = "31/12/1999")
-  @Parameter(name = "dateTo", description = "End date of the period of time the requested SAR report must cover.", required = true, example = "31/12/2000")
+  @Parameter(name = "dateFrom", description = "Start date of the period of time the requested SAR report must cover.", required = false, example = "31/12/1999")
+  @Parameter(name = "dateTo", description = "End date of the period of time the requested SAR report must cover.", required = false, example = "31/12/2000")
   @Parameter(name = "sarCaseReferenceNumber", description = "Case reference number of the Subject Access Request.", required = true, example = "exampleCaseReferenceNumber")
   @Parameter(name = "services", description = "List of services from which subject data must be retrieved.", required = true, example = "[\"service1, service1.prison.service.justice.gov.uk\"]")
   fun createSubjectAccessRequest(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
@@ -99,7 +99,6 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     val json = JSONObject(request)
     val nomisId = json.get("nomisId").toString()
     val ndeliusId = json.get("ndeliusId").toString()
-    val requestedBy = authentication.name
     telemetryClient.trackEvent(
       "createSubjectAccessRequest",
       mapOf(

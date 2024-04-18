@@ -29,11 +29,8 @@ class SubjectAccessRequestService(
     id: UUID? = null,
   ): String {
     val json = JSONObject(request)
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val dateFrom = json.get("dateFrom").toString()
-    val dateFromFormatted = if (dateFrom != "") LocalDate.parse(dateFrom, formatter) else null
-    val dateTo = json.get("dateTo").toString()
-    val dateToFormatted = LocalDate.parse(dateTo, formatter)
+    val dateFrom = formatDate(json.get("dateFrom").toString())
+    val dateTo = formatDate(json.get("dateTo").toString())
 
     if (json.get("nomisId") != "" && json.get("ndeliusId") != "") {
       return "Both nomisId and ndeliusId are provided - exactly one is required"
@@ -44,8 +41,8 @@ class SubjectAccessRequestService(
       SubjectAccessRequest(
         id = id ?: UUID.randomUUID(),
         status = Status.Pending,
-        dateFrom = dateFromFormatted,
-        dateTo = dateToFormatted,
+        dateFrom = dateFrom,
+        dateTo = dateTo,
         sarCaseReferenceNumber = json.get("sarCaseReferenceNumber").toString(),
         services = json.get("services").toString(),
         nomisId = json.get("nomisId").toString(),
@@ -102,6 +99,15 @@ class SubjectAccessRequestService(
     } catch (e: NullPointerException) {
       return emptyList()
     }
+  }
+}
+
+private fun formatDate(date: String): LocalDate? {
+  val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+  return if (date != "") {
+    LocalDate.parse(date, formatter)
+  } else {
+    null
   }
 }
 
