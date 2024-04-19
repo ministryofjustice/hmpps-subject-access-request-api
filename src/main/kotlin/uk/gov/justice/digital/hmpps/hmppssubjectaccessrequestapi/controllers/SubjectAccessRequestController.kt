@@ -14,7 +14,6 @@ import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.env.Environment
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
@@ -43,8 +42,7 @@ import java.util.*
 @Transactional
 @PreAuthorize("hasRole('ROLE_SAR_USER_ACCESS')")
 @RequestMapping("/api/")
-class SubjectAccessRequestController(@Autowired val environment: Environment,
-                                     @Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, val telemetryClient: TelemetryClient) {
+class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, val telemetryClient: TelemetryClient) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
   @PostMapping("subjectAccessRequest")
@@ -98,6 +96,7 @@ class SubjectAccessRequestController(@Autowired val environment: Environment,
   @Parameter(name = "dateTo", description = "End date of the period of time the requested SAR report must cover.", required = false, example = "31/12/2000")
   @Parameter(name = "sarCaseReferenceNumber", description = "Case reference number of the Subject Access Request.", required = true, example = "exampleCaseReferenceNumber")
   @Parameter(name = "services", description = "List of services from which subject data must be retrieved.", required = true, example = "[\"service1, service1.prison.service.justice.gov.uk\"]")
+  @Parameter(name = "skipAudit", description = "Skip audit - for testing only.", required = false, example = "true")
   fun createSubjectAccessRequest(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
     log.info("Creating SAR Request")
     val json = JSONObject(request)
@@ -111,9 +110,12 @@ class SubjectAccessRequestController(@Autowired val environment: Environment,
         "requestTime" to requestTime.toString(),
       ),
     )
-    val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
-    auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
-
+    try {
+      json.get("skipAudit")
+    } catch (exception: Exception) {
+      val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
+      auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
+    }
     val response = subjectAccessRequestService.createSubjectAccessRequest(
       request = request,
       authentication = authentication,

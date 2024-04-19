@@ -47,7 +47,7 @@ class SubjectAccessRequestControllerTest {
     Mockito.`when`(authentication.name).thenReturn("mockUserName")
     Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)).thenReturn("")
 
-    val result = SubjectAccessRequestController(environment, sarService, auditService, telemetryClient)
+    val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
     val expected: ResponseEntity<String> = ResponseEntity("", HttpStatus.OK)
     verify(sarService, times(1)).createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
@@ -66,7 +66,7 @@ class SubjectAccessRequestControllerTest {
       "ndeliusId: '1' " +
       "}"
     Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)).thenReturn("Both nomisId and ndeliusId are provided - exactly one is required")
-    val response = SubjectAccessRequestController(environment, sarService, auditService, telemetryClient)
+    val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
     verify(sarService, times(1)).createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
     val expected: ResponseEntity<String> = ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
@@ -87,7 +87,7 @@ class SubjectAccessRequestControllerTest {
     Mockito.`when`(sarService.createSubjectAccessRequest(noIDRequest, authentication, requestTime)).thenReturn("Neither nomisId nor ndeliusId is provided - exactly one is required")
     Mockito.`when`(authentication.name).thenReturn("mockUserName")
 
-    val response = SubjectAccessRequestController(environment, sarService, auditService, telemetryClient)
+    val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
     verify(sarService, times(1)).createSubjectAccessRequest(noIDRequest, authentication, requestTime)
     val expected: ResponseEntity<String> = ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
@@ -96,7 +96,7 @@ class SubjectAccessRequestControllerTest {
 
   @Test
   fun `getSubjectAccessRequests is called with unclaimedOnly = true if specified in controller and returns list`() {
-    val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(environment, sarService, auditService, telemetryClient)
+    val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .getSubjectAccessRequests(unclaimed = true)
     verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true)
     Assertions.assertThatList(result)
@@ -104,7 +104,7 @@ class SubjectAccessRequestControllerTest {
 
   @Test
   fun `getSubjectAccessRequests is called with unclaimedOnly = false if unspecified in controller`() {
-    SubjectAccessRequestController(environment, sarService, auditService, telemetryClient)
+    SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .getSubjectAccessRequests()
     verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
   }
@@ -115,7 +115,7 @@ class SubjectAccessRequestControllerTest {
     fun `claimSubjectAccessRequest returns 400 if updateSubjectAccessRequest returns 0 with time update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))).thenReturn(0)
-      val result = SubjectAccessRequestController(environment, sarService, auditService, telemetryClient)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .claimSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))
       Assertions.assertThat(result).isEqualTo(400)
@@ -125,7 +125,7 @@ class SubjectAccessRequestControllerTest {
     fun `claimSubjectAccessRequest returns 200 if updateSubjectAccessRequest returns 1 with time update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))).thenReturn(1)
-      val result = SubjectAccessRequestController(environment, sarService, auditService, telemetryClient)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .claimSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))
       Assertions.assertThat(result).isEqualTo(200)
@@ -135,7 +135,7 @@ class SubjectAccessRequestControllerTest {
     fun `completeSubjectAccessRequest returns 400 if completeSubjectAccessRequest returns 0 with status update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(0)
-      val result = SubjectAccessRequestController(environment, sarService, auditService, telemetryClient)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .completeSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
       Assertions.assertThat(result).isEqualTo(400)
@@ -145,7 +145,7 @@ class SubjectAccessRequestControllerTest {
     fun `completeSubjectAccessRequest returns 200 if completeSubjectAccessRequest returns 1 with status update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(1)
-      val result = SubjectAccessRequestController(environment, sarService, auditService, telemetryClient)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .completeSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
       Assertions.assertThat(result).isEqualTo(200)
@@ -159,7 +159,7 @@ class SubjectAccessRequestControllerTest {
       val mockByteArrayInputStream = Mockito.mock(ByteArrayInputStream::class.java)
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenReturn(mockByteArrayInputStream)
-      val result = SubjectAccessRequestController(environment, sarService, auditService, telemetryClient).getReport(testUuid)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
       verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
       Assertions.assertThat(result).isEqualTo(
         ResponseEntity.ok()
@@ -173,7 +173,7 @@ class SubjectAccessRequestControllerTest {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       val errorMessage = "Report Not Found"
       Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenReturn(null)
-      val result = SubjectAccessRequestController(environment, sarService, auditService, telemetryClient).getReport(testUuid)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
       verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
       Assertions.assertThat(result).isEqualTo(
         ResponseEntity(errorMessage, HttpStatus.NOT_FOUND),
@@ -186,7 +186,7 @@ class SubjectAccessRequestControllerTest {
       val errorMessage = "An error has occurred!"
       Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid))
         .thenThrow(RuntimeException(errorMessage))
-      val result = SubjectAccessRequestController(environment, sarService, auditService, telemetryClient).getReport(testUuid)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
       verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
       Assertions.assertThat(result).isEqualTo(
         ResponseEntity(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR),
@@ -195,7 +195,7 @@ class SubjectAccessRequestControllerTest {
 
     @Test
     fun `getSubjectAccessRequestReports is called with pagination parameters`() {
-      SubjectAccessRequestController(environment, sarService, auditService, telemetryClient)
+      SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getSubjectAccessRequestReports(1, 1)
       verify(sarService, times(1)).getAllReports(PageRequest.of(1, 1))
     }
@@ -207,11 +207,24 @@ class SubjectAccessRequestControllerTest {
       // doNothing().`when`(auditService).createEvent(anyString(), anyString(), anyString())
       webTestClient.post()
         .uri("/api/subjectAccessRequest")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
-        .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":\"\"}")
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
+        .bodyValue("{\"skipAudit\":\"true\",\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":\"\"}")
         .exchange()
         .expectStatus()
-        .isForbidden
+        .is5xxServerError
+        .expectBody()
+    }
+
+    @Test
+    fun `User with ROLE_SAR_USER_ACCESS can post subjectAccessRequest` () {
+      // doNothing().`when`(auditService).createEvent(anyString(), anyString(), anyString())
+      webTestClient.post()
+        .uri("/api/subjectAccessRequest")
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
+        .bodyValue("{\"skipAudit\":\"true\",\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":\"\"}")
+        .exchange()
+        .expectStatus()
+        .isOk
         .expectBody()
     }
   }
