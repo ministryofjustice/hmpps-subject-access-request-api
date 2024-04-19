@@ -96,7 +96,6 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   @Parameter(name = "dateTo", description = "End date of the period of time the requested SAR report must cover.", required = false, example = "31/12/2000")
   @Parameter(name = "sarCaseReferenceNumber", description = "Case reference number of the Subject Access Request.", required = true, example = "exampleCaseReferenceNumber")
   @Parameter(name = "services", description = "List of services from which subject data must be retrieved.", required = true, example = "[\"service1, service1.prison.service.justice.gov.uk\"]")
-  @Parameter(name = "skipAudit", description = "Skip audit - for testing only.", required = false, example = "true")
   fun createSubjectAccessRequest(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
     log.info("Creating SAR Request")
     val json = JSONObject(request)
