@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest

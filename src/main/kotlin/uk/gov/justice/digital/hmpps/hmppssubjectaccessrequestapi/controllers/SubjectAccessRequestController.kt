@@ -14,11 +14,13 @@ import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.Environment
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -39,8 +41,10 @@ import java.util.*
 
 @RestController
 @Transactional
+@PreAuthorize("hasRole('ROLE_SAR_USER_ACCESS')")
 @RequestMapping("/api/")
-class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, val telemetryClient: TelemetryClient) {
+class SubjectAccessRequestController(@Autowired val environment: Environment,
+                                     @Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, val telemetryClient: TelemetryClient) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
   @PostMapping("subjectAccessRequest")
@@ -109,6 +113,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     )
     val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
+
     val response = subjectAccessRequestService.createSubjectAccessRequest(
       request = request,
       authentication = authentication,

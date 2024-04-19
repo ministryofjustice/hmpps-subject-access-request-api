@@ -37,7 +37,7 @@ dependencies {
 }
 
 java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(20))
+  toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 tasks {
@@ -55,7 +55,11 @@ tasks {
 
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-      jvmTarget = "20"
+      jvmTarget = "21"
     }
+  }
+
+  test {
+    jvmArgs("--add-exports", "java.base/sun.security.util=ALL-UNNAMED")
   }
 }
