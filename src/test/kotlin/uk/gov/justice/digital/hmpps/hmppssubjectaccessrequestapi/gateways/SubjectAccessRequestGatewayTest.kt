@@ -44,6 +44,45 @@ class SubjectAccessRequestGatewayTest {
   private val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
 
   @Nested
+  inner class saveSubjectAccessRequest {
+    @Test
+    fun `saves SAR with dateTo of today when dateTo is null`() {
+      val sarWithNoDateTo = SubjectAccessRequest(
+        id = testUuid,
+        status = Status.Pending,
+        dateFrom = dateFromFormatted,
+        dateTo = null,
+        sarCaseReferenceNumber = "1234abc",
+        services = "{1,2,4}",
+        nomisId = "",
+        ndeliusCaseReferenceId = "1",
+        requestedBy = "Test",
+        requestDateTime = requestTimeFormatted,
+        claimAttempts = 0,
+      )
+
+      SubjectAccessRequestGateway(sarRepository)
+        .saveSubjectAccessRequest(sarWithNoDateTo)
+      verify(sarRepository, times(1)).save(
+        SubjectAccessRequest(
+          id = testUuid,
+          status = Status.Pending,
+          dateFrom = dateFromFormatted,
+          dateTo = LocalDate.now(),
+          sarCaseReferenceNumber = "1234abc",
+          services = "{1,2,4}",
+          nomisId = "",
+          ndeliusCaseReferenceId = "1",
+          requestedBy = "Test",
+          requestDateTime = requestTimeFormatted,
+          claimAttempts = 0,
+        ),
+
+      )
+    }
+  }
+
+  @Nested
   inner class getSubjectAccessRequests {
 
     @Test
