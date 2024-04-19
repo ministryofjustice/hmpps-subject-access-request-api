@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -24,6 +25,7 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
   }
 
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {
+    if (sar.dateTo == null) { sar.dateTo = LocalDate.now() }
     repo.save(sar)
   }
   fun updateSubjectAccessRequestClaim(id: UUID, thresholdTime: LocalDateTime, currentTime: LocalDateTime): Int {
