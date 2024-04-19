@@ -1,9 +1,9 @@
 services:
   hmpps-auth:
-    base-url: http://localhost:9090/auth
+    base-url: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
 
   document-storage:
-    base-url: http://localhost:4040
+    base-url: https://document-api-dev.hmpps.service.justice.gov.uk/
 
 hmpps.sqs:
   provider: localstack
