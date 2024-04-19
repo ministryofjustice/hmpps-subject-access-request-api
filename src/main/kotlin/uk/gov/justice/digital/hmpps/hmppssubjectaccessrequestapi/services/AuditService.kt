@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.HmppsAuditEvent
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+
 @Service
 @Component
 class AuditService(
@@ -19,6 +20,7 @@ class AuditService(
   private val auditQueueUrl by lazy { auditQueue.queueUrl }
 
   fun createEvent(who: String, what: String, detail: String) {
+    if (who == "INTEGRATION_TEST_USER") { return }
     auditSqsClient.sendMessage(
       SendMessageRequest.builder()
         .queueUrl(auditQueueUrl)

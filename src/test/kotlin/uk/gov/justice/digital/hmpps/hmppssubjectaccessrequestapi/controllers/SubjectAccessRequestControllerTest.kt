@@ -30,7 +30,6 @@ class SubjectAccessRequestControllerTest {
   private val auditService = Mockito.mock(AuditService::class.java)
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
   private val telemetryClient = Mockito.mock(TelemetryClient::class.java)
-  private val environment = Mockito.mock(Environment::class.java)
 
   @Test
   fun `createSubjectAccessRequest post calls service createSubjectAccessRequest with same parameters`() {
@@ -207,7 +206,7 @@ class SubjectAccessRequestControllerTest {
       webTestClient.post()
         .uri("/api/subjectAccessRequest")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
-        .bodyValue("{\"skipAudit\":\"true\",\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":\"\"}")
+        .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":\"\"}")
         .exchange()
         .expectStatus()
         .is5xxServerError
@@ -218,8 +217,8 @@ class SubjectAccessRequestControllerTest {
     fun `User with ROLE_SAR_USER_ACCESS can post subjectAccessRequest`() {
       webTestClient.post()
         .uri("/api/subjectAccessRequest")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
-        .bodyValue("{\"skipAudit\":\"true\",\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":\"\"}")
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS"), name = "INTEGRATION_TEST_USER"))
+        .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":\"\"}")
         .exchange()
         .expectStatus()
         .isOk
@@ -330,7 +329,7 @@ class SubjectAccessRequestControllerTest {
     fun `User with ROLE_SAR_USER_ACCESS can get reports`() {
       webTestClient.get()
         .uri("/api/reports?pageNumber=1&pageSize=50")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS"), name = "TESTER"))
         .exchange()
         .expectStatus()
         .isOk

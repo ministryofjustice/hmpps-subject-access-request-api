@@ -21,12 +21,14 @@ class JwtAuthHelper {
   fun setAuthorisation(
     user: String = "subject-access-request-1",
     roles: List<String> = listOf(),
+    name: String
   ): (HttpHeaders) -> Unit {
     val token = createJwt(
       subject = user,
       scope = listOf("read"),
       expiryTime = Duration.ofHours(1L),
       roles = roles,
+      name = name,
     )
     return { it.set(HttpHeaders.AUTHORIZATION, "Bearer $token") }
   }
@@ -47,7 +49,7 @@ class JwtAuthHelper {
       .apply {
         subject?.let { this["user_name"] = subject }
         roles?.let { this["authorities"] = roles }
-        name?.let { this["name"] = name }
+        name?.let { this["sub"] = name }
         scope?.let { this["scope"] = scope }
       }
     return Jwts.builder()

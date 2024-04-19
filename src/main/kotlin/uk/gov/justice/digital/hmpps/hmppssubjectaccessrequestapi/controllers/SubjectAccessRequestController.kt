@@ -110,12 +110,9 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
         "requestTime" to requestTime.toString(),
       ),
     )
-    try {
-      json.get("skipAudit")
-    } catch (exception: Exception) {
-      val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
-      auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
-    }
+    val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
+    auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
+
     val response = subjectAccessRequestService.createSubjectAccessRequest(
       request = request,
       authentication = authentication,
