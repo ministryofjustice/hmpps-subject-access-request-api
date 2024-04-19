@@ -21,7 +21,7 @@ class JwtAuthHelper {
   fun setAuthorisation(
     user: String = "subject-access-request-1",
     roles: List<String> = listOf(),
-    name: String
+    name: String,
   ): (HttpHeaders) -> Unit {
     val token = createJwt(
       subject = user,
