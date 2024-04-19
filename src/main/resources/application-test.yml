@@ -11,4 +11,4 @@ hmpps.sqs:
   provider: localstack
   queues:
     audit:
-      queueName: "audit"
+      queueName: ${random.uuid}

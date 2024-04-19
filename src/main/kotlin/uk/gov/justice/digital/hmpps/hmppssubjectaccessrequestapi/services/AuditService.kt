@@ -7,7 +7,6 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.HmppsAuditEvent
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
-
 @Service
 @Component
 class AuditService(
