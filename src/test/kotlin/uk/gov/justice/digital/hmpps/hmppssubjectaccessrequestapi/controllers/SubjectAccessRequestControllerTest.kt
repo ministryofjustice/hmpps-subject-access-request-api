@@ -204,7 +204,6 @@ class SubjectAccessRequestControllerTest {
   inner class EndpointResponses : IntegrationTestBase() {
     @Test
     fun `User without ROLE_SAR_USER_ACCESS can't post subjectAccessRequest` () {
-      // doNothing().`when`(auditService).createEvent(anyString(), anyString(), anyString())
       webTestClient.post()
         .uri("/api/subjectAccessRequest")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
@@ -217,11 +216,121 @@ class SubjectAccessRequestControllerTest {
 
     @Test
     fun `User with ROLE_SAR_USER_ACCESS can post subjectAccessRequest` () {
-      // doNothing().`when`(auditService).createEvent(anyString(), anyString(), anyString())
       webTestClient.post()
         .uri("/api/subjectAccessRequest")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
         .bodyValue("{\"skipAudit\":\"true\",\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":\"\"}")
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody()
+    }
+
+    @Test
+    fun `User without ROLE_SAR_USER_ACCESS can't get subjectAccessRequests` () {
+      webTestClient.get()
+        .uri("/api/subjectAccessRequests")
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+        .expectBody()
+    }
+
+    @Test
+    fun `User with ROLE_SAR_USER_ACCESS can get subjectAccessRequests` () {
+      webTestClient.get()
+        .uri("/api/subjectAccessRequests")
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody()
+    }
+
+// These tests are for the /report endpoint which needs some modification - the ID should be a PathVariable rather than RequestParam
+//    @Test
+//    fun `User without ROLE_SAR_USER_ACCESS can't get report` () {
+//      webTestClient.get()
+//        .uri("/api/report?id=257e1a7c-a7f4-498a-bc49-d7b245c8760c")
+//        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
+//        .exchange()
+//        .expectStatus()
+//        .is5xxServerError
+//        .expectBody()
+//    }
+//
+//    @Test
+//    fun `User with ROLE_SAR_USER_ACCESS can get report` () {
+//      webTestClient.get()
+//        .uri("/api/report?id=257e1a7c-a7f4-498a-bc49-d7b245c8760c")
+//        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
+//        .exchange()
+//        .expectStatus()
+//        .isOk
+//        .expectBody()
+//    }
+
+    @Test
+    fun `User without ROLE_SAR_USER_ACCESS can't claim report` () {
+      webTestClient.patch()
+        .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/claim")
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+        .expectBody()
+    }
+
+    @Test
+    fun `User with ROLE_SAR_USER_ACCESS can claim report` () {
+      webTestClient.patch()
+        .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/claim")
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody()
+    }
+
+    @Test
+    fun `User without ROLE_SAR_USER_ACCESS can't complete report` () {
+      webTestClient.patch()
+        .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/complete")
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+        .expectBody()
+    }
+
+    @Test
+    fun `User with ROLE_SAR_USER_ACCESS can complete report` () {
+      webTestClient.patch()
+        .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/complete")
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody()
+    }
+
+    @Test
+    fun `User without ROLE_SAR_USER_ACCESS can't get reports` () {
+      webTestClient.get()
+        .uri("/api/reports?pageNumber=1&pageSize=50")
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
+        .exchange()
+        .expectStatus()
+        .is5xxServerError
+        .expectBody()
+    }
+
+    @Test
+    fun `User with ROLE_SAR_USER_ACCESS can get reports` () {
+      webTestClient.get()
+        .uri("/api/reports?pageNumber=1&pageSize=50")
+        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
         .exchange()
         .expectStatus()
         .isOk
