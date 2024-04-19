@@ -29,8 +29,7 @@ class SubjectAccessRequestServiceTest {
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
     "nomisId: '', " +
-    "ndeliusId: '1', " +
-    "requestedBy: 'mockUserId' " +
+    "ndeliusId: '1' " +
     "}"
 
   private val ndeliusAndNomisRequest = "{ " +
@@ -39,8 +38,7 @@ class SubjectAccessRequestServiceTest {
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
     "nomisId: '1', " +
-    "ndeliusId: '1', " +
-    "requestedBy: 'mockUserId' " +
+    "ndeliusId: '1' " +
     "}"
 
   private val noIDRequest = "{ " +
@@ -49,8 +47,25 @@ class SubjectAccessRequestServiceTest {
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
     "nomisId: '', " +
-    "ndeliusId: '', " +
-    "requestedBy: 'mockUserId' " +
+    "ndeliusId: '' " +
+    "}"
+
+  private val noDateToRequest = "{ " +
+    "dateFrom: '01/12/2023', " +
+    "dateTo: '', " +
+    "sarCaseReferenceNumber: '1234abc', " +
+    "services: '{1,2,4}', " +
+    "nomisId: '', " +
+    "ndeliusId: '1' " +
+    "}"
+
+  private val noDateFromRequest = "{ " +
+    "dateFrom: '', " +
+    "dateTo: '03/01/2024', " +
+    "sarCaseReferenceNumber: '1234abc', " +
+    "services: '{1,2,4}', " +
+    "nomisId: '', " +
+    "ndeliusId: '1' " +
     "}"
 
   private val json = JSONObject(ndeliusRequest)
@@ -69,7 +84,7 @@ class SubjectAccessRequestServiceTest {
     services = "{1,2,4}",
     nomisId = "",
     ndeliusCaseReferenceId = "1",
-    requestedBy = "mockUserId",
+    requestedBy = "mockUserName",
     requestDateTime = requestTime,
     claimAttempts = 0,
   )
@@ -81,9 +96,12 @@ class SubjectAccessRequestServiceTest {
   inner class createSubjectAccessRequest {
     @Test
     fun `createSubjectAccessRequest returns empty string`() {
+      Mockito.`when`(authentication.name).thenReturn("mockUserName")
       val expected = ""
+
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
         .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime, sampleSAR.id)
+
       verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
     }
@@ -92,8 +110,10 @@ class SubjectAccessRequestServiceTest {
     fun `createSubjectAccessRequest returns error string if both IDs are supplied`() {
       val expected =
         "Both nomisId and ndeliusId are provided - exactly one is required"
+
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
         .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime, sampleSAR.id)
+
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
       Assertions.assertThat(result).isEqualTo(expected)
     }
@@ -102,9 +122,35 @@ class SubjectAccessRequestServiceTest {
     fun `createSubjectAccessRequest returns error string if neither subject ID is supplied`() {
       val expected =
         "Neither nomisId nor ndeliusId is provided - exactly one is required"
+
       val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
         .createSubjectAccessRequest(noIDRequest, authentication, requestTime, sampleSAR.id)
+
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
+      Assertions.assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun `createSubjectAccessRequest does not error when dateTo is not provided`() {
+      Mockito.`when`(authentication.name).thenReturn("mockUserName")
+      val expected = ""
+
+      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
+        .createSubjectAccessRequest(noDateToRequest, authentication, requestTime, sampleSAR.id)
+
+      verify(sarGateway, times(1)).saveSubjectAccessRequest(any())
+      Assertions.assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun `createSubjectAccessRequest does not error when dateFrom is not provided`() {
+      Mockito.`when`(authentication.name).thenReturn("mockUserName")
+      val expected = ""
+
+      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
+        .createSubjectAccessRequest(noDateFromRequest, authentication, requestTime, sampleSAR.id)
+
+      verify(sarGateway, times(1)).saveSubjectAccessRequest(any())
       Assertions.assertThat(result).isEqualTo(expected)
     }
   }
