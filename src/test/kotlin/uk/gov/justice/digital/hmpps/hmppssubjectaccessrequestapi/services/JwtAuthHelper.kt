@@ -14,14 +14,13 @@ import java.time.Duration
 import java.util.Date
 import java.util.UUID
 
-
 @Component
 class JwtAuthHelper {
   private val keyPair: KeyPair = KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair()
 
   fun setAuthorisation(
     user: String = "subject-access-request-1",
-    roles: List<String> = listOf()
+    roles: List<String> = listOf(),
   ): (HttpHeaders) -> Unit {
     val token = createJwt(
       subject = user,
@@ -49,8 +48,7 @@ class JwtAuthHelper {
         subject?.let { this["user_name"] = subject }
         roles?.let { this["authorities"] = roles }
         name?.let { this["name"] = name }
-        scope?.let { this["scope"] = scope
-        }
+        scope?.let { this["scope"] = scope }
       }
     return Jwts.builder()
       .id(jwtId)

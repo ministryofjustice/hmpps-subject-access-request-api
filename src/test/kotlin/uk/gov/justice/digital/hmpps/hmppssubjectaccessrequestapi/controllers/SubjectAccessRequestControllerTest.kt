@@ -5,7 +5,9 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.any
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.mockito.kotlin.eq
 import org.springframework.core.env.Environment
 import org.springframework.core.io.InputStreamResource
@@ -15,15 +17,12 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
 import java.io.ByteArrayInputStream
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-
 
 class SubjectAccessRequestControllerTest {
   private val requestTime = LocalDateTime.now()
@@ -200,10 +199,11 @@ class SubjectAccessRequestControllerTest {
       verify(sarService, times(1)).getAllReports(PageRequest.of(1, 1))
     }
   }
+
   @Nested
   inner class EndpointResponses : IntegrationTestBase() {
     @Test
-    fun `User without ROLE_SAR_USER_ACCESS can't post subjectAccessRequest` () {
+    fun `User without ROLE_SAR_USER_ACCESS can't post subjectAccessRequest`() {
       webTestClient.post()
         .uri("/api/subjectAccessRequest")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
@@ -215,7 +215,7 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `User with ROLE_SAR_USER_ACCESS can post subjectAccessRequest` () {
+    fun `User with ROLE_SAR_USER_ACCESS can post subjectAccessRequest`() {
       webTestClient.post()
         .uri("/api/subjectAccessRequest")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
@@ -227,7 +227,7 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `User without ROLE_SAR_USER_ACCESS can't get subjectAccessRequests` () {
+    fun `User without ROLE_SAR_USER_ACCESS can't get subjectAccessRequests`() {
       webTestClient.get()
         .uri("/api/subjectAccessRequests")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
@@ -238,7 +238,7 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `User with ROLE_SAR_USER_ACCESS can get subjectAccessRequests` () {
+    fun `User with ROLE_SAR_USER_ACCESS can get subjectAccessRequests`() {
       webTestClient.get()
         .uri("/api/subjectAccessRequests")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
@@ -250,7 +250,7 @@ class SubjectAccessRequestControllerTest {
 
 // These tests are for the /report endpoint which needs some modification - the ID should be a PathVariable rather than RequestParam
 //    @Test
-//    fun `User without ROLE_SAR_USER_ACCESS can't get report` () {
+//    fun `User without ROLE_SAR_USER_ACCESS can't get report`() {
 //      webTestClient.get()
 //        .uri("/api/report?id=257e1a7c-a7f4-498a-bc49-d7b245c8760c")
 //        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
@@ -261,7 +261,7 @@ class SubjectAccessRequestControllerTest {
 //    }
 //
 //    @Test
-//    fun `User with ROLE_SAR_USER_ACCESS can get report` () {
+//    fun `User with ROLE_SAR_USER_ACCESS can get report`() {
 //      webTestClient.get()
 //        .uri("/api/report?id=257e1a7c-a7f4-498a-bc49-d7b245c8760c")
 //        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
@@ -272,7 +272,7 @@ class SubjectAccessRequestControllerTest {
 //    }
 
     @Test
-    fun `User without ROLE_SAR_USER_ACCESS can't claim report` () {
+    fun `User without ROLE_SAR_USER_ACCESS can't claim report`() {
       webTestClient.patch()
         .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/claim")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
@@ -283,7 +283,7 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `User with ROLE_SAR_USER_ACCESS can claim report` () {
+    fun `User with ROLE_SAR_USER_ACCESS can claim report`() {
       webTestClient.patch()
         .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/claim")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
@@ -294,7 +294,7 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `User without ROLE_SAR_USER_ACCESS can't complete report` () {
+    fun `User without ROLE_SAR_USER_ACCESS can't complete report`() {
       webTestClient.patch()
         .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/complete")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
@@ -305,7 +305,7 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `User with ROLE_SAR_USER_ACCESS can complete report` () {
+    fun `User with ROLE_SAR_USER_ACCESS can complete report`() {
       webTestClient.patch()
         .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/complete")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
@@ -316,7 +316,7 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `User without ROLE_SAR_USER_ACCESS can't get reports` () {
+    fun `User without ROLE_SAR_USER_ACCESS can't get reports`() {
       webTestClient.get()
         .uri("/api/reports?pageNumber=1&pageSize=50")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
@@ -327,7 +327,7 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `User with ROLE_SAR_USER_ACCESS can get reports` () {
+    fun `User with ROLE_SAR_USER_ACCESS can get reports`() {
       webTestClient.get()
         .uri("/api/reports?pageNumber=1&pageSize=50")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
