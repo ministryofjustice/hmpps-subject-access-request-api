@@ -58,4 +58,8 @@ tasks {
       jvmTarget = "20"
     }
   }
+
+  test {
+    jvmArgs("--add-exports", "java.base/sun.security.util=ALL-UNNAMED")
+  }
 }
