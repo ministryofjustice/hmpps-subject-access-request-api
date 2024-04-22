@@ -40,7 +40,7 @@ import java.util.*
 
 @RestController
 @Transactional
-@PreAuthorize("hasRole('ROLE_SAR_USER_ACCESS')")
+@PreAuthorize("hasAnyRole('ROLE_SAR_USER_ACCESS', 'ROLE_SAR_DATA_ACCESS')")
 @RequestMapping("/api/")
 class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, val telemetryClient: TelemetryClient) {
   private val log = LoggerFactory.getLogger(this::class.java)
