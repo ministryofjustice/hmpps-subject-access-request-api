@@ -7,7 +7,9 @@ import org.springframework.core.io.InputStreamResource
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.util.*
 
 @Component
@@ -25,10 +27,9 @@ class DocumentStorageGateway(
       .header("Authorization", "Bearer $token")
       .header("Service-Name", "DPS-Subject-Access-Requests")
       .retrieve()
-      .toEntityFlux(InputStreamResource::class.java).block()
-//      .bodyToMono(ByteArray::class.java)
-//      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
-//      .block()
-    return response
+      .toEntityFlux(InputStreamResource::class.java)
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block()
+    return if (response !== null) response else null
   }
 }

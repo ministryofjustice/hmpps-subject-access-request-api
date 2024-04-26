@@ -271,7 +271,6 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       }
       return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType(docResponse.headers.contentType?.toString() ?: ""))
-        // .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$id.pdf")
         .body(fileStream)
     } catch (exception: Exception) {
       return ResponseEntity(exception.message, HttpStatus.INTERNAL_SERVER_ERROR)
