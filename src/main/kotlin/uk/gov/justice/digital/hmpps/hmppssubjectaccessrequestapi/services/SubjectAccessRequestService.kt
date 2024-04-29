@@ -3,14 +3,16 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 import kotlinx.serialization.Serializable
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
-import java.io.ByteArrayInputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -68,7 +70,7 @@ class SubjectAccessRequestService(
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 
-  fun retrieveSubjectAccessRequestDocument(sarId: UUID): ByteArrayInputStream? {
+  fun retrieveSubjectAccessRequestDocument(sarId: UUID): ResponseEntity<Flux<InputStreamResource>>? {
     val document = documentStorageGateway.retrieveDocument(sarId)
     return document
   }

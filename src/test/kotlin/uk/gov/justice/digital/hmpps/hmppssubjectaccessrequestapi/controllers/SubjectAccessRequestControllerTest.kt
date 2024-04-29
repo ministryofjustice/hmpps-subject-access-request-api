@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
+import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
@@ -152,10 +153,11 @@ class SubjectAccessRequestControllerTest {
   @Nested
   inner class GetReport {
     @Test
-    fun `getReport returns 200 if retrieveSubjectAccessRequestDocument returns a document`() {
+    fun `getReport returns 200 if service retrieveSubjectAccessRequestDocument returns a response`() {
       val mockByteArrayInputStream = Mockito.mock(ByteArrayInputStream::class.java)
+      val mockStream = Flux.just(InputStreamResource(mockByteArrayInputStream))
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
-      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenReturn(mockByteArrayInputStream)
+      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenReturn(ResponseEntity.ok().contentType(MediaType.parseMediaType("application/pdf")).body(mockStream))
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
       verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
       Assertions.assertThat(result).isEqualTo(
@@ -166,7 +168,7 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `getReport returns 404 if retrieveSubjectAccessRequestDocument does not returns a document`() {
+    fun `getReport returns 404 if service retrieveSubjectAccessRequestDocument does not return a response`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       val errorMessage = "Report Not Found"
       Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenReturn(null)

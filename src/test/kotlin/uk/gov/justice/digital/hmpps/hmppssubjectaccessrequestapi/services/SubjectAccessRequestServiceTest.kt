@@ -8,9 +8,12 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
+import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
+import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
@@ -197,15 +200,17 @@ class SubjectAccessRequestServiceTest {
     }
 
     @Test
-    fun `retrieveSubjectAccessRequestDocument returns ByteArray if provided`() {
-      Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(expectedRetrievalResponse)
+    fun `retrieveSubjectAccessRequestDocument returns ResponseEntity if response from gateway is provided`() {
+      val mockByteArrayInputStream = Mockito.mock(ByteArrayInputStream::class.java)
+      val mockStream = Flux.just(InputStreamResource(mockByteArrayInputStream))
+      Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(ResponseEntity.ok().body(mockStream))
       val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
       verify(documentGateway, times(1)).retrieveDocument(mockUUID)
-      Assertions.assertThat(result).isEqualTo(expectedRetrievalResponse)
+      Assertions.assertThat(result).isEqualTo(ResponseEntity.ok().body(mockStream))
     }
 
     @Test
-    fun `retrieveSubjectAccessRequestDocument returns null if not provided`() {
+    fun `retrieveSubjectAccessRequestDocument returns null if response from gateway is not provided`() {
       Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(null)
       val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
       verify(documentGateway, times(1)).retrieveDocument(mockUUID)
