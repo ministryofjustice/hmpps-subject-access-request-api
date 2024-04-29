@@ -14,7 +14,6 @@ import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -46,7 +45,10 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   private val log = LoggerFactory.getLogger(this::class.java)
 
   @PostMapping("subjectAccessRequest")
-  @Operation(summary = "Create a Subject Access Request.", description = "Create a request for a Subject Access Request report.")
+  @Operation(
+    summary = "Create a Subject Access Request.",
+    description = "Create a request for a Subject Access Request report.",
+  )
   @ApiResponses(
     value = [
       ApiResponse(
@@ -90,13 +92,47 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  @Parameter(name = "nomisId", description = "Subject's NOMIS prisoner number. Either nomisId OR ndeliusId is required.", required = false, example = "A1234BC")
-  @Parameter(name = "ndeliusId", description = "Subject's nDelius case reference number. Either nomisId OR ndeliusId is required.", required = false, example = "A123456")
-  @Parameter(name = "dateFrom", description = "Start date of the period of time the requested SAR report must cover.", required = false, example = "31/12/1999")
-  @Parameter(name = "dateTo", description = "End date of the period of time the requested SAR report must cover.", required = false, example = "31/12/2000")
-  @Parameter(name = "sarCaseReferenceNumber", description = "Case reference number of the Subject Access Request.", required = true, example = "exampleCaseReferenceNumber")
-  @Parameter(name = "services", description = "List of services from which subject data must be retrieved.", required = true, example = "[\"service1, service1.prison.service.justice.gov.uk\"]")
-  fun createSubjectAccessRequest(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
+  @Parameter(
+    name = "nomisId",
+    description = "Subject's NOMIS prisoner number. Either nomisId OR ndeliusId is required.",
+    required = false,
+    example = "A1234BC",
+  )
+  @Parameter(
+    name = "ndeliusId",
+    description = "Subject's nDelius case reference number. Either nomisId OR ndeliusId is required.",
+    required = false,
+    example = "A123456",
+  )
+  @Parameter(
+    name = "dateFrom",
+    description = "Start date of the period of time the requested SAR report must cover.",
+    required = false,
+    example = "31/12/1999",
+  )
+  @Parameter(
+    name = "dateTo",
+    description = "End date of the period of time the requested SAR report must cover.",
+    required = false,
+    example = "31/12/2000",
+  )
+  @Parameter(
+    name = "sarCaseReferenceNumber",
+    description = "Case reference number of the Subject Access Request.",
+    required = true,
+    example = "exampleCaseReferenceNumber",
+  )
+  @Parameter(
+    name = "services",
+    description = "List of services from which subject data must be retrieved.",
+    required = true,
+    example = "[\"service1, service1.prison.service.justice.gov.uk\"]",
+  )
+  fun createSubjectAccessRequest(
+    @RequestBody request: String,
+    authentication: Authentication,
+    requestTime: LocalDateTime?,
+  ): ResponseEntity<String> {
     log.info("Creating SAR Request")
     val json = JSONObject(request)
     val nomisId = json.get("nomisId").toString()
@@ -162,14 +198,27 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  @Parameter(name = "unclaimed", description = "Return only Subject Access Requests that are unclaimed by a worker for report generation. Defaults to false.", required = false, example = "false")
-  fun getSubjectAccessRequests(@RequestParam(required = false, name = "unclaimed") unclaimed: Boolean = false): List<SubjectAccessRequest?> {
+  @Parameter(
+    name = "unclaimed",
+    description = "Return only Subject Access Requests that are unclaimed by a worker for report generation. Defaults to false.",
+    required = false,
+    example = "false",
+  )
+  fun getSubjectAccessRequests(
+    @RequestParam(
+      required = false,
+      name = "unclaimed",
+    ) unclaimed: Boolean = false,
+  ): List<SubjectAccessRequest?> {
     val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
     return response
   }
 
   @GetMapping("report")
-  @Operation(summary = "Get Subject Access Request Report.", description = "Return a completed Subject Access Request Report.")
+  @Operation(
+    summary = "Get Subject Access Request Report.",
+    description = "Return a completed Subject Access Request Report.",
+  )
   @ApiResponses(
     value = [
       ApiResponse(
@@ -207,16 +256,22 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  @Parameter(name = "id", description = "ID for the Subject Access Request Report to download.", required = true, example = "11111111-2222-3333-4444-555555555555")
-  fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<Any> {
+  @Parameter(
+    name = "id",
+    description = "ID for the Subject Access Request Report to download.",
+    required = true,
+    example = "11111111-2222-3333-4444-555555555555",
+  )
+  fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<out Any?>? {
     try {
-      val response = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)
-      if (response === null) {
+      val docResponse = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)
+      val fileStream = docResponse?.body?.blockFirst()
+      if (docResponse === null) {
         return ResponseEntity("Report Not Found", HttpStatus.NOT_FOUND)
       }
       return ResponseEntity.ok()
-        .contentType(MediaType.parseMediaType(MediaType.APPLICATION_PDF_VALUE))
-        .body(InputStreamResource(response))
+        .contentType(MediaType.parseMediaType(docResponse.headers.contentType?.toString() ?: ""))
+        .body(fileStream)
     } catch (exception: Exception) {
       return ResponseEntity(exception.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
