@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
 import kotlinx.serialization.Serializable
-import org.json.JSONException
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
@@ -35,22 +34,19 @@ class SubjectAccessRequestService(
     val dateFrom = formatDate(json.get("dateFrom").toString())
     val dateTo = formatDate(json.get("dateTo").toString())
 
-    var nomisId: String? = null
-    var ndeliusId: String? = null
-    try {
-      nomisId = json.get("nomisId").toString()
-    } catch (e: JSONException) {}
-    try {
-      ndeliusId = json.get("ndeliusId").toString()
-    } catch (e: JSONException) {}
+    var nomisId = json.get("nomisId")
+    var ndeliusId = json.get("ndeliusId")
 
+    val nullClassName = "org.json.JSONObject\$Null"
+    if (nomisId.javaClass.name == nullClassName) { nomisId = null }
+    if (ndeliusId.javaClass.name == nullClassName) { ndeliusId = null }
 
-//    if (nomisId != null && ndeliusId != null) {
-//      return "Both nomisId and ndeliusId are provided - exactly one is required"
-//    }
-//    if (nomisId == null && ndeliusId == null) {
-//      return "Neither nomisId nor ndeliusId is provided - exactly one is required"
-//    }
+    if (nomisId != null && ndeliusId != null) {
+      return "Both nomisId and ndeliusId are provided - exactly one is required"
+    }
+    if (nomisId == null && ndeliusId == null) {
+      return "Neither nomisId nor ndeliusId is provided - exactly one is required"
+    }
     sarDbGateway.saveSubjectAccessRequest(
       SubjectAccessRequest(
         id = id ?: UUID.randomUUID(),
@@ -59,8 +55,8 @@ class SubjectAccessRequestService(
         dateTo = dateTo,
         sarCaseReferenceNumber = json.get("sarCaseReferenceNumber").toString(),
         services = json.get("services").toString(),
-        nomisId = nomisId,
-        ndeliusCaseReferenceId = ndeliusId,
+        nomisId = nomisId?.toString(),
+        ndeliusCaseReferenceId = ndeliusId?.toString(),
         requestedBy = authentication.name,
         requestDateTime = requestTime ?: LocalDateTime.now(),
       ),
