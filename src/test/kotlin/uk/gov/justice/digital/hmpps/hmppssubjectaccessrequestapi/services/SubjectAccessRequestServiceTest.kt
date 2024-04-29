@@ -31,7 +31,7 @@ class SubjectAccessRequestServiceTest {
     "dateTo: '03/01/2024', " +
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
-    "nomisId: '', " +
+    "nomisId: null, " +
     "ndeliusId: '1' " +
     "}"
 
@@ -49,8 +49,8 @@ class SubjectAccessRequestServiceTest {
     "dateTo: '03/01/2024', " +
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
-    "nomisId: '', " +
-    "ndeliusId: '' " +
+    "nomisId: null, " +
+    "ndeliusId: null " +
     "}"
 
   private val noDateToRequest = "{ " +
@@ -58,7 +58,7 @@ class SubjectAccessRequestServiceTest {
     "dateTo: '', " +
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
-    "nomisId: '', " +
+    "nomisId: null, " +
     "ndeliusId: '1' " +
     "}"
 
@@ -67,7 +67,7 @@ class SubjectAccessRequestServiceTest {
     "dateTo: '03/01/2024', " +
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
-    "nomisId: '', " +
+    "nomisId: null, " +
     "ndeliusId: '1' " +
     "}"
 
@@ -85,7 +85,7 @@ class SubjectAccessRequestServiceTest {
     dateTo = dateToFormatted,
     sarCaseReferenceNumber = "1234abc",
     services = "{1,2,4}",
-    nomisId = "",
+    nomisId = null,
     ndeliusCaseReferenceId = "1",
     requestedBy = "mockUserName",
     requestDateTime = requestTime,

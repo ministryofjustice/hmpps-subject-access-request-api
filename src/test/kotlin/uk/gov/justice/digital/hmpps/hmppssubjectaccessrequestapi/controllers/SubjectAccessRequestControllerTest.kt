@@ -38,7 +38,7 @@ class SubjectAccessRequestControllerTest {
       "dateTo: '03/01/2024', " +
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
-      "nomisId: '', " +
+      "nomisId: null, " +
       "ndeliusId: '1' " +
       "}"
 
@@ -60,7 +60,7 @@ class SubjectAccessRequestControllerTest {
       "dateTo: '03/01/2024', " +
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
-      "nomisId: '1', " +
+      "nomisId: null, " +
       "ndeliusId: '1' " +
       "}"
     Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)).thenReturn("Both nomisId and ndeliusId are provided - exactly one is required")
@@ -78,8 +78,8 @@ class SubjectAccessRequestControllerTest {
       "dateTo: '03/01/2024', " +
       "sarCaseReferenceNumber: '1234abc', " +
       "services: '{1,2,4}', " +
-      "nomisId: '', " +
-      "ndeliusId: '' " +
+      "nomisId: null, " +
+      "ndeliusId: null " +
       "}"
 
     Mockito.`when`(sarService.createSubjectAccessRequest(noIDRequest, authentication, requestTime)).thenReturn("Neither nomisId nor ndeliusId is provided - exactly one is required")
@@ -207,7 +207,7 @@ class SubjectAccessRequestControllerTest {
       webTestClient.post()
         .uri("/api/subjectAccessRequest")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
-        .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":\"\"}")
+        .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":null}")
         .exchange()
         .expectStatus()
         .is5xxServerError
@@ -219,7 +219,7 @@ class SubjectAccessRequestControllerTest {
       webTestClient.post()
         .uri("/api/subjectAccessRequest")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS"), name = "INTEGRATION_TEST_USER"))
-        .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":\"\"}")
+        .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":null}")
         .exchange()
         .expectStatus()
         .isOk
@@ -231,7 +231,7 @@ class SubjectAccessRequestControllerTest {
       webTestClient.post()
         .uri("/api/subjectAccessRequest")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS"), name = "INTEGRATION_TEST_USER"))
-        .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":\"\"}")
+        .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":null}")
         .exchange()
         .expectStatus()
         .isOk

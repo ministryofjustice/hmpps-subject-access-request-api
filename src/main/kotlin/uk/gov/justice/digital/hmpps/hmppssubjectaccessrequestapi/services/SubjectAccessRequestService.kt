@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
 import kotlinx.serialization.Serializable
+import org.json.JSONException
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
@@ -34,11 +35,22 @@ class SubjectAccessRequestService(
     val dateFrom = formatDate(json.get("dateFrom").toString())
     val dateTo = formatDate(json.get("dateTo").toString())
 
-    if (json.get("nomisId") != "" && json.get("ndeliusId") != "") {
-      return "Both nomisId and ndeliusId are provided - exactly one is required"
-    } else if (json.get("nomisId") == "" && json.get("ndeliusId") == "") {
-      return "Neither nomisId nor ndeliusId is provided - exactly one is required"
-    }
+    var nomisId: String? = null
+    var ndeliusId: String? = null
+    try {
+      nomisId = json.get("nomisId").toString()
+    } catch (e: JSONException) {}
+    try {
+      ndeliusId = json.get("ndeliusId").toString()
+    } catch (e: JSONException) {}
+
+
+//    if (nomisId != null && ndeliusId != null) {
+//      return "Both nomisId and ndeliusId are provided - exactly one is required"
+//    }
+//    if (nomisId == null && ndeliusId == null) {
+//      return "Neither nomisId nor ndeliusId is provided - exactly one is required"
+//    }
     sarDbGateway.saveSubjectAccessRequest(
       SubjectAccessRequest(
         id = id ?: UUID.randomUUID(),
@@ -47,8 +59,8 @@ class SubjectAccessRequestService(
         dateTo = dateTo,
         sarCaseReferenceNumber = json.get("sarCaseReferenceNumber").toString(),
         services = json.get("services").toString(),
-        nomisId = json.get("nomisId").toString(),
-        ndeliusCaseReferenceId = json.get("ndeliusId").toString(),
+        nomisId = nomisId,
+        ndeliusCaseReferenceId = ndeliusId,
         requestedBy = authentication.name,
         requestDateTime = requestTime ?: LocalDateTime.now(),
       ),

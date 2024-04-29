@@ -137,6 +137,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     val json = JSONObject(request)
     val nomisId = json.get("nomisId").toString()
     val ndeliusId = json.get("ndeliusId").toString()
+
     telemetryClient.trackEvent(
       "createSubjectAccessRequest",
       mapOf(
@@ -147,6 +148,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     )
     val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
     auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
+
     val response = subjectAccessRequestService.createSubjectAccessRequest(
       request = request,
       authentication = authentication,
