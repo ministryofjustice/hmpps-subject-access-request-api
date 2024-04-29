@@ -30,6 +30,7 @@ class DocumentStorageGateway(
       .toEntityFlux(InputStreamResource::class.java)
       .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
       .block()
+    log.info("Response from document storage service $response.")
     return if (response !== null) response else null
   }
 }
