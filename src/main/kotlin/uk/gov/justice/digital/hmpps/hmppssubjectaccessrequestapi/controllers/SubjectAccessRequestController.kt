@@ -275,7 +275,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
         .contentType(MediaType.parseMediaType(docResponse.headers.contentType?.toString() ?: ""))
         .body(fileStream)
     } catch (exception: Exception) {
-      log.error(exception)
+      log.error(exception.message)
       return ResponseEntity(exception.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
