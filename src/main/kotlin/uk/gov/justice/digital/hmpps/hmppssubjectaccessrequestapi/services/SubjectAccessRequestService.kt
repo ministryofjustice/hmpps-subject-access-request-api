@@ -34,9 +34,17 @@ class SubjectAccessRequestService(
     val dateFrom = formatDate(json.get("dateFrom").toString())
     val dateTo = formatDate(json.get("dateTo").toString())
 
-    if (json.get("nomisId") != "" && json.get("ndeliusId") != "") {
+    var nomisId = json.get("nomisId")
+    var ndeliusId = json.get("ndeliusId")
+
+    val nullClassName = "org.json.JSONObject\$Null"
+    if (nomisId.javaClass.name == nullClassName) { nomisId = null }
+    if (ndeliusId.javaClass.name == nullClassName) { ndeliusId = null }
+
+    if (nomisId != null && ndeliusId != null) {
       return "Both nomisId and ndeliusId are provided - exactly one is required"
-    } else if (json.get("nomisId") == "" && json.get("ndeliusId") == "") {
+    }
+    if (nomisId == null && ndeliusId == null) {
       return "Neither nomisId nor ndeliusId is provided - exactly one is required"
     }
     sarDbGateway.saveSubjectAccessRequest(
@@ -47,8 +55,8 @@ class SubjectAccessRequestService(
         dateTo = dateTo,
         sarCaseReferenceNumber = json.get("sarCaseReferenceNumber").toString(),
         services = json.get("services").toString(),
-        nomisId = json.get("nomisId").toString(),
-        ndeliusCaseReferenceId = json.get("ndeliusId").toString(),
+        nomisId = nomisId?.toString(),
+        ndeliusCaseReferenceId = ndeliusId?.toString(),
         requestedBy = authentication.name,
         requestDateTime = requestTime ?: LocalDateTime.now(),
       ),
