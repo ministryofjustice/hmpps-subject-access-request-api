@@ -107,6 +107,13 @@ class SubjectAccessRequestControllerTest {
     verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
   }
 
+  @Test
+  fun `getTotalSubjectAccessRequests calls getSubjectAccessRequests with unclaimedOnly = false `() {
+    SubjectAccessRequestController(sarService, auditService, telemetryClient)
+      .getTotalSubjectAccessRequests()
+    verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
+  }
+
   @Nested
   inner class patchSubjectAccessRequest {
     @Test
