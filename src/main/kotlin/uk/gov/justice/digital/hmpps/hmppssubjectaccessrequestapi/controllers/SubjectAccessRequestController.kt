@@ -214,6 +214,51 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     return response
   }
 
+  @GetMapping("totalSubjectAccessRequests")
+  @Operation(summary = "Get total number of Subject Access Requests.", description = "Return the number of Subject Access Requests.")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden - user not authorised to retrieve Subject Access Requests.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Failed to retrieve Subject Access Requests.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  fun getTotalSubjectAccessRequests(
+  ): Int {
+    val response = subjectAccessRequestService.getSubjectAccessRequests(false)
+    return response.size
+  }
+
   @GetMapping("report")
   @Operation(
     summary = "Get Subject Access Request Report.",
