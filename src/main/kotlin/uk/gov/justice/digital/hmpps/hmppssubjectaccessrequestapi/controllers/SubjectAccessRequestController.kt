@@ -253,8 +253,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  fun getTotalSubjectAccessRequests(
-  ): Int {
+  fun getTotalSubjectAccessRequests(): Int {
     val response = subjectAccessRequestService.getSubjectAccessRequests(false)
     return response.size
   }
