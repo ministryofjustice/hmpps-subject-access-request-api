@@ -14,7 +14,6 @@ import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -429,8 +428,8 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   }
 
   @GetMapping("reports")
-  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageSize") pageSize: Int, @RequestParam(required = true, name = "pageNumber") pageNumber: Int): List<SubjectAccessRequestReport> {
-    val response = subjectAccessRequestService.getAllReports(PageRequest.of(pageNumber, pageSize))
+  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageNumber") pageNumber: Int, @RequestParam(required = true, name = "pageSize") pageSize: Int): List<SubjectAccessRequestReport> {
+    val response = subjectAccessRequestService.getAllReports(pageNumber, pageSize)
     return response
   }
 }

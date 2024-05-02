@@ -3,11 +3,13 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.times
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDate
@@ -248,11 +250,77 @@ class SubjectAccessRequestRepositoryTest {
     @Test
     fun `gets reports from database`() {
       databaseInsert()
+      val page: Page<SubjectAccessRequest> = PageImpl(allSars)
 
       val dbReports = sarRepository?.findAll(PageRequest.of(0, 4))
-      val page: Page<SubjectAccessRequest> = PageImpl(allSars)
+
       Assertions.assertThat(dbReports?.content).isEqualTo(page.content)
       Assertions.assertThat(dbReports?.size).isEqualTo(4)
+    }
+  }
+
+  @Nested
+  inner class findAll {
+    val sarRequestedFirst = SubjectAccessRequest(
+      id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
+      status = Status.Completed, // here
+      dateFrom = dateFromFormatted,
+      dateTo = dateToFormatted,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = LocalDateTime.parse("01/01/2000 00:00", dateTimeFormatter),
+      claimAttempts = 1,
+      claimDateTime = claimDateTimeFormatted,
+    )
+
+    val sarRequestedSecond = SubjectAccessRequest(
+      id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
+      status = Status.Completed, // here
+      dateFrom = dateFromFormatted,
+      dateTo = dateToFormatted,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = LocalDateTime.parse("01/01/2010 00:00", dateTimeFormatter),
+      claimAttempts = 1,
+      claimDateTime = claimDateTimeFormatted,
+    )
+
+    val sarRequestedThird = SubjectAccessRequest(
+      id = UUID.fromString("44444444-4444-4444-4444-444444444444"),
+      status = Status.Completed, // here
+      dateFrom = dateFromFormatted,
+      dateTo = dateToFormatted,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = LocalDateTime.parse("01/01/2020 00:00", dateTimeFormatter),
+      claimAttempts = 1,
+      claimDateTime = claimDateTimeFormatted,
+    )
+
+    private fun databaseInsert() {
+      sarRepository?.save(sarRequestedFirst)
+      sarRepository?.save(sarRequestedSecond)
+      sarRepository?.save(sarRequestedThird)
+    }
+
+    @Test
+    fun `findAll returns sorted and paginated responses when given relevant arguments`() {
+      databaseInsert()
+      val expectedPage: Page<SubjectAccessRequest> = PageImpl(listOf(sarRequestedThird, sarRequestedSecond))
+
+      val firstPageOfReports = sarRepository?.findAll(PageRequest.of(0, 2, Sort.by("RequestDateTime").descending()))
+
+      Assertions.assertThat(firstPageOfReports?.content).isEqualTo(expectedPage.content)
+      Assertions.assertThat(firstPageOfReports?.size).isEqualTo(2)
     }
   }
 }
