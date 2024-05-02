@@ -9,8 +9,8 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.springframework.core.io.InputStreamResource
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.PageRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
@@ -222,14 +222,16 @@ class SubjectAccessRequestServiceTest {
   inner class getAllReports {
     @Test
     fun `getAllReports calls SAR gateway getAllReports method with pagination`() {
-      Mockito.`when`(sarGateway.getAllReports(PageRequest.of(0, 1))).thenReturn(any())
-      SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(PageRequest.of(0, 1))
-      verify(sarGateway, times(1)).getAllReports(PageRequest.of(0, 1))
+      Mockito.`when`(sarGateway.getAllReports(0, 1)).thenReturn(PageImpl(listOf(sampleSAR)))
+
+      SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(0, 1)
+
+      verify(sarGateway, times(1)).getAllReports(0, 1)
     }
 
     @Test
     fun `getAllReports extracts condensed report info`() {
-      Mockito.`when`(sarGateway.getAllReports(PageRequest.of(0, 1))).thenReturn(PageImpl(listOf(sampleSAR)))
+      Mockito.`when`(sarGateway.getAllReports(0, 1)).thenReturn(PageImpl(listOf(sampleSAR)))
       val expectedResult =
         SubjectAccessRequestReport(
           uuid = "11111111-1111-1111-1111-111111111111",
@@ -238,7 +240,7 @@ class SubjectAccessRequestServiceTest {
           subjectId = "1",
           status = "Pending",
         )
-      val result = SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(PageRequest.of(0, 1))
+      val result = SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(0, 1)
       Assertions.assertThat(result[0].dateOfRequest).isEqualTo(sampleSAR.requestDateTime.toString())
       Assertions.assertThat(result[0].toString()).isEqualTo(expectedResult.toString())
     }

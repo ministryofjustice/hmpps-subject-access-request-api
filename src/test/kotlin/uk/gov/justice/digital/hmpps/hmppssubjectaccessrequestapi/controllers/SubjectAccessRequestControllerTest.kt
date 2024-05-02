@@ -10,7 +10,6 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.eq
 import org.springframework.core.io.InputStreamResource
-import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -203,7 +202,7 @@ class SubjectAccessRequestControllerTest {
     fun `getSubjectAccessRequestReports is called with pagination parameters`() {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getSubjectAccessRequestReports(1, 1)
-      verify(sarService, times(1)).getAllReports(PageRequest.of(1, 1))
+      verify(sarService, times(1)).getAllReports(1, 1)
     }
   }
 

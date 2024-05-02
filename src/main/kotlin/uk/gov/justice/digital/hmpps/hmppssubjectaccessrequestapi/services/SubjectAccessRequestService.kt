@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
-import org.springframework.data.domain.PageRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -83,8 +82,8 @@ class SubjectAccessRequestService(
     return document
   }
 
-  fun getAllReports(pagination: PageRequest): List<SubjectAccessRequestReport> {
-    val reports = sarDbGateway.getAllReports(pagination)
+  fun getAllReports(pageNumber: Int, pageSize: Int): List<SubjectAccessRequestReport> {
+    val reports = sarDbGateway.getAllReports(pageNumber, pageSize)
     try {
       val reportInfo = reports.content
       val condensedReportInfo = emptyList<SubjectAccessRequestReport>().toMutableList()

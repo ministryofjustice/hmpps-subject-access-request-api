@@ -8,6 +8,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository.SubjectAccessRequestRepository
@@ -17,8 +18,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 class SubjectAccessRequestGatewayTest {
-
-  val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
+  private val testUuid = UUID.fromString("11111111-1111-1111-1111-111111111111")
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
   private val dateFrom = "01/12/2023"
@@ -27,6 +27,7 @@ class SubjectAccessRequestGatewayTest {
   private val dateToFormatted = LocalDate.parse(dateTo, dateFormatter)
   private val requestTime = "01/01/2024 00:00"
   private val requestTimeFormatted = LocalDateTime.parse(requestTime, dateTimeFormatter)
+
   private val unclaimedSar = SubjectAccessRequest(
     id = testUuid,
     status = Status.Pending,
@@ -40,6 +41,7 @@ class SubjectAccessRequestGatewayTest {
     requestDateTime = requestTimeFormatted,
     claimAttempts = 0,
   )
+
   private val mockSarsWithNoClaims = listOf(unclaimedSar, unclaimedSar, unclaimedSar)
   private val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
 
@@ -161,10 +163,12 @@ class SubjectAccessRequestGatewayTest {
   @Nested
   inner class getAllReports {
     @Test
-    fun `getReports calls repository findAll method with pagination`() {
+    fun `getReports calls repository findAll method with requestDateTime-sorted pagination`() {
       Mockito.`when`(sarRepository.findAll(PageRequest.of(0, 1))).thenReturn(any())
-      SubjectAccessRequestGateway(sarRepository).getAllReports(PageRequest.of(0, 1))
-      verify(sarRepository, times(1)).findAll(PageRequest.of(0, 1))
+
+      SubjectAccessRequestGateway(sarRepository).getAllReports(0, 1)
+
+      verify(sarRepository, times(1)).findAll(PageRequest.of(0, 1,  Sort.by("RequestDateTime").descending()))
     }
   }
 }
