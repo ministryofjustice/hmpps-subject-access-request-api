@@ -79,14 +79,12 @@ class SubjectAccessRequestGatewayTest {
           requestDateTime = requestTimeFormatted,
           claimAttempts = 0,
         ),
-
       )
     }
   }
 
   @Nested
   inner class getSubjectAccessRequests {
-
     @Test
     fun `calls findAll if unclaimed is false`() {
       SubjectAccessRequestGateway(sarRepository)
@@ -168,7 +166,7 @@ class SubjectAccessRequestGatewayTest {
 
       SubjectAccessRequestGateway(sarRepository).getAllReports(0, 1)
 
-      verify(sarRepository, times(1)).findAll(PageRequest.of(0, 1,  Sort.by("RequestDateTime").descending()))
+      verify(sarRepository, times(1)).findAll(PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
     }
   }
 }

@@ -9,7 +9,6 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.springframework.core.io.InputStreamResource
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
