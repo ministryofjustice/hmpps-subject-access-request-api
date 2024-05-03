@@ -22,7 +22,7 @@ dependencies {
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.2.224")
-  runtimeOnly("org.postgresql:postgresql:42.6.0")
+  runtimeOnly("org.postgresql:postgresql:42.7.2")
 
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.0")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.0")
