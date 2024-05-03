@@ -46,7 +46,7 @@ class SubjectAccessRequestGatewayTest {
   private val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
 
   @Nested
-  inner class saveSubjectAccessRequest {
+  inner class SaveSubjectAccessRequest {
     @Test
     fun `saves SAR with dateTo of today when dateTo is null`() {
       val sarWithNoDateTo = SubjectAccessRequest(
@@ -84,7 +84,7 @@ class SubjectAccessRequestGatewayTest {
   }
 
   @Nested
-  inner class getSubjectAccessRequests {
+  inner class GetSubjectAccessRequests {
     @Test
     fun `calls findAll if unclaimed is false`() {
       SubjectAccessRequestGateway(sarRepository)
@@ -135,7 +135,7 @@ class SubjectAccessRequestGatewayTest {
   }
 
   @Nested
-  inner class updateSubjectAccessRequest {
+  inner class UpdateSubjectAccessRequest {
     @Test
     fun `calls updateClaimDateTimeIfBeforeThreshold with correct parameters`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
@@ -159,7 +159,7 @@ class SubjectAccessRequestGatewayTest {
   }
 
   @Nested
-  inner class getAllReports {
+  inner class GetAllReports {
     @Test
     fun `getReports calls repository findAll method with requestDateTime-sorted pagination`() {
       Mockito.`when`(sarRepository.findAll(PageRequest.of(0, 1))).thenReturn(any())

@@ -37,8 +37,12 @@ class SubjectAccessRequestService(
     var ndeliusId = json.get("ndeliusId")
 
     val nullClassName = "org.json.JSONObject\$Null"
-    if (nomisId.javaClass.name == nullClassName) { nomisId = null }
-    if (ndeliusId.javaClass.name == nullClassName) { ndeliusId = null }
+    if (nomisId.javaClass.name == nullClassName) {
+      nomisId = null
+    }
+    if (ndeliusId.javaClass.name == nullClassName) {
+      ndeliusId = null
+    }
 
     if (nomisId != null && ndeliusId != null) {
       return "Both nomisId and ndeliusId are provided - exactly one is required"

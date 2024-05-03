@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.7.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.6"
   id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
-  kotlin("plugin.spring") version "1.9.10"
+  kotlin("plugin.spring") version "1.9.23"
 }
 
 configurations {
@@ -16,13 +16,13 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.0")
-  implementation("org.json:json:20230227")
+  implementation("org.json:json:20231013")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.2.224")
-  runtimeOnly("org.postgresql:postgresql:42.6.0")
+  runtimeOnly("org.postgresql:postgresql:42.7.2")
 
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.0")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.0")

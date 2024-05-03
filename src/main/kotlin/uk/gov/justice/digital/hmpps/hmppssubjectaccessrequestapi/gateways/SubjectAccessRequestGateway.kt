@@ -26,7 +26,9 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
   }
 
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {
-    if (sar.dateTo == null) { sar.dateTo = LocalDate.now() }
+    if (sar.dateTo == null) {
+      sar.dateTo = LocalDate.now()
+    }
     repo.save(sar)
   }
   fun updateSubjectAccessRequestClaim(id: UUID, thresholdTime: LocalDateTime, currentTime: LocalDateTime): Int {
