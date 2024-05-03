@@ -107,6 +107,14 @@ class SubjectAccessRequestControllerTest {
   }
 
   @Test
+  fun `getSubjectAccessRequests is called with filters if specified in controller and returns list`() {
+    val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(sarService, auditService, telemetryClient)
+      .getSubjectAccessRequests(filters = mapOf("subjectID" to "A1234AA"))
+    verify(sarService, times(1)).getSubjectAccessRequests(filters = mapOf("subjectID" to "A1234AA"), unclaimedOnly = false)
+    Assertions.assertThatList(result)
+  }
+
+  @Test
   fun `getTotalSubjectAccessRequests calls getSubjectAccessRequests with unclaimedOnly = false `() {
     SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .getTotalSubjectAccessRequests()

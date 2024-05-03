@@ -208,6 +208,10 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       required = false,
       name = "unclaimed",
     ) unclaimed: Boolean = false,
+    @RequestParam(
+      required = false,
+      name = "filters",
+    ) filters: Map<String, String>? = null,
   ): List<SubjectAccessRequest?> {
     val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
     return response
