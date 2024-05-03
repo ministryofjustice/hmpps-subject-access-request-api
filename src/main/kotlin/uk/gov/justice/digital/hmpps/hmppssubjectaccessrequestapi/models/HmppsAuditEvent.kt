@@ -9,5 +9,6 @@ data class HmppsAuditEvent(
   val details: String,
   val who: String,
 ) {
+  val `when`: String = DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.systemDefault()).format(ZonedDateTime.now())
   val service = "hmpps-subject-access-request-api"
 }
