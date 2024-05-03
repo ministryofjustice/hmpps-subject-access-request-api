@@ -9,14 +9,14 @@ configurations {
 }
 
 dependencies {
-  implementation("org.springframework.boot:spring-boot-starter-webflux:6.0.14")
-  implementation("org.springframework.boot:spring-boot-starter-security:6.1.7")
-  implementation("org.springframework.boot:spring-boot-starter-web:6.1.5")
+  implementation("org.springframework.boot:spring-boot-starter-webflux")
+  implementation("org.springframework.boot:spring-boot-starter-security")
+  implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.0")
-  implementation("org.json:json:20231014")
+  implementation("org.json:json:20231013")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 

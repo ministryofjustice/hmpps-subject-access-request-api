@@ -63,7 +63,7 @@ class SubjectAccessRequestRepositoryTest {
   )
   val completedSar = SubjectAccessRequest(
     id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
-    status = Status.Completed, // here
+    status = Status.Completed,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
     sarCaseReferenceNumber = "1234abc",
@@ -100,7 +100,7 @@ class SubjectAccessRequestRepositoryTest {
   val allSars = listOf(unclaimedSar, claimedSarWithPendingStatus, completedSar, sarWithPendingStatusClaimedEarlier)
 
   @Nested
-  inner class findByClaimAttemptsIs {
+  inner class FindByClaimAttemptsIs {
     @Test
     fun `findByClaimAttemptsIs returns only unclaimed SAR entries if called with 0`() {
       val expectedUnclaimed: List<SubjectAccessRequest> = listOf(unclaimedSar)
@@ -120,7 +120,7 @@ class SubjectAccessRequestRepositoryTest {
   }
 
   @Nested
-  inner class findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore {
+  inner class FindByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore {
     @Test
     fun `returns only SAR entries with given criteria`() {
       val expectedPendingClaimedBefore: List<SubjectAccessRequest> = listOf(sarWithPendingStatusClaimedEarlier)
@@ -137,7 +137,7 @@ class SubjectAccessRequestRepositoryTest {
   }
 
   @Nested
-  inner class updateSubjectAccessRequestIfClaimDateTimeLessThanWithClaimDateTimeIsAndClaimAttemptsIs {
+  inner class UpdateSubjectAccessRequestIfClaimDateTimeLessThanWithClaimDateTimeIsAndClaimAttemptsIs {
     @Test
     fun `updates claimDateTime and claimAttempts if claimDateTime before threshold`() {
       val thresholdClaimDateTime = "30/06/2023 00:00"
@@ -212,7 +212,7 @@ class SubjectAccessRequestRepositoryTest {
   }
 
   @Nested
-  inner class updateStatus {
+  inner class UpdateStatus {
     @Test
     fun `updates status`() {
       databaseInsert()
@@ -246,7 +246,7 @@ class SubjectAccessRequestRepositoryTest {
   }
 
   @Nested
-  inner class getReports {
+  inner class GetReports {
     @Test
     fun `gets reports from database`() {
       databaseInsert()
@@ -260,10 +260,10 @@ class SubjectAccessRequestRepositoryTest {
   }
 
   @Nested
-  inner class findAll {
+  inner class FindAll {
     val sarRequestedFirst = SubjectAccessRequest(
       id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
-      status = Status.Completed, // here
+      status = Status.Completed,
       dateFrom = dateFromFormatted,
       dateTo = dateToFormatted,
       sarCaseReferenceNumber = "1234abc",
@@ -278,7 +278,7 @@ class SubjectAccessRequestRepositoryTest {
 
     val sarRequestedSecond = SubjectAccessRequest(
       id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
-      status = Status.Completed, // here
+      status = Status.Completed,
       dateFrom = dateFromFormatted,
       dateTo = dateToFormatted,
       sarCaseReferenceNumber = "1234abc",
@@ -293,7 +293,7 @@ class SubjectAccessRequestRepositoryTest {
 
     val sarRequestedThird = SubjectAccessRequest(
       id = UUID.fromString("44444444-4444-4444-4444-444444444444"),
-      status = Status.Completed, // here
+      status = Status.Completed,
       dateFrom = dateFromFormatted,
       dateTo = dateToFormatted,
       sarCaseReferenceNumber = "1234abc",

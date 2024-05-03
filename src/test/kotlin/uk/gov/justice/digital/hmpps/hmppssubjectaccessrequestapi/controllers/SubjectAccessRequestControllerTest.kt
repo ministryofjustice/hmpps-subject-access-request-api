@@ -114,7 +114,7 @@ class SubjectAccessRequestControllerTest {
   }
 
   @Nested
-  inner class patchSubjectAccessRequest {
+  inner class PatchSubjectAccessRequest {
     @Test
     fun `claimSubjectAccessRequest returns 400 if updateSubjectAccessRequest returns 0 with time update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")

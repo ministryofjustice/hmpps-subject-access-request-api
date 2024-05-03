@@ -19,7 +19,9 @@ class AuditService(
   private val auditQueueUrl by lazy { auditQueue.queueUrl }
 
   fun createEvent(who: String, what: String, detail: String) {
-    if (who == "INTEGRATION_TEST_USER") { return }
+    if (who == "INTEGRATION_TEST_USER") {
+      return
+    }
     auditSqsClient.sendMessage(
       SendMessageRequest.builder()
         .queueUrl(auditQueueUrl)

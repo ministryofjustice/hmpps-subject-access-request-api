@@ -95,7 +95,7 @@ class SubjectAccessRequestServiceTest {
   private val documentGateway: DocumentStorageGateway = Mockito.mock(DocumentStorageGateway::class.java)
 
   @Nested
-  inner class createSubjectAccessRequest {
+  inner class CreateSubjectAccessRequest {
     @Test
     fun `createSubjectAccessRequest returns empty string`() {
       Mockito.`when`(authentication.name).thenReturn("mockUserName")
@@ -158,7 +158,7 @@ class SubjectAccessRequestServiceTest {
   }
 
   @Nested
-  inner class updateSubjectAccessRequest {
+  inner class UpdateSubjectAccessRequest {
 
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
@@ -218,7 +218,7 @@ class SubjectAccessRequestServiceTest {
   }
 
   @Nested
-  inner class getAllReports {
+  inner class GetAllReports {
     @Test
     fun `getAllReports calls SAR gateway getAllReports method with pagination`() {
       Mockito.`when`(sarGateway.getAllReports(0, 1)).thenReturn(PageImpl(listOf(sampleSAR)))
