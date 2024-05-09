@@ -116,43 +116,43 @@ class SubjectAccessRequestControllerTest {
   @Nested
   inner class PatchSubjectAccessRequest {
     @Test
-    fun `claimSubjectAccessRequest returns 400 if updateSubjectAccessRequest returns 0 with time update`() {
+    fun `claimSubjectAccessRequest returns Bad Request  if updateSubjectAccessRequest returns 0 with claim time update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .claimSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))
-      Assertions.assertThat(result).isEqualTo(400)
+      Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
     }
 
     @Test
-    fun `claimSubjectAccessRequest returns 200 if updateSubjectAccessRequest returns 1 with time update`() {
+    fun `claimSubjectAccessRequest returns Response OK if updateSubjectAccessRequest returns 1 with time update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .claimSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))
-      Assertions.assertThat(result).isEqualTo(200)
+      Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
     }
 
     @Test
-    fun `completeSubjectAccessRequest returns 400 if completeSubjectAccessRequest returns 0 with status update`() {
+    fun `completeSubjectAccessRequest returns Bad Request if completeSubjectAccessRequest returns 0 with status update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .completeSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
-      Assertions.assertThat(result).isEqualTo(400)
+      Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
     }
 
     @Test
-    fun `completeSubjectAccessRequest returns 200 if completeSubjectAccessRequest returns 1 with status update`() {
+    fun `completeSubjectAccessRequest returns Response OK if completeSubjectAccessRequest returns 1 with status update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .completeSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
-      Assertions.assertThat(result).isEqualTo(200)
+      Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
     }
   }
 

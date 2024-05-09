@@ -360,7 +360,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  fun claimSubjectAccessRequest(@PathVariable("id") id: UUID): Int {
+  fun claimSubjectAccessRequest(@PathVariable("id") id: UUID): ResponseEntity<String> {
     telemetryClient.trackEvent(
       "claimSubjectAccessRequest",
       mapOf(
@@ -369,9 +369,9 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     )
     val response = subjectAccessRequestService.claimSubjectAccessRequest(id)
     return if (response == 0) {
-      400
+      ResponseEntity(HttpStatus.BAD_REQUEST)
     } else {
-      200
+      ResponseEntity(HttpStatus.OK)
     }
   }
 
@@ -412,7 +412,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  fun completeSubjectAccessRequest(@PathVariable("id") id: UUID): Int {
+  fun completeSubjectAccessRequest(@PathVariable("id") id: UUID): ResponseEntity<String> {
     telemetryClient.trackEvent(
       "completeSubjectAccessRequest",
       mapOf(
@@ -421,9 +421,9 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     )
     val response = subjectAccessRequestService.completeSubjectAccessRequest(id)
     return if (response == 0) {
-      400
+      ResponseEntity(HttpStatus.BAD_REQUEST)
     } else {
-      200
+      ResponseEntity(HttpStatus.OK)
     }
   }
 

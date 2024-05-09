@@ -106,16 +106,16 @@ class SubjectAccessRequestRepositoryTest {
       val expectedUnclaimed: List<SubjectAccessRequest> = listOf(unclaimedSar)
       databaseInsert()
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
-      Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(0)).isEqualTo(expectedUnclaimed)
+      Assertions.assertThat(sarRepository?.findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)).isEqualTo(expectedUnclaimed)
     }
 
     @Test
     fun `findByClaimAttemptsIs returns only claimed SAR entries if called with 1 or more`() {
       val expectedClaimed: List<SubjectAccessRequest> =
-        listOf(claimedSarWithPendingStatus, completedSar, sarWithPendingStatusClaimedEarlier)
+        listOf(claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)
       databaseInsert()
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
-      Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(1)).isEqualTo(expectedClaimed)
+      Assertions.assertThat(sarRepository?.findByStatusIsAndClaimAttemptsIs(Status.Pending, 1)).isEqualTo(expectedClaimed)
     }
   }
 
