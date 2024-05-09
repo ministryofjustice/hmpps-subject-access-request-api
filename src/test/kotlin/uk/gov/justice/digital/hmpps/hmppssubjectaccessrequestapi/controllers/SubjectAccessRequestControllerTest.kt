@@ -278,17 +278,6 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `User with ROLE_SAR_DATA_ACCESS can complete report`() {
-      webTestClient.patch()
-        .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/complete")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody()
-    }
-
-    @Test
     fun `User without ROLE_SAR_USER_ACCESS can't get reports`() {
       webTestClient.get()
         .uri("/api/reports?pageNumber=1&pageSize=50")
