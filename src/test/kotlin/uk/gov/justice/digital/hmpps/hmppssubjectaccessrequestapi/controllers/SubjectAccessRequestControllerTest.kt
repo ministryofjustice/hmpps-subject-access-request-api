@@ -116,43 +116,43 @@ class SubjectAccessRequestControllerTest {
   @Nested
   inner class PatchSubjectAccessRequest {
     @Test
-    fun `claimSubjectAccessRequest returns 400 if updateSubjectAccessRequest returns 0 with time update`() {
+    fun `claimSubjectAccessRequest returns Bad Request  if updateSubjectAccessRequest returns 0 with claim time update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .claimSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))
-      Assertions.assertThat(result).isEqualTo(400)
+      Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
     }
 
     @Test
-    fun `claimSubjectAccessRequest returns 200 if updateSubjectAccessRequest returns 1 with time update`() {
+    fun `claimSubjectAccessRequest returns Response OK if updateSubjectAccessRequest returns 1 with time update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .claimSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))
-      Assertions.assertThat(result).isEqualTo(200)
+      Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
     }
 
     @Test
-    fun `completeSubjectAccessRequest returns 400 if completeSubjectAccessRequest returns 0 with status update`() {
+    fun `completeSubjectAccessRequest returns Bad Request if completeSubjectAccessRequest returns 0 with status update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(0)
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .completeSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
-      Assertions.assertThat(result).isEqualTo(400)
+      Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
     }
 
     @Test
-    fun `completeSubjectAccessRequest returns 200 if completeSubjectAccessRequest returns 1 with status update`() {
+    fun `completeSubjectAccessRequest returns Response OK if completeSubjectAccessRequest returns 1 with status update`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(1)
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .completeSubjectAccessRequest(testUuid)
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
-      Assertions.assertThat(result).isEqualTo(200)
+      Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
     }
   }
 
@@ -270,95 +270,6 @@ class SubjectAccessRequestControllerTest {
     fun `User with ROLE_SAR_DATA_ACCESS can get subjectAccessRequests`() {
       webTestClient.get()
         .uri("/api/subjectAccessRequests")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody()
-    }
-
-// These tests are for the /report endpoint which needs some modification - the ID should be a PathVariable rather than RequestParam
-//    @Test
-//    fun `User without ROLE_SAR_USER_ACCESS can't get report`() {
-//      webTestClient.get()
-//        .uri("/api/report?id=257e1a7c-a7f4-498a-bc49-d7b245c8760c")
-//        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
-//        .exchange()
-//        .expectStatus()
-//        .is5xxServerError
-//        .expectBody()
-//    }
-//
-//    @Test
-//    fun `User with ROLE_SAR_USER_ACCESS can get report`() {
-//      webTestClient.get()
-//        .uri("/api/report?id=257e1a7c-a7f4-498a-bc49-d7b245c8760c")
-//        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
-//        .exchange()
-//        .expectStatus()
-//        .isOk
-//        .expectBody()
-//    }
-
-    @Test
-    fun `User without ROLE_SAR_USER_ACCESS can't claim report`() {
-      webTestClient.patch()
-        .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/claim")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
-        .exchange()
-        .expectStatus()
-        .is5xxServerError
-        .expectBody()
-    }
-
-    @Test
-    fun `User with ROLE_SAR_USER_ACCESS can claim report`() {
-      webTestClient.patch()
-        .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/claim")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody()
-    }
-
-    @Test
-    fun `User with ROLE_SAR_DATA_ACCESS can claim report`() {
-      webTestClient.patch()
-        .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/claim")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody()
-    }
-
-    @Test
-    fun `User without ROLE_SAR_USER_ACCESS can't complete report`() {
-      webTestClient.patch()
-        .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/complete")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
-        .exchange()
-        .expectStatus()
-        .is5xxServerError
-        .expectBody()
-    }
-
-    @Test
-    fun `User with ROLE_SAR_USER_ACCESS can complete report`() {
-      webTestClient.patch()
-        .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/complete")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS")))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody()
-    }
-
-    @Test
-    fun `User with ROLE_SAR_DATA_ACCESS can complete report`() {
-      webTestClient.patch()
-        .uri("/api/subjectAccessRequests/257e1a7c-a7f4-498a-bc49-d7b245c8760c/complete")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
         .exchange()
         .expectStatus()

@@ -96,14 +96,14 @@ class SubjectAccessRequestGatewayTest {
     fun `calls findByClaimAttemptsIs if unclaimed is true`() {
       SubjectAccessRequestGateway(sarRepository)
         .getSubjectAccessRequests(unclaimedOnly = true)
-      verify(sarRepository, times(1)).findByClaimAttemptsIs(0)
+      verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
     }
 
     @Test
     fun `calls findByClaimAttemptsIs(0) if unclaimed is true`() {
       SubjectAccessRequestGateway(sarRepository)
         .getSubjectAccessRequests(unclaimedOnly = true)
-      verify(sarRepository, times(1)).findByClaimAttemptsIs(0)
+      verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
     }
 
     @Test
@@ -119,7 +119,7 @@ class SubjectAccessRequestGatewayTest {
 
     @Test
     fun `returns joint list of both claimed and valid unclaimed sars`() {
-      Mockito.`when`(sarRepository.findByClaimAttemptsIs(0)).thenReturn(mockSarsWithNoClaims)
+      Mockito.`when`(sarRepository.findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)).thenReturn(mockSarsWithNoClaims)
       val mockedCurrentTime = "02/01/2024 00:00"
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val expiredClaimDateTime = "01/01/2024 23:55"
