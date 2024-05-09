@@ -12,7 +12,7 @@ import java.util.UUID
 
 @Repository
 interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, UUID> {
-  fun findByClaimAttemptsIs(claimAttempts: Int): List<SubjectAccessRequest?>
+  fun findByStatusIsAndClaimAttemptsIs(status: Status, claimAttempts: Int): List<SubjectAccessRequest?>
 
   fun findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(status: Status, claimAttempts: Int, claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
 
