@@ -19,6 +19,8 @@ dependencies {
   implementation("org.json:json:20231013")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:6.34.0")
+  implementation("io.sentry:sentry-logback:6.34.0")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.2.224")
@@ -34,6 +36,7 @@ dependencies {
   testImplementation("io.kotest:kotest-runner-junit5-jvm:5.8.0")
   testImplementation("io.kotest:kotest-assertions-core-jvm:5.8.0")
   testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
+  testImplementation("io.mockk:mockk:1.13.9")
 }
 
 java {

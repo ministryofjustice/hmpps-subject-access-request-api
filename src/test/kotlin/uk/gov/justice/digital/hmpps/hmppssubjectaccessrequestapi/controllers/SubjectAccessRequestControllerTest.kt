@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
 import com.microsoft.applicationinsights.TelemetryClient
+import io.mockk.mockkStatic
+import io.sentry.Sentry
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -29,24 +31,24 @@ class SubjectAccessRequestControllerTest {
   private val auditService = Mockito.mock(AuditService::class.java)
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
   private val telemetryClient = Mockito.mock(TelemetryClient::class.java)
+  private val ndeliusRequest = "{ " +
+    "dateFrom: '01/12/2023', " +
+    "dateTo: '03/01/2024', " +
+    "sarCaseReferenceNumber: '1234abc', " +
+    "services: '{1,2,4}', " +
+    "nomisId: null, " +
+    "ndeliusId: '1' " +
+    "}"
 
   @Test
   fun `createSubjectAccessRequest post calls service createSubjectAccessRequest with same parameters`() {
-    val ndeliusRequest = "{ " +
-      "dateFrom: '01/12/2023', " +
-      "dateTo: '03/01/2024', " +
-      "sarCaseReferenceNumber: '1234abc', " +
-      "services: '{1,2,4}', " +
-      "nomisId: null, " +
-      "ndeliusId: '1' " +
-      "}"
-
     Mockito.`when`(authentication.name).thenReturn("mockUserName")
     Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)).thenReturn("")
+    val expected: ResponseEntity<String> = ResponseEntity("", HttpStatus.OK)
 
     val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
-    val expected: ResponseEntity<String> = ResponseEntity("", HttpStatus.OK)
+
     verify(sarService, times(1)).createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
     Assertions.assertThat(result).isEqualTo(expected)
   }
@@ -62,11 +64,15 @@ class SubjectAccessRequestControllerTest {
       "nomisId: null, " +
       "ndeliusId: '1' " +
       "}"
-    Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)).thenReturn("Both nomisId and ndeliusId are provided - exactly one is required")
+    Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime))
+      .thenReturn("Both nomisId and ndeliusId are provided - exactly one is required")
+
     val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
+
     verify(sarService, times(1)).createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
-    val expected: ResponseEntity<String> = ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
+    val expected: ResponseEntity<String> =
+      ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
     Assertions.assertThat(response).isEqualTo(expected)
   }
 
@@ -81,89 +87,190 @@ class SubjectAccessRequestControllerTest {
       "ndeliusId: null " +
       "}"
 
-    Mockito.`when`(sarService.createSubjectAccessRequest(noIDRequest, authentication, requestTime)).thenReturn("Neither nomisId nor ndeliusId is provided - exactly one is required")
+    Mockito.`when`(sarService.createSubjectAccessRequest(noIDRequest, authentication, requestTime))
+      .thenReturn("Neither nomisId nor ndeliusId is provided - exactly one is required")
     Mockito.`when`(authentication.name).thenReturn("mockUserName")
 
     val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
       .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
     verify(sarService, times(1)).createSubjectAccessRequest(noIDRequest, authentication, requestTime)
-    val expected: ResponseEntity<String> = ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
+    val expected: ResponseEntity<String> =
+      ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
     Assertions.assertThat(response).isEqualTo(expected)
   }
 
   @Test
-  fun `getSubjectAccessRequests is called with unclaimedOnly = true if specified in controller and returns list`() {
-    val result: List<SubjectAccessRequest?> = SubjectAccessRequestController(sarService, auditService, telemetryClient)
-      .getSubjectAccessRequests(unclaimed = true)
-    verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true)
-    Assertions.assertThatList(result)
+  fun `createSubjectAccessRequest exceptions are captured by sentry`() {
+    mockkStatic(Sentry::class)
+    Mockito.`when`(authentication.name).thenReturn("mockUserName")
+    Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusRequest, authentication, requestTime))
+      .thenThrow(RuntimeException())
+
+    SubjectAccessRequestController(sarService, auditService, telemetryClient)
+      .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
+
+    io.mockk.verify(exactly = 1) {
+      Sentry.captureException(
+        any(),
+      )
+    }
   }
 
-  @Test
-  fun `getSubjectAccessRequests is called with unclaimedOnly = false if unspecified in controller`() {
-    SubjectAccessRequestController(sarService, auditService, telemetryClient)
-      .getSubjectAccessRequests()
-    verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
+  @Nested
+  inner class GetSubjectAccessRequests {
+    @Test
+    fun `getSubjectAccessRequests is called with unclaimedOnly = true if specified in controller and returns list`() {
+      val result: List<SubjectAccessRequest?> =
+        SubjectAccessRequestController(sarService, auditService, telemetryClient)
+          .getSubjectAccessRequests(unclaimed = true)
+
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true)
+      Assertions.assertThatList(result)
+    }
+
+    @Test
+    fun `getSubjectAccessRequests is called with unclaimedOnly = false if unspecified in controller`() {
+      SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .getSubjectAccessRequests()
+
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
+    }
+
+    @Test
+    fun `getSubjectAccessRequests exceptions are captured by sentry`() {
+      mockkStatic(Sentry::class)
+      Mockito.`when`(sarService.getSubjectAccessRequests(unclaimedOnly = false))
+        .thenThrow(RuntimeException())
+
+      SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .getSubjectAccessRequests()
+
+      io.mockk.verify(exactly = 1) {
+        Sentry.captureException(
+          any(),
+        )
+      }
+    }
   }
 
-  @Test
-  fun `getTotalSubjectAccessRequests calls getSubjectAccessRequests with unclaimedOnly = false `() {
-    SubjectAccessRequestController(sarService, auditService, telemetryClient)
-      .getTotalSubjectAccessRequests()
-    verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
+  @Nested
+  inner class GetTotalSubjectAccessRequests {
+    @Test
+    fun `getTotalSubjectAccessRequests calls getSubjectAccessRequests with unclaimedOnly = false `() {
+      SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .getTotalSubjectAccessRequests()
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
+    }
+
+    @Test
+    fun `getTotalSubjectAccessRequests exceptions are captured by sentry`() {
+      mockkStatic(Sentry::class)
+      Mockito.`when`(sarService.getSubjectAccessRequests(unclaimedOnly = false))
+        .thenThrow(RuntimeException())
+
+      SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .getTotalSubjectAccessRequests()
+
+      io.mockk.verify(exactly = 1) {
+        Sentry.captureException(
+          any(),
+        )
+      }
+    }
   }
 
   @Nested
   inner class PatchSubjectAccessRequest {
+    private val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
+
     @Test
-    fun `claimSubjectAccessRequest returns Bad Request  if updateSubjectAccessRequest returns 0 with claim time update`() {
-      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
+    fun `claimSubjectAccessRequest returns Bad Request if updateSubjectAccessRequest returns 0 with claim time update`() {
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))).thenReturn(0)
+
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .claimSubjectAccessRequest(testUuid)
+
       verify(sarService, times(1)).claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))
       Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
     }
 
     @Test
     fun `claimSubjectAccessRequest returns Response OK if updateSubjectAccessRequest returns 1 with time update`() {
-      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))).thenReturn(1)
+
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .claimSubjectAccessRequest(testUuid)
+
       verify(sarService, times(1)).claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))
       Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
     }
 
     @Test
+    fun `claimSubjectAccessRequest exceptions are captured by sentry`() {
+      mockkStatic(Sentry::class)
+      Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java)))
+        .thenThrow(RuntimeException())
+
+      SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .claimSubjectAccessRequest(testUuid)
+
+      io.mockk.verify(exactly = 1) {
+        Sentry.captureException(
+          any(),
+        )
+      }
+    }
+
+    @Test
     fun `completeSubjectAccessRequest returns Bad Request if completeSubjectAccessRequest returns 0 with status update`() {
-      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(0)
+
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .completeSubjectAccessRequest(testUuid)
+
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
       Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
     }
 
     @Test
     fun `completeSubjectAccessRequest returns Response OK if completeSubjectAccessRequest returns 1 with status update`() {
-      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(1)
+
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .completeSubjectAccessRequest(testUuid)
+
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
       Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
+    }
+
+    @Test
+    fun `completeSubjectAccessRequest exceptions are captured by sentry`() {
+      mockkStatic(Sentry::class)
+      Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid))
+        .thenThrow(RuntimeException())
+
+      SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .completeSubjectAccessRequest(testUuid)
+
+      io.mockk.verify(exactly = 1) {
+        Sentry.captureException(
+          any(),
+        )
+      }
     }
   }
 
   @Nested
   inner class GetReport {
+    private val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
+
     @Test
     fun `getReport returns 200 if service retrieveSubjectAccessRequestDocument returns a response`() {
       val mockByteArrayInputStream = Mockito.mock(ByteArrayInputStream::class.java)
       val mockStream = Flux.just(InputStreamResource(mockByteArrayInputStream))
-      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
-      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenReturn(ResponseEntity.ok().contentType(MediaType.parseMediaType("application/pdf")).body(mockStream))
+      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid))
+        .thenReturn(ResponseEntity.ok().contentType(MediaType.parseMediaType("application/pdf")).body(mockStream))
+
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
       verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
       Assertions.assertThat(result).isEqualTo(
@@ -175,10 +282,11 @@ class SubjectAccessRequestControllerTest {
 
     @Test
     fun `getReport returns 404 if service retrieveSubjectAccessRequestDocument does not return a response`() {
-      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       val errorMessage = "Report Not Found"
       Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenReturn(null)
+
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
+
       verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
       Assertions.assertThat(result).isEqualTo(
         ResponseEntity(errorMessage, HttpStatus.NOT_FOUND),
@@ -187,11 +295,12 @@ class SubjectAccessRequestControllerTest {
 
     @Test
     fun `getReport returns 500 if retrieveSubjectAccessRequestDocument throws an exception`() {
-      val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       val errorMessage = "An error has occurred!"
       Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid))
         .thenThrow(RuntimeException(errorMessage))
+
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
+
       verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
       Assertions.assertThat(result).isEqualTo(
         ResponseEntity(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR),
@@ -199,10 +308,42 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
+    fun `getSubjectAccessRequestReports exceptions are captured by sentry`() {
+      mockkStatic(Sentry::class)
+      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid))
+        .thenThrow(RuntimeException())
+
+      SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
+
+      io.mockk.verify(exactly = 1) {
+        Sentry.captureException(
+          any(),
+        )
+      }
+    }
+
+    @Test
     fun `getSubjectAccessRequestReports is called with pagination parameters`() {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getSubjectAccessRequestReports(1, 1)
+
       verify(sarService, times(1)).getAllReports(1, 1)
+    }
+  }
+
+  @Test
+  fun `getReports exceptions are captured by sentry`() {
+    mockkStatic(Sentry::class)
+    Mockito.`when`(sarService.getAllReports(pageNumber = 1, pageSize = 1))
+      .thenThrow(RuntimeException())
+
+    SubjectAccessRequestController(sarService, auditService, telemetryClient)
+      .getSubjectAccessRequestReports(pageNumber = 1, pageSize = 1)
+
+    io.mockk.verify(exactly = 1) {
+      Sentry.captureException(
+        any(),
+      )
     }
   }
 

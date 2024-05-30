@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
 import com.microsoft.applicationinsights.TelemetryClient
+import io.sentry.Sentry
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -132,29 +133,35 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     authentication: Authentication,
     requestTime: LocalDateTime?,
   ): ResponseEntity<String> {
-    log.info("Creating SAR Request")
-    val json = JSONObject(request)
-    val nomisId = json.get("nomisId").toString()
-    val ndeliusId = json.get("ndeliusId").toString()
-    telemetryClient.trackEvent(
-      "createSubjectAccessRequest",
-      mapOf(
-        "nomisId" to nomisId,
-        "ndeliusId" to ndeliusId,
-        "requestTime" to requestTime.toString(),
-      ),
-    )
-    val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
-    auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
-    val response = subjectAccessRequestService.createSubjectAccessRequest(
-      request = request,
-      authentication = authentication,
-      requestTime = requestTime,
-    )
-    return if (response == "") {
-      ResponseEntity(response, HttpStatus.OK)
-    } else {
-      ResponseEntity(response, HttpStatus.BAD_REQUEST)
+    try {
+      log.info("Creating SAR Request")
+      val json = JSONObject(request)
+      val nomisId = json.get("nomisId").toString()
+      val ndeliusId = json.get("ndeliusId").toString()
+      telemetryClient.trackEvent(
+        "createSubjectAccessRequest",
+        mapOf(
+          "nomisId" to nomisId,
+          "ndeliusId" to ndeliusId,
+          "requestTime" to requestTime.toString(),
+        ),
+      )
+      val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
+      auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
+      val response = subjectAccessRequestService.createSubjectAccessRequest(
+        request = request,
+        authentication = authentication,
+        requestTime = requestTime,
+      )
+      return if (response == "") {
+        ResponseEntity(response, HttpStatus.OK)
+      } else {
+        ResponseEntity(response, HttpStatus.BAD_REQUEST)
+      }
+    } catch (exception: Exception) {
+      Sentry.captureException(exception)
+      log.error(exception.message)
+      return ResponseEntity(exception.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -209,8 +216,14 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       name = "unclaimed",
     ) unclaimed: Boolean = false,
   ): List<SubjectAccessRequest?> {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
-    return response
+    try {
+      val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
+      return response
+    } catch (exception: Exception) {
+      log.error(exception.message)
+      Sentry.captureException(exception)
+      return emptyList()
+    }
   }
 
   @GetMapping("totalSubjectAccessRequests")
@@ -253,8 +266,14 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     ],
   )
   fun getTotalSubjectAccessRequests(): Int {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(false)
-    return response.size
+    try {
+      val response = subjectAccessRequestService.getSubjectAccessRequests(false)
+      return response.size
+    } catch (exception: Exception) {
+      log.error(exception.message)
+      Sentry.captureException(exception)
+      return 0
+    }
   }
 
   @GetMapping("report")
@@ -319,6 +338,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
         .body(fileStream)
     } catch (exception: Exception) {
       log.error(exception.message)
+      Sentry.captureException(exception)
       return ResponseEntity(exception.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
@@ -361,17 +381,23 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     ],
   )
   fun claimSubjectAccessRequest(@PathVariable("id") id: UUID): ResponseEntity<String> {
-    telemetryClient.trackEvent(
-      "claimSubjectAccessRequest",
-      mapOf(
-        "id" to id.toString(),
-      ),
-    )
-    val response = subjectAccessRequestService.claimSubjectAccessRequest(id)
-    return if (response == 0) {
-      ResponseEntity(HttpStatus.BAD_REQUEST)
-    } else {
-      ResponseEntity(HttpStatus.OK)
+    try {
+      telemetryClient.trackEvent(
+        "claimSubjectAccessRequest",
+        mapOf(
+          "id" to id.toString(),
+        ),
+      )
+      val response = subjectAccessRequestService.claimSubjectAccessRequest(id)
+      return if (response == 0) {
+        ResponseEntity(HttpStatus.BAD_REQUEST)
+      } else {
+        ResponseEntity(HttpStatus.OK)
+      }
+    } catch (exception: Exception) {
+      log.error(exception.message)
+      Sentry.captureException(exception)
+      return ResponseEntity(exception.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -413,24 +439,36 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     ],
   )
   fun completeSubjectAccessRequest(@PathVariable("id") id: UUID): ResponseEntity<String> {
-    telemetryClient.trackEvent(
-      "completeSubjectAccessRequest",
-      mapOf(
-        "id" to id.toString(),
-      ),
-    )
-    val response = subjectAccessRequestService.completeSubjectAccessRequest(id)
-    return if (response == 0) {
-      ResponseEntity(HttpStatus.BAD_REQUEST)
-    } else {
-      ResponseEntity(HttpStatus.OK)
+    try {
+      telemetryClient.trackEvent(
+        "completeSubjectAccessRequest",
+        mapOf(
+          "id" to id.toString(),
+        ),
+      )
+      val response = subjectAccessRequestService.completeSubjectAccessRequest(id)
+      return if (response == 0) {
+        ResponseEntity(HttpStatus.BAD_REQUEST)
+      } else {
+        ResponseEntity(HttpStatus.OK)
+      }
+    } catch (exception: Exception) {
+      log.error(exception.message)
+      Sentry.captureException(exception)
+      return ResponseEntity(exception.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
   @GetMapping("reports")
   fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageNumber") pageNumber: Int, @RequestParam(required = true, name = "pageSize") pageSize: Int): List<SubjectAccessRequestReport> {
-    val response = subjectAccessRequestService.getAllReports(pageNumber, pageSize)
-    return response
+    try {
+      val response = subjectAccessRequestService.getAllReports(pageNumber, pageSize)
+      return response
+    } catch (exception: Exception) {
+      log.error(exception.message)
+      Sentry.captureException(exception)
+      return emptyList()
+    }
   }
 }
 
