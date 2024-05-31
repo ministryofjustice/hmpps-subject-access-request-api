@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers
 
 import com.microsoft.applicationinsights.TelemetryClient
-import io.mockk.mockkStatic
-import io.sentry.Sentry
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -99,23 +97,6 @@ class SubjectAccessRequestControllerTest {
     Assertions.assertThat(response).isEqualTo(expected)
   }
 
-  @Test
-  fun `createSubjectAccessRequest exceptions are captured by sentry`() {
-    mockkStatic(Sentry::class)
-    Mockito.`when`(authentication.name).thenReturn("mockUserName")
-    Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusRequest, authentication, requestTime))
-      .thenThrow(RuntimeException())
-
-    SubjectAccessRequestController(sarService, auditService, telemetryClient)
-      .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
-
-    io.mockk.verify(exactly = 1) {
-      Sentry.captureException(
-        any(),
-      )
-    }
-  }
-
   @Nested
   inner class GetSubjectAccessRequests {
     @Test
@@ -135,22 +116,6 @@ class SubjectAccessRequestControllerTest {
 
       verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
     }
-
-    @Test
-    fun `getSubjectAccessRequests exceptions are captured by sentry`() {
-      mockkStatic(Sentry::class)
-      Mockito.`when`(sarService.getSubjectAccessRequests(unclaimedOnly = false))
-        .thenThrow(RuntimeException())
-
-      SubjectAccessRequestController(sarService, auditService, telemetryClient)
-        .getSubjectAccessRequests()
-
-      io.mockk.verify(exactly = 1) {
-        Sentry.captureException(
-          any(),
-        )
-      }
-    }
   }
 
   @Nested
@@ -160,22 +125,6 @@ class SubjectAccessRequestControllerTest {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getTotalSubjectAccessRequests()
       verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
-    }
-
-    @Test
-    fun `getTotalSubjectAccessRequests exceptions are captured by sentry`() {
-      mockkStatic(Sentry::class)
-      Mockito.`when`(sarService.getSubjectAccessRequests(unclaimedOnly = false))
-        .thenThrow(RuntimeException())
-
-      SubjectAccessRequestController(sarService, auditService, telemetryClient)
-        .getTotalSubjectAccessRequests()
-
-      io.mockk.verify(exactly = 1) {
-        Sentry.captureException(
-          any(),
-        )
-      }
     }
   }
 
@@ -206,22 +155,6 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `claimSubjectAccessRequest exceptions are captured by sentry`() {
-      mockkStatic(Sentry::class)
-      Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java)))
-        .thenThrow(RuntimeException())
-
-      SubjectAccessRequestController(sarService, auditService, telemetryClient)
-        .claimSubjectAccessRequest(testUuid)
-
-      io.mockk.verify(exactly = 1) {
-        Sentry.captureException(
-          any(),
-        )
-      }
-    }
-
-    @Test
     fun `completeSubjectAccessRequest returns Bad Request if completeSubjectAccessRequest returns 0 with status update`() {
       Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid)).thenReturn(0)
 
@@ -241,22 +174,6 @@ class SubjectAccessRequestControllerTest {
 
       verify(sarService, times(1)).completeSubjectAccessRequest(testUuid)
       Assertions.assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
-    }
-
-    @Test
-    fun `completeSubjectAccessRequest exceptions are captured by sentry`() {
-      mockkStatic(Sentry::class)
-      Mockito.`when`(sarService.completeSubjectAccessRequest(testUuid))
-        .thenThrow(RuntimeException())
-
-      SubjectAccessRequestController(sarService, auditService, telemetryClient)
-        .completeSubjectAccessRequest(testUuid)
-
-      io.mockk.verify(exactly = 1) {
-        Sentry.captureException(
-          any(),
-        )
-      }
     }
   }
 
@@ -294,56 +211,11 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `getReport returns 500 if retrieveSubjectAccessRequestDocument throws an exception`() {
-      val errorMessage = "An error has occurred!"
-      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid))
-        .thenThrow(RuntimeException(errorMessage))
-
-      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
-
-      verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
-      Assertions.assertThat(result).isEqualTo(
-        ResponseEntity(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR),
-      )
-    }
-
-    @Test
-    fun `getSubjectAccessRequestReports exceptions are captured by sentry`() {
-      mockkStatic(Sentry::class)
-      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid))
-        .thenThrow(RuntimeException())
-
-      SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
-
-      io.mockk.verify(exactly = 1) {
-        Sentry.captureException(
-          any(),
-        )
-      }
-    }
-
-    @Test
     fun `getSubjectAccessRequestReports is called with pagination parameters`() {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getSubjectAccessRequestReports(1, 1)
 
       verify(sarService, times(1)).getAllReports(1, 1)
-    }
-  }
-
-  @Test
-  fun `getReports exceptions are captured by sentry`() {
-    mockkStatic(Sentry::class)
-    Mockito.`when`(sarService.getAllReports(pageNumber = 1, pageSize = 1))
-      .thenThrow(RuntimeException())
-
-    SubjectAccessRequestController(sarService, auditService, telemetryClient)
-      .getSubjectAccessRequestReports(pageNumber = 1, pageSize = 1)
-
-    io.mockk.verify(exactly = 1) {
-      Sentry.captureException(
-        any(),
-      )
     }
   }
 
