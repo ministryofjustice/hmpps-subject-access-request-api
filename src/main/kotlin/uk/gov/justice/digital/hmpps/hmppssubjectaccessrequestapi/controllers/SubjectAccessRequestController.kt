@@ -307,20 +307,15 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   )
   fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<out Any?>? {
     log.info("Retrieving report for ID $id.")
-    try {
-      val docResponse = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)
-      val fileStream = docResponse?.body?.blockFirst()
-      if (docResponse === null) {
-        return ResponseEntity("Report Not Found", HttpStatus.NOT_FOUND)
-      }
-      log.info("Retrieval successful.")
-      return ResponseEntity.ok()
-        .contentType(MediaType.parseMediaType(docResponse.headers.contentType?.toString() ?: ""))
-        .body(fileStream)
-    } catch (exception: Exception) {
-      log.error(exception.message)
-      return ResponseEntity(exception.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    val docResponse = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)
+    val fileStream = docResponse?.body?.blockFirst()
+    if (docResponse === null) {
+      return ResponseEntity("Report Not Found", HttpStatus.NOT_FOUND)
     }
+    log.info("Retrieval successful.")
+    return ResponseEntity.ok()
+      .contentType(MediaType.parseMediaType(docResponse.headers.contentType?.toString() ?: ""))
+      .body(fileStream)
   }
 
   @PatchMapping("subjectAccessRequests/{id}/claim")

@@ -19,6 +19,8 @@ dependencies {
   implementation("org.json:json:20231013")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:6.34.0")
+  implementation("io.sentry:sentry-logback:6.34.0")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.2.224")
