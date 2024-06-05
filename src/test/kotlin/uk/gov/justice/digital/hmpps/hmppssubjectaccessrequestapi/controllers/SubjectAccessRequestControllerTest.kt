@@ -103,9 +103,9 @@ class SubjectAccessRequestControllerTest {
     fun `getSubjectAccessRequests is called with unclaimedOnly = true if specified in controller and returns list`() {
       val result: List<SubjectAccessRequest?> =
         SubjectAccessRequestController(sarService, auditService, telemetryClient)
-          .getSubjectAccessRequests(unclaimed = true)
+          .getSubjectAccessRequests(unclaimed = true, filters = "")
 
-      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true)
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true, filters = "")
       Assertions.assertThatList(result)
     }
 
@@ -114,7 +114,7 @@ class SubjectAccessRequestControllerTest {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getSubjectAccessRequests()
 
-      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, filters = "")
     }
   }
 
@@ -124,7 +124,7 @@ class SubjectAccessRequestControllerTest {
     fun `getTotalSubjectAccessRequests calls getSubjectAccessRequests with unclaimedOnly = false `() {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getTotalSubjectAccessRequests()
-      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false)
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, filters = "")
     }
   }
 

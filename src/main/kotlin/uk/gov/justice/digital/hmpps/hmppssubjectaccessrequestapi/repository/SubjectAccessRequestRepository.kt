@@ -16,6 +16,13 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
 
   fun findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(status: Status, claimAttempts: Int, claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
 
+  @Query(
+    "SELECT report FROM SubjectAccessRequest report " +
+      "WHERE report.sarCaseReferenceNumber LIKE CONCAT('%', :sarCaseReferenceNumber, '%') " +
+      "AND (report.nomisId LIKE CONCAT('%', :subjectId, '%') OR report.ndeliusCaseReferenceId LIKE CONCAT('%', :subjectId, '%'))",
+  )
+  fun findFilteredRecords(sarCaseReferenceNumber: String, subjectId: String): List<SubjectAccessRequest?>
+
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
     "UPDATE SubjectAccessRequest report " +

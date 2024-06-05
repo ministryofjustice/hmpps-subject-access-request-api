@@ -203,13 +203,23 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     required = false,
     example = "false",
   )
+  @Parameter(
+    name = "filters",
+    description = "Optional URL-encoded JSON string containing filter information to return only data that substring matches all provided filters. Current supported filters: sarCaseReferenceNumber, subjectId.",
+    required = false,
+    example = "{\"sarCaseReferenceNumber\":\"TEST_REF\",\"subjectId\":\"A1234AA\"}",
+  )
   fun getSubjectAccessRequests(
     @RequestParam(
       required = false,
       name = "unclaimed",
     ) unclaimed: Boolean = false,
+    @RequestParam(
+      required = false,
+      name = "filters",
+    ) filters: String = "",
   ): List<SubjectAccessRequest?> {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
+    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, filters)
     return response
   }
 
@@ -252,8 +262,19 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  fun getTotalSubjectAccessRequests(): Int {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(false)
+  @Parameter(
+    name = "filters",
+    description = "Optional JSON string containing filter information to return only data exactly matching those filters. Current supported filters: caseReference, subjectId.",
+    required = false,
+    example = "{\"caseReference\":\"TEST_REF\"}",
+  )
+  fun getTotalSubjectAccessRequests(
+    @RequestParam(
+      required = false,
+      name = "filters",
+    ) filters: String = "",
+  ): Int {
+    val response = subjectAccessRequestService.getSubjectAccessRequests(false, filters)
     return response.size
   }
 

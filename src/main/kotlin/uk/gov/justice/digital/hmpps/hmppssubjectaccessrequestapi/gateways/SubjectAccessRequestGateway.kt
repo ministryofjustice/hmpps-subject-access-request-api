@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways
 
+import org.json.JSONException
+import org.json.JSONObject
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -14,15 +17,27 @@ import java.util.*
 
 @Component
 class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepository) {
-  fun getSubjectAccessRequests(unclaimedOnly: Boolean, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
+  private val log = LoggerFactory.getLogger(this::class.java)
+
+  fun getSubjectAccessRequests(unclaimedOnly: Boolean, filters: String, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
     if (unclaimedOnly) {
       val sarsWithNoClaims = repo.findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
       val sarsWithExpiredClaims = repo.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, currentTime.minusMinutes(5))
-      val completeList = sarsWithNoClaims.plus(sarsWithExpiredClaims)
-      return completeList
+      val fullUnclaimedList = sarsWithNoClaims.plus(sarsWithExpiredClaims)
+      return fullUnclaimedList
     }
-    val response = repo.findAll()
-    return response
+    if (filters !== "") {
+      var filterObject = JSONObject("{}")
+      try {
+        filterObject = JSONObject(filters)
+      } catch (exception: JSONException) {
+        log.error("Error parsing filters to JSON object: $filters")
+      }
+      val caseReferenceFilter = filterObject.optString("sarCaseReferenceNumber", "")
+      val subjectIdFilter = filterObject.optString("subjectId", "")
+      return repo.findFilteredRecords(caseReferenceFilter, subjectIdFilter)
+    }
+    return repo.findAll()
   }
 
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {

@@ -67,8 +67,8 @@ class SubjectAccessRequestService(
     return "" // Maybe want to return Report ID?
   }
 
-  fun getSubjectAccessRequests(unclaimedOnly: Boolean): List<SubjectAccessRequest?> {
-    val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly)
+  fun getSubjectAccessRequests(unclaimedOnly: Boolean, filters: String): List<SubjectAccessRequest?> {
+    val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly, filters)
     return subjectAccessRequests
   }
 
