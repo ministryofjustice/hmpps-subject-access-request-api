@@ -18,10 +18,11 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
 
   @Query(
     "SELECT report FROM SubjectAccessRequest report " +
-      "WHERE report.sarCaseReferenceNumber LIKE CONCAT('%', :sarCaseReferenceNumber, '%') " +
-      "AND (report.nomisId LIKE CONCAT('%', :subjectId, '%') OR report.ndeliusCaseReferenceId LIKE CONCAT('%', :subjectId, '%'))",
+      "WHERE report.sarCaseReferenceNumber LIKE CONCAT('%', :search, '%') " +
+      "OR report.nomisId LIKE CONCAT('%', :search, '%') " +
+      "OR report.ndeliusCaseReferenceId LIKE CONCAT('%', :search, '%')",
   )
-  fun findFilteredRecords(sarCaseReferenceNumber: String, subjectId: String): List<SubjectAccessRequest?>
+  fun findFilteredRecords(search: String): List<SubjectAccessRequest?>
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(

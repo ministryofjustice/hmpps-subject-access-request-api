@@ -204,10 +204,10 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     example = "false",
   )
   @Parameter(
-    name = "filters",
-    description = "Optional URL-encoded JSON string containing filter information to return only data that substring matches all provided filters. Current supported filters: sarCaseReferenceNumber, subjectId.",
+    name = "search",
+    description = "If provided, only results containing this string in the case reference number or subject ID will be returned.",
     required = false,
-    example = "{\"sarCaseReferenceNumber\":\"TEST_REF\",\"subjectId\":\"A1234AA\"}",
+    example = "A1234AA",
   )
   fun getSubjectAccessRequests(
     @RequestParam(
@@ -216,10 +216,10 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     ) unclaimed: Boolean = false,
     @RequestParam(
       required = false,
-      name = "filters",
-    ) filters: String = "",
+      name = "search",
+    ) search: String = "",
   ): List<SubjectAccessRequest?> {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, filters)
+    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, search)
     return response
   }
 
@@ -263,18 +263,18 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     ],
   )
   @Parameter(
-    name = "filters",
-    description = "Optional JSON string containing filter information to return only data exactly matching those filters. Current supported filters: caseReference, subjectId.",
+    name = "search",
+    description = "If provided, only results containing this string in the case reference number or subject ID will be returned.",
     required = false,
-    example = "{\"caseReference\":\"TEST_REF\"}",
+    example = "A1234AA",
   )
   fun getTotalSubjectAccessRequests(
     @RequestParam(
       required = false,
-      name = "filters",
-    ) filters: String = "",
+      name = "search",
+    ) search: String = "",
   ): Int {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(false, filters)
+    val response = subjectAccessRequestService.getSubjectAccessRequests(false, search)
     return response.size
   }
 

@@ -88,21 +88,21 @@ class SubjectAccessRequestGatewayTest {
     @Test
     fun `calls findAll if unclaimed is false and no filters are specified`() {
       SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = false, filters = "")
+        .getSubjectAccessRequests(unclaimedOnly = false, search = "")
       verify(sarRepository, times(1)).findAll()
     }
 
     @Test
     fun `calls findByClaimAttemptsIs if unclaimed is true and no filters are specified`() {
       SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = true, filters = "")
+        .getSubjectAccessRequests(unclaimedOnly = true, search = "")
       verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
     }
 
     @Test
     fun `calls findByClaimAttemptsIs(0) if unclaimed is true and no filters are specified`() {
       SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = true, filters = "")
+        .getSubjectAccessRequests(unclaimedOnly = true, search = "")
       verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
     }
 
@@ -113,7 +113,7 @@ class SubjectAccessRequestGatewayTest {
       val expiredClaimDateTime = "01/01/2024 23:55"
       val expiredClaimDateTimeFormatted = LocalDateTime.parse(expiredClaimDateTime, dateTimeFormatter)
       SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = true, filters = "", formattedMockedCurrentTime)
+        .getSubjectAccessRequests(unclaimedOnly = true, search = "", formattedMockedCurrentTime)
       verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, expiredClaimDateTimeFormatted)
     }
 
@@ -128,17 +128,17 @@ class SubjectAccessRequestGatewayTest {
         emptyList(),
       )
       val result: List<SubjectAccessRequest?> = SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = true, filters = "", formattedMockedCurrentTime)
+        .getSubjectAccessRequests(unclaimedOnly = true, search = "", formattedMockedCurrentTime)
       verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, expiredClaimDateTimeFormatted)
       Assertions.assertTrue(result.size == 3)
     }
 
     @Test
     fun `passes correct parameters and returns filtered list if unclaimed is false and filters are provided`() {
-      Mockito.`when`(sarRepository.findFilteredRecords("TEST_REF", "TEST_ID")).thenReturn(mockSarsWithNoClaims)
+      Mockito.`when`(sarRepository.findFilteredRecords("TEST_REF")).thenReturn(mockSarsWithNoClaims)
       val result: List<SubjectAccessRequest?> = SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = false, filters = "{\"sarCaseReferenceNumber\":\"TEST_REF\",\"subjectId\":\"TEST_ID\"}")
-      verify(sarRepository, times(1)).findFilteredRecords(sarCaseReferenceNumber = "TEST_REF", subjectId = "TEST_ID")
+        .getSubjectAccessRequests(unclaimedOnly = false, search = "TEST_REF")
+      verify(sarRepository, times(1)).findFilteredRecords(search = "TEST_REF")
       Assertions.assertTrue(result.size == 3)
     }
   }
