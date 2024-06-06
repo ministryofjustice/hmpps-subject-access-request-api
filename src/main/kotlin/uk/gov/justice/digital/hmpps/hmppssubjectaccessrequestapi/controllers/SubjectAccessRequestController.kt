@@ -203,13 +203,23 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     required = false,
     example = "false",
   )
+  @Parameter(
+    name = "search",
+    description = "If provided, only results containing this string in the case reference number or subject ID will be returned.",
+    required = false,
+    example = "A1234AA",
+  )
   fun getSubjectAccessRequests(
     @RequestParam(
       required = false,
       name = "unclaimed",
     ) unclaimed: Boolean = false,
+    @RequestParam(
+      required = false,
+      name = "search",
+    ) search: String = "",
   ): List<SubjectAccessRequest?> {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
+    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, search)
     return response
   }
 
@@ -252,8 +262,19 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  fun getTotalSubjectAccessRequests(): Int {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(false)
+  @Parameter(
+    name = "search",
+    description = "If provided, only results containing this string in the case reference number or subject ID will be returned.",
+    required = false,
+    example = "A1234AA",
+  )
+  fun getTotalSubjectAccessRequests(
+    @RequestParam(
+      required = false,
+      name = "search",
+    ) search: String = "",
+  ): Int {
+    val response = subjectAccessRequestService.getSubjectAccessRequests(false, search)
     return response.size
   }
 

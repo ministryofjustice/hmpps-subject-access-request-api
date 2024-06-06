@@ -14,15 +14,18 @@ import java.util.*
 
 @Component
 class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepository) {
-  fun getSubjectAccessRequests(unclaimedOnly: Boolean, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
+
+  fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
     if (unclaimedOnly) {
       val sarsWithNoClaims = repo.findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
       val sarsWithExpiredClaims = repo.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, currentTime.minusMinutes(5))
-      val completeList = sarsWithNoClaims.plus(sarsWithExpiredClaims)
-      return completeList
+      val fullUnclaimedList = sarsWithNoClaims.plus(sarsWithExpiredClaims)
+      return fullUnclaimedList
     }
-    val response = repo.findAll()
-    return response
+    if (search !== "") {
+      return repo.findFilteredRecords(search)
+    }
+    return repo.findAll()
   }
 
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {
