@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
+import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -72,6 +73,11 @@ class SubjectAccessRequestService(
     return subjectAccessRequests
   }
 
+  fun getAllReports(pageNumber: Int, pageSize: Int): List<SubjectAccessRequestReport> {
+    val reports = sarDbGateway.getAllReports(pageNumber, pageSize)
+    return this.prepareReportInfoForDisplay(reports)
+  }
+
   fun claimSubjectAccessRequest(id: UUID, time: LocalDateTime? = LocalDateTime.now()): Int {
     val thresholdTime = time!!.minusMinutes(5)
     return sarDbGateway.updateSubjectAccessRequestClaim(id, thresholdTime, time)
@@ -86,8 +92,7 @@ class SubjectAccessRequestService(
     return document
   }
 
-  fun getAllReports(pageNumber: Int, pageSize: Int): List<SubjectAccessRequestReport> {
-    val reports = sarDbGateway.getAllReports(pageNumber, pageSize)
+  fun prepareReportInfoForDisplay(reports: Page<SubjectAccessRequest?>): List<SubjectAccessRequestReport> {
     try {
       val reportInfo = reports.content
       val condensedReportInfo = emptyList<SubjectAccessRequestReport>().toMutableList()

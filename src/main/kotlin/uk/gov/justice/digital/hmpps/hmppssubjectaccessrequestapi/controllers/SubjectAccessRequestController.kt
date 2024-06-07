@@ -218,10 +218,24 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       required = false,
       name = "search",
     ) search: String = "",
+    @RequestParam(
+      required = false,
+      name = "pageNumber"
+    ) pageNumber: Int,
+    @RequestParam(
+      required = false,
+      name = "pageSize"
+    ) pageSize: Int
   ): List<SubjectAccessRequest?> {
     val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, search)
     return response
   }
+
+  //  @GetMapping("reports")
+//  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageNumber") pageNumber: Int, @RequestParam(required = true, name = "pageSize") pageSize: Int): List<SubjectAccessRequestReport> {
+//    val response = subjectAccessRequestService.getAllReports(pageNumber, pageSize)
+//    return response
+//  }
 
   @GetMapping("totalSubjectAccessRequests")
   @Operation(summary = "Get total number of Subject Access Requests.", description = "Return the number of Subject Access Requests.")
@@ -443,11 +457,11 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     }
   }
 
-  @GetMapping("reports")
-  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageNumber") pageNumber: Int, @RequestParam(required = true, name = "pageSize") pageSize: Int): List<SubjectAccessRequestReport> {
-    val response = subjectAccessRequestService.getAllReports(pageNumber, pageSize)
-    return response
-  }
+//  @GetMapping("reports")
+//  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageNumber") pageNumber: Int, @RequestParam(required = true, name = "pageSize") pageSize: Int): List<SubjectAccessRequestReport> {
+//    val response = subjectAccessRequestService.getAllReports(pageNumber, pageSize)
+//    return response
+//  }
 }
 
 @Serializable
