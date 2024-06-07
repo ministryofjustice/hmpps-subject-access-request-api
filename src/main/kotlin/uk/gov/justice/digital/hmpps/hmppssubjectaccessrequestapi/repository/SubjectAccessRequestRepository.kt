@@ -12,15 +12,23 @@ import java.util.UUID
 
 @Repository
 interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, UUID> {
-  fun findByClaimAttemptsIs(claimAttempts: Int): List<SubjectAccessRequest?>
+  fun findByStatusIsAndClaimAttemptsIs(status: Status, claimAttempts: Int): List<SubjectAccessRequest?>
 
   fun findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(status: Status, claimAttempts: Int, claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
+
+  @Query(
+    "SELECT report FROM SubjectAccessRequest report " +
+      "WHERE report.sarCaseReferenceNumber LIKE CONCAT('%', :search, '%') " +
+      "OR report.nomisId LIKE CONCAT('%', :search, '%') " +
+      "OR report.ndeliusCaseReferenceId LIKE CONCAT('%', :search, '%')",
+  )
+  fun findFilteredRecords(search: String): List<SubjectAccessRequest?>
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
     "UPDATE SubjectAccessRequest report " +
       "SET report.claimDateTime = :currentTime, report.claimAttempts = report.claimAttempts + 1" +
-      "WHERE (report.id = :id AND report.claimDateTime < :releaseThreshold) OR (report.id = :id AND report.claimDateTime = null)",
+      "WHERE (report.id = :id AND report.claimDateTime < :releaseThreshold) OR (report.id = :id AND report.claimDateTime IS NULL)",
   )
   fun updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(@Param("id") id: UUID, @Param("releaseThreshold") releaseThreshold: LocalDateTime, @Param("currentTime") currentTime: LocalDateTime): Int
 

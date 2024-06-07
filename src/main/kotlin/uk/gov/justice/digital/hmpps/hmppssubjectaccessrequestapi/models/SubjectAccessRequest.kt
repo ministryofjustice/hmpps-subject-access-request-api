@@ -20,7 +20,7 @@ data class SubjectAccessRequest(
   @Enumerated(EnumType.STRING)
   val status: Status = Status.Pending,
   val dateFrom: LocalDate? = null,
-  val dateTo: LocalDate? = null,
+  var dateTo: LocalDate? = null,
   val sarCaseReferenceNumber: String = "",
   val services: String = "",
   val nomisId: String? = null,

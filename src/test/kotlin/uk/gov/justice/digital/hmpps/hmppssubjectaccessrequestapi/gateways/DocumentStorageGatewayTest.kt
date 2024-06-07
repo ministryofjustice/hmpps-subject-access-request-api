@@ -37,7 +37,7 @@ class DocumentStorageGatewayTest(
 
     describe("getReport") {
 
-      it("returns a report if one is returned") {
+      it("returns a report if one is returned from document storage service") {
         val response = DocumentStorageGateway(
           mockHmppsAuthGateway,
           documentStorageMockServer.baseUrl(),
@@ -45,7 +45,7 @@ class DocumentStorageGatewayTest(
           UUID.fromString("11111111-2222-3333-4444-555555555555"),
         )
 
-        val byteArray = response?.readAllBytes()
+        val byteArray = response?.body?.blockFirst()?.inputStream?.readAllBytes()
         val pdfBytes: ByteArray = File("dummy.pdf").inputStream().readAllBytes()
         byteArray.shouldBe(pdfBytes)
       }

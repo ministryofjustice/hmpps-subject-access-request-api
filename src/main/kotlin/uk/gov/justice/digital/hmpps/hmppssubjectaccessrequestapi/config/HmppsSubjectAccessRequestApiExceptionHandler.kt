@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.config
 
+import io.sentry.Sentry
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 class HmppsSubjectAccessRequestApiExceptionHandler {
   @ExceptionHandler(ValidationException::class)
   fun handleValidationException(e: Exception): ResponseEntity<ErrorResponse> {
-    log.info("Validation exception: {}", e.message)
+    logAndCapture("Validation exception: {}", e)
     return ResponseEntity
       .status(BAD_REQUEST)
       .body(
@@ -27,7 +28,7 @@ class HmppsSubjectAccessRequestApiExceptionHandler {
 
   @ExceptionHandler(java.lang.Exception::class)
   fun handleException(e: java.lang.Exception): ResponseEntity<ErrorResponse?>? {
-    log.error("Unexpected exception", e)
+    logAndCapture("Unexpected exception:", e)
     return ResponseEntity
       .status(INTERNAL_SERVER_ERROR)
       .body(
@@ -37,6 +38,14 @@ class HmppsSubjectAccessRequestApiExceptionHandler {
           developerMessage = e.message,
         ),
       )
+  }
+
+  private fun logAndCapture(
+    message: String,
+    e: Exception,
+  ) {
+    log.error(message, e.message)
+    Sentry.captureException(e)
   }
 
   companion object {

@@ -8,9 +8,11 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
+import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.PageRequest
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
+import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
@@ -28,7 +30,7 @@ class SubjectAccessRequestServiceTest {
     "dateTo: '03/01/2024', " +
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
-    "nomisId: '', " +
+    "nomisId: null, " +
     "ndeliusId: '1' " +
     "}"
 
@@ -46,8 +48,8 @@ class SubjectAccessRequestServiceTest {
     "dateTo: '03/01/2024', " +
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
-    "nomisId: '', " +
-    "ndeliusId: '' " +
+    "nomisId: null, " +
+    "ndeliusId: null " +
     "}"
 
   private val noDateToRequest = "{ " +
@@ -55,7 +57,7 @@ class SubjectAccessRequestServiceTest {
     "dateTo: '', " +
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
-    "nomisId: '', " +
+    "nomisId: null, " +
     "ndeliusId: '1' " +
     "}"
 
@@ -64,7 +66,7 @@ class SubjectAccessRequestServiceTest {
     "dateTo: '03/01/2024', " +
     "sarCaseReferenceNumber: '1234abc', " +
     "services: '{1,2,4}', " +
-    "nomisId: '', " +
+    "nomisId: null, " +
     "ndeliusId: '1' " +
     "}"
 
@@ -82,7 +84,7 @@ class SubjectAccessRequestServiceTest {
     dateTo = dateToFormatted,
     sarCaseReferenceNumber = "1234abc",
     services = "{1,2,4}",
-    nomisId = "",
+    nomisId = null,
     ndeliusCaseReferenceId = "1",
     requestedBy = "mockUserName",
     requestDateTime = requestTime,
@@ -93,7 +95,7 @@ class SubjectAccessRequestServiceTest {
   private val documentGateway: DocumentStorageGateway = Mockito.mock(DocumentStorageGateway::class.java)
 
   @Nested
-  inner class createSubjectAccessRequest {
+  inner class CreateSubjectAccessRequest {
     @Test
     fun `createSubjectAccessRequest returns empty string`() {
       Mockito.`when`(authentication.name).thenReturn("mockUserName")
@@ -156,7 +158,7 @@ class SubjectAccessRequestServiceTest {
   }
 
   @Nested
-  inner class updateSubjectAccessRequest {
+  inner class UpdateSubjectAccessRequest {
 
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
@@ -197,15 +199,17 @@ class SubjectAccessRequestServiceTest {
     }
 
     @Test
-    fun `retrieveSubjectAccessRequestDocument returns ByteArray if provided`() {
-      Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(expectedRetrievalResponse)
+    fun `retrieveSubjectAccessRequestDocument returns ResponseEntity if response from gateway is provided`() {
+      val mockByteArrayInputStream = Mockito.mock(ByteArrayInputStream::class.java)
+      val mockStream = Flux.just(InputStreamResource(mockByteArrayInputStream))
+      Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(ResponseEntity.ok().body(mockStream))
       val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
       verify(documentGateway, times(1)).retrieveDocument(mockUUID)
-      Assertions.assertThat(result).isEqualTo(expectedRetrievalResponse)
+      Assertions.assertThat(result).isEqualTo(ResponseEntity.ok().body(mockStream))
     }
 
     @Test
-    fun `retrieveSubjectAccessRequestDocument returns null if not provided`() {
+    fun `retrieveSubjectAccessRequestDocument returns null if response from gateway is not provided`() {
       Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(null)
       val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
       verify(documentGateway, times(1)).retrieveDocument(mockUUID)
@@ -214,17 +218,19 @@ class SubjectAccessRequestServiceTest {
   }
 
   @Nested
-  inner class getAllReports {
+  inner class GetAllReports {
     @Test
     fun `getAllReports calls SAR gateway getAllReports method with pagination`() {
-      Mockito.`when`(sarGateway.getAllReports(PageRequest.of(0, 1))).thenReturn(any())
-      SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(PageRequest.of(0, 1))
-      verify(sarGateway, times(1)).getAllReports(PageRequest.of(0, 1))
+      Mockito.`when`(sarGateway.getAllReports(0, 1)).thenReturn(PageImpl(listOf(sampleSAR)))
+
+      SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(0, 1)
+
+      verify(sarGateway, times(1)).getAllReports(0, 1)
     }
 
     @Test
     fun `getAllReports extracts condensed report info`() {
-      Mockito.`when`(sarGateway.getAllReports(PageRequest.of(0, 1))).thenReturn(PageImpl(listOf(sampleSAR)))
+      Mockito.`when`(sarGateway.getAllReports(0, 1)).thenReturn(PageImpl(listOf(sampleSAR)))
       val expectedResult =
         SubjectAccessRequestReport(
           uuid = "11111111-1111-1111-1111-111111111111",
@@ -233,7 +239,7 @@ class SubjectAccessRequestServiceTest {
           subjectId = "1",
           status = "Pending",
         )
-      val result = SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(PageRequest.of(0, 1))
+      val result = SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(0, 1)
       Assertions.assertThat(result[0].dateOfRequest).isEqualTo(sampleSAR.requestDateTime.toString())
       Assertions.assertThat(result[0].toString()).isEqualTo(expectedResult.toString())
     }

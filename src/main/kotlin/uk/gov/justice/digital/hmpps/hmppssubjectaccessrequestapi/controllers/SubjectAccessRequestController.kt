@@ -14,11 +14,10 @@ import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.InputStreamResource
-import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -39,12 +38,16 @@ import java.util.*
 
 @RestController
 @Transactional
+@PreAuthorize("hasAnyRole('ROLE_SAR_USER_ACCESS', 'ROLE_SAR_DATA_ACCESS')")
 @RequestMapping("/api/")
 class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, val telemetryClient: TelemetryClient) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
   @PostMapping("subjectAccessRequest")
-  @Operation(summary = "Create a Subject Access Request.", description = "Create a request for a Subject Access Request report.")
+  @Operation(
+    summary = "Create a Subject Access Request.",
+    description = "Create a request for a Subject Access Request report.",
+  )
   @ApiResponses(
     value = [
       ApiResponse(
@@ -88,13 +91,47 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  @Parameter(name = "nomisId", description = "Subject's NOMIS prisoner number. Either nomisId OR ndeliusId is required.", required = false, example = "A1234BC")
-  @Parameter(name = "ndeliusId", description = "Subject's nDelius case reference number. Either nomisId OR ndeliusId is required.", required = false, example = "A123456")
-  @Parameter(name = "dateFrom", description = "Start date of the period of time the requested SAR report must cover.", required = false, example = "31/12/1999")
-  @Parameter(name = "dateTo", description = "End date of the period of time the requested SAR report must cover.", required = false, example = "31/12/2000")
-  @Parameter(name = "sarCaseReferenceNumber", description = "Case reference number of the Subject Access Request.", required = true, example = "exampleCaseReferenceNumber")
-  @Parameter(name = "services", description = "List of services from which subject data must be retrieved.", required = true, example = "[\"service1, service1.prison.service.justice.gov.uk\"]")
-  fun createSubjectAccessRequest(@RequestBody request: String, authentication: Authentication, requestTime: LocalDateTime?): ResponseEntity<String> {
+  @Parameter(
+    name = "nomisId",
+    description = "Subject's NOMIS prisoner number. Either nomisId OR ndeliusId is required.",
+    required = false,
+    example = "A1234BC",
+  )
+  @Parameter(
+    name = "ndeliusId",
+    description = "Subject's nDelius case reference number. Either nomisId OR ndeliusId is required.",
+    required = false,
+    example = "A123456",
+  )
+  @Parameter(
+    name = "dateFrom",
+    description = "Start date of the period of time the requested SAR report must cover.",
+    required = false,
+    example = "31/12/1999",
+  )
+  @Parameter(
+    name = "dateTo",
+    description = "End date of the period of time the requested SAR report must cover.",
+    required = false,
+    example = "31/12/2000",
+  )
+  @Parameter(
+    name = "sarCaseReferenceNumber",
+    description = "Case reference number of the Subject Access Request.",
+    required = true,
+    example = "exampleCaseReferenceNumber",
+  )
+  @Parameter(
+    name = "services",
+    description = "List of services from which subject data must be retrieved.",
+    required = true,
+    example = "[\"service1, service1.prison.service.justice.gov.uk\"]",
+  )
+  fun createSubjectAccessRequest(
+    @RequestBody request: String,
+    authentication: Authentication,
+    requestTime: LocalDateTime?,
+  ): ResponseEntity<String> {
     log.info("Creating SAR Request")
     val json = JSONObject(request)
     val nomisId = json.get("nomisId").toString()
@@ -160,14 +197,92 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  @Parameter(name = "unclaimed", description = "Return only Subject Access Requests that are unclaimed by a worker for report generation. Defaults to false.", required = false, example = "false")
-  fun getSubjectAccessRequests(@RequestParam(required = false, name = "unclaimed") unclaimed: Boolean = false): List<SubjectAccessRequest?> {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed)
+  @Parameter(
+    name = "unclaimed",
+    description = "Return only Subject Access Requests that are unclaimed by a worker for report generation. Defaults to false.",
+    required = false,
+    example = "false",
+  )
+  @Parameter(
+    name = "search",
+    description = "If provided, only results containing this string in the case reference number or subject ID will be returned.",
+    required = false,
+    example = "A1234AA",
+  )
+  fun getSubjectAccessRequests(
+    @RequestParam(
+      required = false,
+      name = "unclaimed",
+    ) unclaimed: Boolean = false,
+    @RequestParam(
+      required = false,
+      name = "search",
+    ) search: String = "",
+  ): List<SubjectAccessRequest?> {
+    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, search)
     return response
   }
 
+  @GetMapping("totalSubjectAccessRequests")
+  @Operation(summary = "Get total number of Subject Access Requests.", description = "Return the number of Subject Access Requests.")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden - user not authorised to retrieve Subject Access Requests.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Failed to retrieve Subject Access Requests.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @Parameter(
+    name = "search",
+    description = "If provided, only results containing this string in the case reference number or subject ID will be returned.",
+    required = false,
+    example = "A1234AA",
+  )
+  fun getTotalSubjectAccessRequests(
+    @RequestParam(
+      required = false,
+      name = "search",
+    ) search: String = "",
+  ): Int {
+    val response = subjectAccessRequestService.getSubjectAccessRequests(false, search)
+    return response.size
+  }
+
   @GetMapping("report")
-  @Operation(summary = "Get Subject Access Request Report.", description = "Return a completed Subject Access Request Report.")
+  @Operation(
+    summary = "Get Subject Access Request Report.",
+    description = "Return a completed Subject Access Request Report.",
+  )
   @ApiResponses(
     value = [
       ApiResponse(
@@ -205,19 +320,23 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  @Parameter(name = "id", description = "ID for the Subject Access Request Report to download.", required = true, example = "11111111-2222-3333-4444-555555555555")
-  fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<Any> {
-    try {
-      val response = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)
-      if (response === null) {
-        return ResponseEntity("Report Not Found", HttpStatus.NOT_FOUND)
-      }
-      return ResponseEntity.ok()
-        .contentType(MediaType.parseMediaType(MediaType.APPLICATION_PDF_VALUE))
-        .body(InputStreamResource(response))
-    } catch (exception: Exception) {
-      return ResponseEntity(exception.message, HttpStatus.INTERNAL_SERVER_ERROR)
+  @Parameter(
+    name = "id",
+    description = "ID for the Subject Access Request Report to download.",
+    required = true,
+    example = "11111111-2222-3333-4444-555555555555",
+  )
+  fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<out Any?>? {
+    log.info("Retrieving report for ID $id.")
+    val docResponse = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)
+    val fileStream = docResponse?.body?.blockFirst()
+    if (docResponse === null) {
+      return ResponseEntity("Report Not Found", HttpStatus.NOT_FOUND)
     }
+    log.info("Retrieval successful.")
+    return ResponseEntity.ok()
+      .contentType(MediaType.parseMediaType(docResponse.headers.contentType?.toString() ?: ""))
+      .body(fileStream)
   }
 
   @PatchMapping("subjectAccessRequests/{id}/claim")
@@ -257,7 +376,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  fun claimSubjectAccessRequest(@PathVariable("id") id: UUID): Int {
+  fun claimSubjectAccessRequest(@PathVariable("id") id: UUID): ResponseEntity<String> {
     telemetryClient.trackEvent(
       "claimSubjectAccessRequest",
       mapOf(
@@ -266,9 +385,9 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     )
     val response = subjectAccessRequestService.claimSubjectAccessRequest(id)
     return if (response == 0) {
-      400
+      ResponseEntity(HttpStatus.BAD_REQUEST)
     } else {
-      200
+      ResponseEntity(HttpStatus.OK)
     }
   }
 
@@ -309,7 +428,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  fun completeSubjectAccessRequest(@PathVariable("id") id: UUID): Int {
+  fun completeSubjectAccessRequest(@PathVariable("id") id: UUID): ResponseEntity<String> {
     telemetryClient.trackEvent(
       "completeSubjectAccessRequest",
       mapOf(
@@ -318,15 +437,15 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     )
     val response = subjectAccessRequestService.completeSubjectAccessRequest(id)
     return if (response == 0) {
-      400
+      ResponseEntity(HttpStatus.BAD_REQUEST)
     } else {
-      200
+      ResponseEntity(HttpStatus.OK)
     }
   }
 
   @GetMapping("reports")
-  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageSize") pageSize: Int, @RequestParam(required = true, name = "pageNumber") pageNumber: Int): List<SubjectAccessRequestReport> {
-    val response = subjectAccessRequestService.getAllReports(PageRequest.of(pageNumber, pageSize))
+  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageNumber") pageNumber: Int, @RequestParam(required = true, name = "pageSize") pageSize: Int): List<SubjectAccessRequestReport> {
+    val response = subjectAccessRequestService.getAllReports(pageNumber, pageSize)
     return response
   }
 }

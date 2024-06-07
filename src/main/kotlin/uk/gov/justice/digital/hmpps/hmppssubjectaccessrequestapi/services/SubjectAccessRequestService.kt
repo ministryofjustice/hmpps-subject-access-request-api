@@ -3,14 +3,15 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 import kotlinx.serialization.Serializable
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
+import org.springframework.core.io.InputStreamResource
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
-import java.io.ByteArrayInputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -32,9 +33,21 @@ class SubjectAccessRequestService(
     val dateFrom = formatDate(json.get("dateFrom").toString())
     val dateTo = formatDate(json.get("dateTo").toString())
 
-    if (json.get("nomisId") != "" && json.get("ndeliusId") != "") {
+    var nomisId = json.get("nomisId")
+    var ndeliusId = json.get("ndeliusId")
+
+    val nullClassName = "org.json.JSONObject\$Null"
+    if (nomisId.javaClass.name == nullClassName) {
+      nomisId = null
+    }
+    if (ndeliusId.javaClass.name == nullClassName) {
+      ndeliusId = null
+    }
+
+    if (nomisId != null && ndeliusId != null) {
       return "Both nomisId and ndeliusId are provided - exactly one is required"
-    } else if (json.get("nomisId") == "" && json.get("ndeliusId") == "") {
+    }
+    if (nomisId == null && ndeliusId == null) {
       return "Neither nomisId nor ndeliusId is provided - exactly one is required"
     }
     sarDbGateway.saveSubjectAccessRequest(
@@ -45,8 +58,8 @@ class SubjectAccessRequestService(
         dateTo = dateTo,
         sarCaseReferenceNumber = json.get("sarCaseReferenceNumber").toString(),
         services = json.get("services").toString(),
-        nomisId = json.get("nomisId").toString(),
-        ndeliusCaseReferenceId = json.get("ndeliusId").toString(),
+        nomisId = nomisId?.toString(),
+        ndeliusCaseReferenceId = ndeliusId?.toString(),
         requestedBy = authentication.name,
         requestDateTime = requestTime ?: LocalDateTime.now(),
       ),
@@ -54,8 +67,8 @@ class SubjectAccessRequestService(
     return "" // Maybe want to return Report ID?
   }
 
-  fun getSubjectAccessRequests(unclaimedOnly: Boolean): List<SubjectAccessRequest?> {
-    val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly)
+  fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String): List<SubjectAccessRequest?> {
+    val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly, search)
     return subjectAccessRequests
   }
 
@@ -68,13 +81,13 @@ class SubjectAccessRequestService(
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 
-  fun retrieveSubjectAccessRequestDocument(sarId: UUID): ByteArrayInputStream? {
+  fun retrieveSubjectAccessRequestDocument(sarId: UUID): ResponseEntity<Flux<InputStreamResource>>? {
     val document = documentStorageGateway.retrieveDocument(sarId)
     return document
   }
 
-  fun getAllReports(pagination: PageRequest): List<SubjectAccessRequestReport> {
-    val reports = sarDbGateway.getAllReports(pagination)
+  fun getAllReports(pageNumber: Int, pageSize: Int): List<SubjectAccessRequestReport> {
+    val reports = sarDbGateway.getAllReports(pageNumber, pageSize)
     try {
       val reportInfo = reports.content
       val condensedReportInfo = emptyList<SubjectAccessRequestReport>().toMutableList()

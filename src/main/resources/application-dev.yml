@@ -1,6 +1,11 @@
 services:
   hmpps-auth:
     base-url: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
+    username: ${API_CLIENT_ID}
+    password: ${API_CLIENT_SECRET}
 
   document-storage:
     base-url: https://document-api-dev.hmpps.service.justice.gov.uk
+
+  env:
+    SENTRY_ENV: dev

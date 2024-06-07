@@ -3,11 +3,13 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.times
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDate
@@ -61,7 +63,7 @@ class SubjectAccessRequestRepositoryTest {
   )
   val completedSar = SubjectAccessRequest(
     id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
-    status = Status.Completed, // here
+    status = Status.Completed,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
     sarCaseReferenceNumber = "1234abc",
@@ -98,27 +100,27 @@ class SubjectAccessRequestRepositoryTest {
   val allSars = listOf(unclaimedSar, claimedSarWithPendingStatus, completedSar, sarWithPendingStatusClaimedEarlier)
 
   @Nested
-  inner class findByClaimAttemptsIs {
+  inner class FindByClaimAttemptsIs {
     @Test
     fun `findByClaimAttemptsIs returns only unclaimed SAR entries if called with 0`() {
       val expectedUnclaimed: List<SubjectAccessRequest> = listOf(unclaimedSar)
       databaseInsert()
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
-      Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(0)).isEqualTo(expectedUnclaimed)
+      Assertions.assertThat(sarRepository?.findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)).isEqualTo(expectedUnclaimed)
     }
 
     @Test
     fun `findByClaimAttemptsIs returns only claimed SAR entries if called with 1 or more`() {
       val expectedClaimed: List<SubjectAccessRequest> =
-        listOf(claimedSarWithPendingStatus, completedSar, sarWithPendingStatusClaimedEarlier)
+        listOf(claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)
       databaseInsert()
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
-      Assertions.assertThat(sarRepository?.findByClaimAttemptsIs(1)).isEqualTo(expectedClaimed)
+      Assertions.assertThat(sarRepository?.findByStatusIsAndClaimAttemptsIs(Status.Pending, 1)).isEqualTo(expectedClaimed)
     }
   }
 
   @Nested
-  inner class findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore {
+  inner class FindByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore {
     @Test
     fun `returns only SAR entries with given criteria`() {
       val expectedPendingClaimedBefore: List<SubjectAccessRequest> = listOf(sarWithPendingStatusClaimedEarlier)
@@ -135,7 +137,7 @@ class SubjectAccessRequestRepositoryTest {
   }
 
   @Nested
-  inner class updateSubjectAccessRequestIfClaimDateTimeLessThanWithClaimDateTimeIsAndClaimAttemptsIs {
+  inner class UpdateSubjectAccessRequestIfClaimDateTimeLessThanWithClaimDateTimeIsAndClaimAttemptsIs {
     @Test
     fun `updates claimDateTime and claimAttempts if claimDateTime before threshold`() {
       val thresholdClaimDateTime = "30/06/2023 00:00"
@@ -210,7 +212,7 @@ class SubjectAccessRequestRepositoryTest {
   }
 
   @Nested
-  inner class updateStatus {
+  inner class UpdateStatus {
     @Test
     fun `updates status`() {
       databaseInsert()
@@ -244,15 +246,81 @@ class SubjectAccessRequestRepositoryTest {
   }
 
   @Nested
-  inner class getReports {
+  inner class GetReports {
     @Test
     fun `gets reports from database`() {
       databaseInsert()
+      val page: Page<SubjectAccessRequest> = PageImpl(allSars)
 
       val dbReports = sarRepository?.findAll(PageRequest.of(0, 4))
-      val page: Page<SubjectAccessRequest> = PageImpl(allSars)
+
       Assertions.assertThat(dbReports?.content).isEqualTo(page.content)
       Assertions.assertThat(dbReports?.size).isEqualTo(4)
+    }
+  }
+
+  @Nested
+  inner class FindAll {
+    val sarRequestedFirst = SubjectAccessRequest(
+      id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
+      status = Status.Completed,
+      dateFrom = dateFromFormatted,
+      dateTo = dateToFormatted,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = LocalDateTime.parse("01/01/2000 00:00", dateTimeFormatter),
+      claimAttempts = 1,
+      claimDateTime = claimDateTimeFormatted,
+    )
+
+    val sarRequestedSecond = SubjectAccessRequest(
+      id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
+      status = Status.Completed,
+      dateFrom = dateFromFormatted,
+      dateTo = dateToFormatted,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = LocalDateTime.parse("01/01/2010 00:00", dateTimeFormatter),
+      claimAttempts = 1,
+      claimDateTime = claimDateTimeFormatted,
+    )
+
+    val sarRequestedThird = SubjectAccessRequest(
+      id = UUID.fromString("44444444-4444-4444-4444-444444444444"),
+      status = Status.Completed,
+      dateFrom = dateFromFormatted,
+      dateTo = dateToFormatted,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = LocalDateTime.parse("01/01/2020 00:00", dateTimeFormatter),
+      claimAttempts = 1,
+      claimDateTime = claimDateTimeFormatted,
+    )
+
+    private fun databaseInsert() {
+      sarRepository?.save(sarRequestedFirst)
+      sarRepository?.save(sarRequestedSecond)
+      sarRepository?.save(sarRequestedThird)
+    }
+
+    @Test
+    fun `findAll returns sorted and paginated responses when given relevant arguments`() {
+      databaseInsert()
+      val expectedPage: Page<SubjectAccessRequest> = PageImpl(listOf(sarRequestedThird, sarRequestedSecond))
+
+      val firstPageOfReports = sarRepository?.findAll(PageRequest.of(0, 2, Sort.by("RequestDateTime").descending()))
+
+      Assertions.assertThat(firstPageOfReports?.content).isEqualTo(expectedPage.content)
+      Assertions.assertThat(firstPageOfReports?.size).isEqualTo(2)
     }
   }
 }
