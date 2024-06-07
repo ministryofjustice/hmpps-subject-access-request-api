@@ -105,7 +105,7 @@ class SubjectAccessRequestControllerTest {
         SubjectAccessRequestController(sarService, auditService, telemetryClient)
           .getSubjectAccessRequests(unclaimed = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
 
-      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString")
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = null, pageSize = null)
       Assertions.assertThatList(result)
     }
 
@@ -114,7 +114,7 @@ class SubjectAccessRequestControllerTest {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getSubjectAccessRequests(pageNumber = 1, pageSize = 1)
 
-      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "")
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "", pageNumber = null, pageSize = null)
     }
   }
 
@@ -124,7 +124,7 @@ class SubjectAccessRequestControllerTest {
     fun `getTotalSubjectAccessRequests calls getSubjectAccessRequests with unclaimedOnly = false `() {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getTotalSubjectAccessRequests()
-      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "")
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "", pageNumber = null, pageSize = null)
     }
   }
 

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
+import org.springframework.web.bind.annotation.RequestParam
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
@@ -68,8 +69,8 @@ class SubjectAccessRequestService(
     return "" // Maybe want to return Report ID?
   }
 
-  fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String): List<SubjectAccessRequest?> {
-    val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly, search)
+  fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, pageNumber: Int?, pageSize: Int?, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
+    val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly, search, pageNumber, pageSize, currentTime)
     return subjectAccessRequests
   }
 

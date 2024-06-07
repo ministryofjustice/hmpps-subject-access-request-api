@@ -15,7 +15,7 @@ import java.util.*
 @Component
 class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepository) {
 
-  fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
+  fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, pageNumber: Int?, pageSize: Int?, currentTime: LocalDateTime): List<SubjectAccessRequest?> {
     if (unclaimedOnly) {
       val sarsWithNoClaims = repo.findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
       val sarsWithExpiredClaims = repo.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, currentTime.minusMinutes(5))

@@ -221,13 +221,13 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     @RequestParam(
       required = false,
       name = "pageNumber"
-    ) pageNumber: Int,
+    ) pageNumber: Int? = null,
     @RequestParam(
       required = false,
       name = "pageSize"
-    ) pageSize: Int
+    ) pageSize: Int? = null
   ): List<SubjectAccessRequest?> {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, search)
+    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, search, pageNumber, pageSize)
     return response
   }
 
@@ -288,7 +288,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       name = "search",
     ) search: String = "",
   ): Int {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(false, search)
+    val response = subjectAccessRequestService.getSubjectAccessRequests(false, search, null, null)
     return response.size
   }
 

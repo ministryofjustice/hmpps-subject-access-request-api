@@ -1,18 +1,20 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
+import net.bytebuddy.asm.Advice.Local
 import org.assertj.core.api.Assertions
 import org.json.JSONObject
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import org.mockito.kotlin.any
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageImpl
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
+import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers.SubjectAccessRequestController
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
@@ -93,6 +95,9 @@ class SubjectAccessRequestServiceTest {
   private val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
   private val documentGateway: DocumentStorageGateway = Mockito.mock(DocumentStorageGateway::class.java)
+  private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+  private val mockedCurrentTime = "02/01/2024 00:30"
+  private val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
 
   @Nested
   inner class CreateSubjectAccessRequest {
@@ -160,13 +165,9 @@ class SubjectAccessRequestServiceTest {
   @Nested
   inner class UpdateSubjectAccessRequest {
 
-    private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-
     @Test
     fun `claimSubjectAccessRequest calls gateway update method with time 5 minutes ago`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
-      val mockedCurrentTime = "02/01/2024 00:30"
-      val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val fiveMinutesAgo = "02/01/2024 00:25"
       val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
       SubjectAccessRequestService(sarGateway, documentGateway)
@@ -216,6 +217,37 @@ class SubjectAccessRequestServiceTest {
       Assertions.assertThat(result).isEqualTo(null)
     }
   }
+
+
+//  @Test
+//  fun `getSubjectAccessRequests is called with unclaimedOnly, search and pagination parameters if specified in controller and returns list`() {
+//    val result: List<SubjectAccessRequest?> =
+//      SubjectAccessRequestController(sarService, auditService, telemetryClient)
+//        .getSubjectAccessRequests(unclaimed = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
+//
+//    verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString")
+//    Assertions.assertThatList(result)
+//  }
+//
+//  @Test
+//  fun `getSubjectAccessRequests is called with unclaimedOnly = false, search = '' and no pagination parameters if unspecified in controller`() {
+//    SubjectAccessRequestController(sarService, auditService, telemetryClient)
+//      .getSubjectAccessRequests(pageNumber = 1, pageSize = 1)
+//
+//    verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "")
+//  }
+  @Nested
+  inner class getSubjectAccessRequest {
+  @Test
+  fun `getSubjectAccessRequests calls SAR gateway getSubjectAccessRequests method with specified arguments`() {
+    Mockito.`when`(sarGateway.getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1, formattedMockedCurrentTime)).thenReturn(listOf(sampleSAR))
+
+    SubjectAccessRequestService(sarGateway, documentGateway).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1, formattedMockedCurrentTime)
+
+    verify(sarGateway, times(1)).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber =1, pageSize =1, formattedMockedCurrentTime)
+  }
+  }
+
 
   @Nested
   inner class GetAllReports {
