@@ -15,7 +15,7 @@ import java.util.*
 @Component
 class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepository) {
 
-  fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, pageNumber: Int?, pageSize: Int?, currentTime: LocalDateTime): List<SubjectAccessRequest?> {
+  fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, pageNumber: Int?, pageSize: Int?, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
     if (unclaimedOnly) {
       val sarsWithNoClaims = repo.findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
       val sarsWithExpiredClaims = repo.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, currentTime.minusMinutes(5))
@@ -26,6 +26,16 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
       return repo.findFilteredRecords(search)
     }
     return repo.findAll()
+  }
+
+  fun getAllReports(pageNumber: Int, pageSize: Int): Page<SubjectAccessRequest?> {
+    val reports = repo.findAll(PageRequest.of(pageNumber, pageSize, Sort.by("RequestDateTime").descending()))
+    try {
+      reports.content
+      return reports
+    } catch (exception: NullPointerException) {
+      return Page.empty()
+    }
   }
 
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {
@@ -42,15 +52,5 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
   fun updateSubjectAccessRequestStatusCompleted(id: UUID): Int {
     val result = repo.updateStatus(id, Status.Completed)
     return result
-  }
-
-  fun getAllReports(pageNumber: Int, pageSize: Int): Page<SubjectAccessRequest?> {
-    val reports = repo.findAll(PageRequest.of(pageNumber, pageSize, Sort.by("RequestDateTime").descending()))
-    try {
-      reports.content
-      return reports
-    } catch (exception: NullPointerException) {
-      return Page.empty()
-    }
   }
 }

@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -39,4 +41,8 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
       "WHERE (report.id = :id)",
   )
   fun updateStatus(@Param("id") id: UUID, @Param("status") status: Status): Int
+
+//  fun findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch: String, nomisSearch: String, ndeliusSearch: String): List<SubjectAccessRequest?>
+
+  fun findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch: String, nomisSearch: String, ndeliusSearch: String, pagination: Pageable): Page<SubjectAccessRequest?>
 }

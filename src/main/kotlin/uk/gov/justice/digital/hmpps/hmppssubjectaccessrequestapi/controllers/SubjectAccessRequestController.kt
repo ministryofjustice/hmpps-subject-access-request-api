@@ -209,6 +209,18 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     required = false,
     example = "A1234AA",
   )
+  @Parameter(
+    name = "pageNumber",
+    description = "The number of the page requested.",
+    required = false,
+    example = "1",
+  )
+  @Parameter(
+    name = "pageSize",
+    description = "The number of results that make up a single page.",
+    required = false,
+    example = "20",
+  )
   fun getSubjectAccessRequests(
     @RequestParam(
       required = false,

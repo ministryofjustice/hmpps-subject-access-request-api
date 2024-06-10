@@ -9,6 +9,7 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.*
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageImpl
 import org.springframework.http.ResponseEntity
@@ -240,11 +241,9 @@ class SubjectAccessRequestServiceTest {
   inner class getSubjectAccessRequest {
   @Test
   fun `getSubjectAccessRequests calls SAR gateway getSubjectAccessRequests method with specified arguments`() {
-    Mockito.`when`(sarGateway.getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1, formattedMockedCurrentTime)).thenReturn(listOf(sampleSAR))
+    SubjectAccessRequestService(sarGateway, documentGateway).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
 
-    SubjectAccessRequestService(sarGateway, documentGateway).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1, formattedMockedCurrentTime)
-
-    verify(sarGateway, times(1)).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber =1, pageSize =1, formattedMockedCurrentTime)
+    verify(sarGateway, times(1)).getSubjectAccessRequests(eq(true), eq("testSearchString"), eq(1), eq(1), any())
   }
   }
 

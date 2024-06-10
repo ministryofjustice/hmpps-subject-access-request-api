@@ -105,14 +105,14 @@ class SubjectAccessRequestControllerTest {
         SubjectAccessRequestController(sarService, auditService, telemetryClient)
           .getSubjectAccessRequests(unclaimed = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
 
-      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = null, pageSize = null)
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
       Assertions.assertThatList(result)
     }
 
     @Test
     fun `getSubjectAccessRequests is called with unclaimedOnly = false, search = '' and no pagination parameters if unspecified in controller`() {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
-        .getSubjectAccessRequests(pageNumber = 1, pageSize = 1)
+        .getSubjectAccessRequests()
 
       verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "", pageNumber = null, pageSize = null)
     }

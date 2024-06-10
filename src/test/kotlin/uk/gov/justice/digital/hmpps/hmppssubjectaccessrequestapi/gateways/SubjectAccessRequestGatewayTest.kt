@@ -91,21 +91,23 @@ class SubjectAccessRequestGatewayTest {
     @Test
     fun `calls findAll if unclaimed is false and no filters are specified`() {
       SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = false, search = "", pageNumber = null, pageSize = null, formattedMockedCurrentTime)
+        .getSubjectAccessRequests(unclaimedOnly = false, search = "", pageNumber = null, pageSize = null)
       verify(sarRepository, times(1)).findAll()
     }
 
     @Test
     fun `calls findByClaimAttemptsIs if unclaimed is true and no filters are specified`() {
       SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = true, search = "", pageNumber = null, pageSize = null, formattedMockedCurrentTime)
+        .getSubjectAccessRequests(unclaimedOnly = true, search = "", pageNumber = null, pageSize = null)
+
       verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
     }
 
     @Test
     fun `calls findByClaimAttemptsIs(0) if unclaimed is true and no filters are specified`() {
       SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = true, search = "", pageNumber = null, pageSize = null, formattedMockedCurrentTime)
+        .getSubjectAccessRequests(unclaimedOnly = true, search = "", pageNumber = null, pageSize = null)
+
       verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
     }
 
@@ -115,8 +117,9 @@ class SubjectAccessRequestGatewayTest {
       val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val expiredClaimDateTime = "01/01/2024 23:55"
       val expiredClaimDateTimeFormatted = LocalDateTime.parse(expiredClaimDateTime, dateTimeFormatter)
+
       SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = true, search = "", pageNumber = null, pageSize = null, formattedMockedCurrentTime)
+        .getSubjectAccessRequests(unclaimedOnly = true, search = "", pageNumber = null, pageSize = null,  currentTime = formattedMockedCurrentTime)
       verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, expiredClaimDateTimeFormatted)
     }
 
