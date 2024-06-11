@@ -70,14 +70,7 @@ class SubjectAccessRequestService(
   }
 
   fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, pageNumber: Int?, pageSize: Int?): List<SubjectAccessRequest?> {
-
-    //TODO:
-    // If pagination
-    //     If search
-    // If unclaimed only
-
-    val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly, search, pageNumber, pageSize)
-
+    val subjectAccessRequests = sarDbGateway.getSARs(unclaimedOnly, search, pageNumber, pageSize)
     return subjectAccessRequests
   }
 

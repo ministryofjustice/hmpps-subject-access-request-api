@@ -20,6 +20,16 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
 
   @Query(
     "SELECT report FROM SubjectAccessRequest report " +
+      "WHERE (report.status = :status " +
+      "AND report.claimAttempts = :claimAttempts) " +
+      "OR (report.status = :status " +
+      "AND report.claimAttempts > :claimAttempts " +
+      "AND report.claimDateTime < :claimDateTime)",
+  )
+  fun findUnclaimedRecords(@Param("status") status: Status, @Param("claimAttempts") claimAttempts: Int, @Param("claimDateTime") claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
+
+  @Query(
+    "SELECT report FROM SubjectAccessRequest report " +
       "WHERE report.sarCaseReferenceNumber LIKE CONCAT('%', :search, '%') " +
       "OR report.nomisId LIKE CONCAT('%', :search, '%') " +
       "OR report.ndeliusCaseReferenceId LIKE CONCAT('%', :search, '%')",
@@ -41,8 +51,6 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
       "WHERE (report.id = :id)",
   )
   fun updateStatus(@Param("id") id: UUID, @Param("status") status: Status): Int
-
-//  fun findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch: String, nomisSearch: String, ndeliusSearch: String): List<SubjectAccessRequest?>
 
   fun findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch: String, nomisSearch: String, ndeliusSearch: String, pagination: Pageable): Page<SubjectAccessRequest?>
 }

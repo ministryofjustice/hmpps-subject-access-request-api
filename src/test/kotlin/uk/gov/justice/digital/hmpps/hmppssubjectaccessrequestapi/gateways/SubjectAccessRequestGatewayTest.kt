@@ -7,7 +7,9 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
@@ -174,14 +176,66 @@ class SubjectAccessRequestGatewayTest {
   }
 
   @Nested
-  inner class GetAllReports {
+  inner class getSARs {
     @Test
-    fun `getReports calls repository findAll method with requestDateTime-sorted pagination`() {
-      Mockito.`when`(sarRepository.findAll(PageRequest.of(0, 1))).thenReturn(any())
+    fun `getSARs calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with search string`() {
+      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
+        Page.empty())
 
-      SubjectAccessRequestGateway(sarRepository).getAllReports(0, 1)
+      SubjectAccessRequestGateway(sarRepository).getSARs(false, "test",null, null)
 
-      verify(sarRepository, times(1)).findAll(PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
+      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))
     }
+
+    @Test
+    fun `getSARs calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with requestDateTime-sorted pagination`() {
+      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
+      Page.empty())
+
+      SubjectAccessRequestGateway(sarRepository).getSARs(false, "",0, 1)
+
+      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
+    }
+
+    // unclaimed only
+    @Test
+    fun `getSARs calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with unclaimedOnly`() {
+      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
+        Page.empty())
+
+      SubjectAccessRequestGateway(sarRepository).getSARs(true, "",null, null)
+
+      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
+    }
+
+    // none
+
+    // all
+
+
+
+//     Both paginated and search term
+//    @Test
+//    fun `getSARs calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with search terms and requestDateTime-sorted pagination`() {
+//      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
+//        Page.empty())
+//
+//      SubjectAccessRequestGateway(sarRepository).getSARs(false, "",0, 1)
+//
+//      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
+//    }
+
+    // unclaimed only
+
+    // unclaimed paginated
+
+    // unclaimed search?
+
+    // unclaimed paginated search
+
+    // all requests (no arguments) - findAll
+
+//    Assertions.assertTrue(result.size == 3)
+
   }
 }

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
@@ -36,6 +37,17 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
     } catch (exception: NullPointerException) {
       return Page.empty()
     }
+  }
+
+  fun getSARs(unclaimedOnly: Boolean, search: String, pageNumber: Int?, pageSize: Int?, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
+    var pagination = Pageable.unpaged(Sort.by("RequestDateTime").descending())
+    if(pageNumber != null && pageSize != null) {
+      pagination = PageRequest.of(pageNumber, pageSize, Sort.by("RequestDateTime").descending())
+    }
+
+    val subjectAccessRequests = repo.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = search, nomisSearch = search, ndeliusSearch = search, pagination = pagination).content
+
+    return emptyList()
   }
 
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {

@@ -5,7 +5,6 @@ import org.assertj.core.api.Assertions
 import org.json.JSONObject
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.*
 import org.mockito.kotlin.any
@@ -15,7 +14,6 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.controllers.SubjectAccessRequestController
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.Status
@@ -238,12 +236,12 @@ class SubjectAccessRequestServiceTest {
 //    verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "")
 //  }
   @Nested
-  inner class getSubjectAccessRequest {
+  inner class getSubjectAccessRequests {
   @Test
   fun `getSubjectAccessRequests calls SAR gateway getSubjectAccessRequests method with specified arguments`() {
     SubjectAccessRequestService(sarGateway, documentGateway).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
 
-    verify(sarGateway, times(1)).getSubjectAccessRequests(eq(true), eq("testSearchString"), eq(1), eq(1), any())
+    verify(sarGateway, times(1)).getSARs(eq(true), eq("testSearchString"), eq(1), eq(1), any())
   }
   }
 
