@@ -1,12 +1,10 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways
 
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.kotlin.any
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -25,30 +23,10 @@ class SubjectAccessRequestGatewayTest {
   private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
   private val dateFrom = "01/12/2023"
   private val dateFromFormatted = LocalDate.parse(dateFrom, dateFormatter)
-  private val dateTo = "03/01/2024"
-  private val dateToFormatted = LocalDate.parse(dateTo, dateFormatter)
   private val requestTime = "01/01/2024 00:00"
   private val requestTimeFormatted = LocalDateTime.parse(requestTime, dateTimeFormatter)
 
-  private val unclaimedSar = SubjectAccessRequest(
-    id = testUuid,
-    status = Status.Pending,
-    dateFrom = dateFromFormatted,
-    dateTo = dateToFormatted,
-    sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
-    nomisId = "",
-    ndeliusCaseReferenceId = "1",
-    requestedBy = "Test",
-    requestDateTime = requestTimeFormatted,
-    claimAttempts = 0,
-  )
-
-  private val mockSarsWithNoClaims = listOf(unclaimedSar, unclaimedSar, unclaimedSar)
   private val sarRepository = Mockito.mock(SubjectAccessRequestRepository::class.java)
-
-  private val mockedCurrentTime = "02/01/2024 00:30"
-  private val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
 
   @Nested
   inner class SaveSubjectAccessRequest {
@@ -89,69 +67,6 @@ class SubjectAccessRequestGatewayTest {
   }
 
   @Nested
-  inner class GetSubjectAccessRequests {
-    @Test
-    fun `calls findAll if unclaimed is false and no filters are specified`() {
-      SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = false, search = "", pageNumber = null, pageSize = null)
-      verify(sarRepository, times(1)).findAll()
-    }
-
-    @Test
-    fun `calls findByClaimAttemptsIs if unclaimed is true and no filters are specified`() {
-      SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = true, search = "", pageNumber = null, pageSize = null)
-
-      verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
-    }
-
-    @Test
-    fun `calls findByClaimAttemptsIs(0) if unclaimed is true and no filters are specified`() {
-      SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = true, search = "", pageNumber = null, pageSize = null)
-
-      verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
-    }
-
-    @Test
-    fun `calls findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore if unclaimed is true`() {
-      val mockedCurrentTime = "02/01/2024 00:00"
-      val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
-      val expiredClaimDateTime = "01/01/2024 23:55"
-      val expiredClaimDateTimeFormatted = LocalDateTime.parse(expiredClaimDateTime, dateTimeFormatter)
-
-      SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = true, search = "", pageNumber = null, pageSize = null,  currentTime = formattedMockedCurrentTime)
-      verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, expiredClaimDateTimeFormatted)
-    }
-
-    @Test
-    fun `returns joint list of both claimed and valid unclaimed sars if unclaimed is true`() {
-      Mockito.`when`(sarRepository.findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)).thenReturn(mockSarsWithNoClaims)
-      val mockedCurrentTime = "02/01/2024 00:00"
-      val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
-      val expiredClaimDateTime = "01/01/2024 23:55"
-      val expiredClaimDateTimeFormatted = LocalDateTime.parse(expiredClaimDateTime, dateTimeFormatter)
-      Mockito.`when`(sarRepository.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, expiredClaimDateTimeFormatted)).thenReturn(
-        emptyList(),
-      )
-      val result: List<SubjectAccessRequest?> = SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = true, search = "", pageNumber = null, pageSize = null, formattedMockedCurrentTime)
-      verify(sarRepository, times(1)).findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, expiredClaimDateTimeFormatted)
-      Assertions.assertTrue(result.size == 3)
-    }
-
-    @Test
-    fun `passes correct parameters and returns filtered list if unclaimed is false and filters are provided`() {
-      Mockito.`when`(sarRepository.findFilteredRecords("TEST_REF")).thenReturn(mockSarsWithNoClaims)
-      val result: List<SubjectAccessRequest?> = SubjectAccessRequestGateway(sarRepository)
-        .getSubjectAccessRequests(unclaimedOnly = false, search = "TEST_REF", pageNumber = null, pageSize = null, formattedMockedCurrentTime)
-      verify(sarRepository, times(1)).findFilteredRecords(search = "TEST_REF")
-      Assertions.assertTrue(result.size == 3)
-    }
-  }
-
-  @Nested
   inner class UpdateSubjectAccessRequest {
     @Test
     fun `calls updateClaimDateTimeIfBeforeThreshold with correct parameters`() {
@@ -176,66 +91,60 @@ class SubjectAccessRequestGatewayTest {
   }
 
   @Nested
-  inner class getSARs {
+  inner class GetSubjectAccessRequests {
     @Test
-    fun `getSARs calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with search string`() {
-      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
-        Page.empty())
+    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining with no search or pagination when no arguments are given`() {
+      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
+        Page.empty(),
+      )
 
-      SubjectAccessRequestGateway(sarRepository).getSARs(false, "test",null, null)
+      SubjectAccessRequestGateway(sarRepository).getSubjectAccessRequests(false, "", null, null)
+
+      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", Pageable.unpaged(Sort.by("RequestDateTime").descending()))
+    }
+
+    @Test
+    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with search string`() {
+      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
+        Page.empty(),
+      )
+
+      SubjectAccessRequestGateway(sarRepository).getSubjectAccessRequests(false, "test", null, null)
 
       verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))
     }
 
     @Test
-    fun `getSARs calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with requestDateTime-sorted pagination`() {
+    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with requestDateTime-sorted pagination`() {
       Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
-      Page.empty())
+        Page.empty(),
+      )
 
-      SubjectAccessRequestGateway(sarRepository).getSARs(false, "",0, 1)
+      SubjectAccessRequestGateway(sarRepository).getSubjectAccessRequests(false, "", 0, 1)
 
       verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
     }
 
-    // unclaimed only
     @Test
-    fun `getSARs calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with unclaimedOnly`() {
-      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
-        Page.empty())
+    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with search string and requestDateTime-sorted pagination`() {
+      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
+        Page.empty(),
+      )
 
-      SubjectAccessRequestGateway(sarRepository).getSARs(true, "",null, null)
+      SubjectAccessRequestGateway(sarRepository).getSubjectAccessRequests(false, "test", 0, 1)
 
-      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
+      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
     }
 
-    // none
+    @Test
+    fun `getSubjectAccessRequests calls repository findUnclaimed if unclaimedOnly is true`() {
+      Mockito.`when`(sarRepository.findUnclaimed(status = Status.Pending, claimAttempts = 0, claimDateTime = requestTimeFormatted.minusMinutes(5))).thenReturn(
+        emptyList(),
+      )
 
-    // all
+      SubjectAccessRequestGateway(sarRepository).getSubjectAccessRequests(true, "", null, null, currentTime = requestTimeFormatted)
 
-
-
-//     Both paginated and search term
-//    @Test
-//    fun `getSARs calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with search terms and requestDateTime-sorted pagination`() {
-//      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
-//        Page.empty())
-//
-//      SubjectAccessRequestGateway(sarRepository).getSARs(false, "",0, 1)
-//
-//      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
-//    }
-
-    // unclaimed only
-
-    // unclaimed paginated
-
-    // unclaimed search?
-
-    // unclaimed paginated search
-
-    // all requests (no arguments) - findAll
-
-//    Assertions.assertTrue(result.size == 3)
-
+      verify(sarRepository, times(1)).findUnclaimed(status = Status.Pending, claimAttempts = 0, claimDateTime = requestTimeFormatted.minusMinutes(5))
+    }
   }
 }

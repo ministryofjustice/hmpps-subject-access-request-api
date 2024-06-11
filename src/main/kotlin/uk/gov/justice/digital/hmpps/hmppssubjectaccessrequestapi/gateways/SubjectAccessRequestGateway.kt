@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -15,39 +14,16 @@ import java.util.*
 
 @Component
 class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepository) {
-
   fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, pageNumber: Int?, pageSize: Int?, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
     if (unclaimedOnly) {
-      val sarsWithNoClaims = repo.findByStatusIsAndClaimAttemptsIs(Status.Pending, 0)
-      val sarsWithExpiredClaims = repo.findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(Status.Pending, 0, currentTime.minusMinutes(5))
-      val fullUnclaimedList = sarsWithNoClaims.plus(sarsWithExpiredClaims)
-      return fullUnclaimedList
+      return repo.findUnclaimed(status = Status.Pending, claimAttempts = 0, claimDateTime = currentTime.minusMinutes(5))
     }
-    if (search !== "") {
-      return repo.findFilteredRecords(search)
-    }
-    return repo.findAll()
-  }
 
-  fun getAllReports(pageNumber: Int, pageSize: Int): Page<SubjectAccessRequest?> {
-    val reports = repo.findAll(PageRequest.of(pageNumber, pageSize, Sort.by("RequestDateTime").descending()))
-    try {
-      reports.content
-      return reports
-    } catch (exception: NullPointerException) {
-      return Page.empty()
-    }
-  }
-
-  fun getSARs(unclaimedOnly: Boolean, search: String, pageNumber: Int?, pageSize: Int?, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
     var pagination = Pageable.unpaged(Sort.by("RequestDateTime").descending())
-    if(pageNumber != null && pageSize != null) {
+    if (pageNumber != null && pageSize != null) {
       pagination = PageRequest.of(pageNumber, pageSize, Sort.by("RequestDateTime").descending())
     }
-
-    val subjectAccessRequests = repo.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = search, nomisSearch = search, ndeliusSearch = search, pagination = pagination).content
-
-    return emptyList()
+    return repo.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = search, nomisSearch = search, ndeliusSearch = search, pagination = pagination).content
   }
 
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {

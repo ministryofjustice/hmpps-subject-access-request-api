@@ -1,14 +1,11 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
-import kotlinx.serialization.Serializable
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
-import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.RequestParam
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.DocumentStorageGateway
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.gateways.SubjectAccessRequestGateway
@@ -70,13 +67,8 @@ class SubjectAccessRequestService(
   }
 
   fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, pageNumber: Int?, pageSize: Int?): List<SubjectAccessRequest?> {
-    val subjectAccessRequests = sarDbGateway.getSARs(unclaimedOnly, search, pageNumber, pageSize)
+    val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly, search, pageNumber, pageSize)
     return subjectAccessRequests
-  }
-
-  fun getAllReports(pageNumber: Int, pageSize: Int): List<SubjectAccessRequestReport> {
-    val reports = sarDbGateway.getAllReports(pageNumber, pageSize)
-    return this.prepareReportInfoForDisplay(reports)
   }
 
   fun claimSubjectAccessRequest(id: UUID, time: LocalDateTime? = LocalDateTime.now()): Int {
@@ -92,33 +84,6 @@ class SubjectAccessRequestService(
     val document = documentStorageGateway.retrieveDocument(sarId)
     return document
   }
-
-  fun prepareReportInfoForDisplay(reports: Page<SubjectAccessRequest?>): List<SubjectAccessRequestReport> {
-    try {
-      val reportInfo = reports.content
-      val condensedReportInfo = emptyList<SubjectAccessRequestReport>().toMutableList()
-      reportInfo.forEach {
-        if (it != null) {
-          val subjectId: String
-          if (it.nomisId == null || it.nomisId == "") {
-            subjectId = it.ndeliusCaseReferenceId!!
-          } else {
-            subjectId = it.nomisId
-          }
-          condensedReportInfo += SubjectAccessRequestReport(
-            it.id.toString(),
-            it.requestDateTime.toString(),
-            it.sarCaseReferenceNumber,
-            subjectId,
-            it.status.toString(),
-          )
-        }
-      }
-      return condensedReportInfo
-    } catch (e: NullPointerException) {
-      return emptyList()
-    }
-  }
 }
 
 private fun formatDate(date: String): LocalDate? {
@@ -129,12 +94,3 @@ private fun formatDate(date: String): LocalDate? {
     null
   }
 }
-
-@Serializable
-data class SubjectAccessRequestReport(
-  val uuid: String,
-  val dateOfRequest: String,
-  val sarCaseReference: String,
-  val subjectId: String,
-  val status: String,
-)

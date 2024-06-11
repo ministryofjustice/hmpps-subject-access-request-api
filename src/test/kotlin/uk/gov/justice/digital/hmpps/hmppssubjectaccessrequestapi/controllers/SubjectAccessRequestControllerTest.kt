@@ -209,14 +209,6 @@ class SubjectAccessRequestControllerTest {
         ResponseEntity(errorMessage, HttpStatus.NOT_FOUND),
       )
     }
-
-//    @Test
-//    fun `getSubjectAccessRequestReports is called with pagination parameters`() {
-//      SubjectAccessRequestController(sarService, auditService, telemetryClient)
-//        .getSubjectAccessRequestReports(1, 1)
-//
-//      verify(sarService, times(1)).getAllReports(1, 1)
-//    }
   }
 
   @Nested
@@ -284,39 +276,6 @@ class SubjectAccessRequestControllerTest {
       webTestClient.get()
         .uri("/api/subjectAccessRequests")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody()
-    }
-
-    @Test
-    fun `User without ROLE_SAR_USER_ACCESS can't get reports`() {
-      webTestClient.get()
-        .uri("/api/reports?pageNumber=1&pageSize=50")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
-        .exchange()
-        .expectStatus()
-        .is5xxServerError
-        .expectBody()
-    }
-
-    @Test
-    fun `User with ROLE_SAR_USER_ACCESS can get reports`() {
-      webTestClient.get()
-        .uri("/api/reports?pageNumber=1&pageSize=50")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS"), name = "TESTER"))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody()
-    }
-
-    @Test
-    fun `User with ROLE_SAR_DATA_ACCESS can get reports`() {
-      webTestClient.get()
-        .uri("/api/reports?pageNumber=1&pageSize=50")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS"), name = "TESTER"))
         .exchange()
         .expectStatus()
         .isOk

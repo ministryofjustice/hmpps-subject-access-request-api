@@ -14,10 +14,6 @@ import java.util.UUID
 
 @Repository
 interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, UUID> {
-  fun findByStatusIsAndClaimAttemptsIs(status: Status, claimAttempts: Int): List<SubjectAccessRequest?>
-
-  fun findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(status: Status, claimAttempts: Int, claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
-
   @Query(
     "SELECT report FROM SubjectAccessRequest report " +
       "WHERE (report.status = :status " +
@@ -26,15 +22,9 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
       "AND report.claimAttempts > :claimAttempts " +
       "AND report.claimDateTime < :claimDateTime)",
   )
-  fun findUnclaimedRecords(@Param("status") status: Status, @Param("claimAttempts") claimAttempts: Int, @Param("claimDateTime") claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
+  fun findUnclaimed(@Param("status") status: Status, @Param("claimAttempts") claimAttempts: Int, @Param("claimDateTime") claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
 
-  @Query(
-    "SELECT report FROM SubjectAccessRequest report " +
-      "WHERE report.sarCaseReferenceNumber LIKE CONCAT('%', :search, '%') " +
-      "OR report.nomisId LIKE CONCAT('%', :search, '%') " +
-      "OR report.ndeliusCaseReferenceId LIKE CONCAT('%', :search, '%')",
-  )
-  fun findFilteredRecords(search: String): List<SubjectAccessRequest?>
+  fun findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch: String, nomisSearch: String, ndeliusSearch: String, pagination: Pageable): Page<SubjectAccessRequest?>
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
@@ -51,6 +41,4 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
       "WHERE (report.id = :id)",
   )
   fun updateStatus(@Param("id") id: UUID, @Param("status") status: Status): Int
-
-  fun findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch: String, nomisSearch: String, ndeliusSearch: String, pagination: Pageable): Page<SubjectAccessRequest?>
 }

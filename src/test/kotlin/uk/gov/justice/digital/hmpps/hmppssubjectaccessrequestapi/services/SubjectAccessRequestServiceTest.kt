@@ -1,16 +1,15 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
-import net.bytebuddy.asm.Advice.Local
 import org.assertj.core.api.Assertions
 import org.json.JSONObject
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.times
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
 import org.springframework.core.io.InputStreamResource
-import org.springframework.data.domain.PageImpl
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
@@ -217,60 +216,13 @@ class SubjectAccessRequestServiceTest {
     }
   }
 
-
-//  @Test
-//  fun `getSubjectAccessRequests is called with unclaimedOnly, search and pagination parameters if specified in controller and returns list`() {
-//    val result: List<SubjectAccessRequest?> =
-//      SubjectAccessRequestController(sarService, auditService, telemetryClient)
-//        .getSubjectAccessRequests(unclaimed = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
-//
-//    verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString")
-//    Assertions.assertThatList(result)
-//  }
-//
-//  @Test
-//  fun `getSubjectAccessRequests is called with unclaimedOnly = false, search = '' and no pagination parameters if unspecified in controller`() {
-//    SubjectAccessRequestController(sarService, auditService, telemetryClient)
-//      .getSubjectAccessRequests(pageNumber = 1, pageSize = 1)
-//
-//    verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "")
-//  }
   @Nested
-  inner class getSubjectAccessRequests {
-  @Test
-  fun `getSubjectAccessRequests calls SAR gateway getSubjectAccessRequests method with specified arguments`() {
-    SubjectAccessRequestService(sarGateway, documentGateway).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
-
-    verify(sarGateway, times(1)).getSARs(eq(true), eq("testSearchString"), eq(1), eq(1), any())
-  }
-  }
-
-
-  @Nested
-  inner class GetAllReports {
+  inner class GetSubjectAccessRequests {
     @Test
-    fun `getAllReports calls SAR gateway getAllReports method with pagination`() {
-      Mockito.`when`(sarGateway.getAllReports(0, 1)).thenReturn(PageImpl(listOf(sampleSAR)))
+    fun `getSubjectAccessRequests calls SAR gateway getSubjectAccessRequests method with specified arguments`() {
+      SubjectAccessRequestService(sarGateway, documentGateway).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
 
-      SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(0, 1)
-
-      verify(sarGateway, times(1)).getAllReports(0, 1)
-    }
-
-    @Test
-    fun `getAllReports extracts condensed report info`() {
-      Mockito.`when`(sarGateway.getAllReports(0, 1)).thenReturn(PageImpl(listOf(sampleSAR)))
-      val expectedResult =
-        SubjectAccessRequestReport(
-          uuid = "11111111-1111-1111-1111-111111111111",
-          dateOfRequest = requestTime.toString(),
-          sarCaseReference = "1234abc",
-          subjectId = "1",
-          status = "Pending",
-        )
-      val result = SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(0, 1)
-      Assertions.assertThat(result[0].dateOfRequest).isEqualTo(sampleSAR.requestDateTime.toString())
-      Assertions.assertThat(result[0].toString()).isEqualTo(expectedResult.toString())
+      verify(sarGateway, times(1)).getSubjectAccessRequests(eq(true), eq("testSearchString"), eq(1), eq(1), any())
     }
   }
 }

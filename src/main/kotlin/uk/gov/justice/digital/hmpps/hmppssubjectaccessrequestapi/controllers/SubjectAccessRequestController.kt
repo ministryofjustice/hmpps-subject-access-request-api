@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.config.trackEvent
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestReport
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
 import java.util.*
@@ -232,22 +231,16 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     ) search: String = "",
     @RequestParam(
       required = false,
-      name = "pageNumber"
+      name = "pageNumber",
     ) pageNumber: Int? = null,
     @RequestParam(
       required = false,
-      name = "pageSize"
-    ) pageSize: Int? = null
+      name = "pageSize",
+    ) pageSize: Int? = null,
   ): List<SubjectAccessRequest?> {
     val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, search, pageNumber, pageSize)
     return response
   }
-
-  //  @GetMapping("reports")
-//  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageNumber") pageNumber: Int, @RequestParam(required = true, name = "pageSize") pageSize: Int): List<SubjectAccessRequestReport> {
-//    val response = subjectAccessRequestService.getAllReports(pageNumber, pageSize)
-//    return response
-//  }
 
   @GetMapping("totalSubjectAccessRequests")
   @Operation(summary = "Get total number of Subject Access Requests.", description = "Return the number of Subject Access Requests.")
@@ -468,12 +461,6 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ResponseEntity(HttpStatus.OK)
     }
   }
-
-//  @GetMapping("reports")
-//  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageNumber") pageNumber: Int, @RequestParam(required = true, name = "pageSize") pageSize: Int): List<SubjectAccessRequestReport> {
-//    val response = subjectAccessRequestService.getAllReports(pageNumber, pageSize)
-//    return response
-//  }
 }
 
 @Serializable
