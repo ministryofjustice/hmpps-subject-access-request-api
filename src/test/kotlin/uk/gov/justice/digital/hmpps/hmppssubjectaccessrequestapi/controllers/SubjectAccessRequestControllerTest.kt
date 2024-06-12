@@ -124,7 +124,7 @@ class SubjectAccessRequestControllerTest {
     fun `getTotalSubjectAccessRequests calls getSubjectAccessRequests with unclaimedOnly = false `() {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getTotalSubjectAccessRequests()
-      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "", pageNumber = null, pageSize = null)
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "")
     }
   }
 

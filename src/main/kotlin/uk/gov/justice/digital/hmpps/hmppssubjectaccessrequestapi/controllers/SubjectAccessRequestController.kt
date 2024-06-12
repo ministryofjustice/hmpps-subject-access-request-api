@@ -293,7 +293,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       name = "search",
     ) search: String = "",
   ): Int {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(false, search, null, null)
+    val response = subjectAccessRequestService.getSubjectAccessRequests(false, search)
     return response.size
   }
 
