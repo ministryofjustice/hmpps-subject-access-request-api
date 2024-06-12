@@ -139,8 +139,6 @@ class SubjectAccessRequestRepositoryTest {
       Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
       Assertions.assertThat(
         sarRepository?.findUnclaimed(
-          Status.Pending,
-          0,
           claimDateTimeFormatted,
         ),
       ).isEqualTo(expectedUnclaimed)

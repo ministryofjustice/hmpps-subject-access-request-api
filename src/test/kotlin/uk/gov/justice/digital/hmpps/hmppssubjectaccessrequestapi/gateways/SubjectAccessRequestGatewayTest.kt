@@ -138,13 +138,13 @@ class SubjectAccessRequestGatewayTest {
 
     @Test
     fun `getSubjectAccessRequests calls repository findUnclaimed if unclaimedOnly is true`() {
-      Mockito.`when`(sarRepository.findUnclaimed(status = Status.Pending, claimAttempts = 0, claimDateTime = requestTimeFormatted.minusMinutes(5))).thenReturn(
+      Mockito.`when`(sarRepository.findUnclaimed(claimDateTime = requestTimeFormatted.minusMinutes(5))).thenReturn(
         emptyList(),
       )
 
       SubjectAccessRequestGateway(sarRepository).getSubjectAccessRequests(true, "", null, null, currentTime = requestTimeFormatted)
 
-      verify(sarRepository, times(1)).findUnclaimed(status = Status.Pending, claimAttempts = 0, claimDateTime = requestTimeFormatted.minusMinutes(5))
+      verify(sarRepository, times(1)).findUnclaimed(claimDateTime = requestTimeFormatted.minusMinutes(5))
     }
   }
 }

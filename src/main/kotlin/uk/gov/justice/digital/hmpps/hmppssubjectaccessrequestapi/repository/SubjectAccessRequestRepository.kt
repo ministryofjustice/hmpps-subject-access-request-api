@@ -16,13 +16,13 @@ import java.util.UUID
 interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, UUID> {
   @Query(
     "SELECT report FROM SubjectAccessRequest report " +
-      "WHERE (report.status = :status " +
-      "AND report.claimAttempts = :claimAttempts) " +
-      "OR (report.status = :status " +
-      "AND report.claimAttempts > :claimAttempts " +
+      "WHERE (report.status = 'Pending' " +
+      "AND report.claimAttempts = 0) " +
+      "OR (report.status = 'Pending' " +
+      "AND report.claimAttempts > 0 " +
       "AND report.claimDateTime < :claimDateTime)",
   )
-  fun findUnclaimed(@Param("status") status: Status, @Param("claimAttempts") claimAttempts: Int, @Param("claimDateTime") claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
+  fun findUnclaimed(@Param("claimDateTime") claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
 
   fun findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch: String, nomisSearch: String, ndeliusSearch: String, pagination: Pageable): Page<SubjectAccessRequest?>
 
