@@ -100,21 +100,21 @@ class SubjectAccessRequestControllerTest {
   @Nested
   inner class GetSubjectAccessRequests {
     @Test
-    fun `getSubjectAccessRequests is called with unclaimedOnly = true if specified in controller and returns list`() {
+    fun `getSubjectAccessRequests is called with unclaimedOnly, search and pagination parameters if specified in controller and returns list`() {
       val result: List<SubjectAccessRequest?> =
         SubjectAccessRequestController(sarService, auditService, telemetryClient)
-          .getSubjectAccessRequests(unclaimed = true, search = "")
+          .getSubjectAccessRequests(unclaimed = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
 
-      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true, search = "")
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
       Assertions.assertThatList(result)
     }
 
     @Test
-    fun `getSubjectAccessRequests is called with unclaimedOnly = false if unspecified in controller`() {
+    fun `getSubjectAccessRequests is called with unclaimedOnly = false, search = '' and no pagination parameters if unspecified in controller`() {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
         .getSubjectAccessRequests()
 
-      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "")
+      verify(sarService, times(1)).getSubjectAccessRequests(unclaimedOnly = false, search = "", pageNumber = null, pageSize = null)
     }
   }
 
@@ -209,14 +209,6 @@ class SubjectAccessRequestControllerTest {
         ResponseEntity(errorMessage, HttpStatus.NOT_FOUND),
       )
     }
-
-    @Test
-    fun `getSubjectAccessRequestReports is called with pagination parameters`() {
-      SubjectAccessRequestController(sarService, auditService, telemetryClient)
-        .getSubjectAccessRequestReports(1, 1)
-
-      verify(sarService, times(1)).getAllReports(1, 1)
-    }
   }
 
   @Nested
@@ -284,39 +276,6 @@ class SubjectAccessRequestControllerTest {
       webTestClient.get()
         .uri("/api/subjectAccessRequests")
         .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody()
-    }
-
-    @Test
-    fun `User without ROLE_SAR_USER_ACCESS can't get reports`() {
-      webTestClient.get()
-        .uri("/api/reports?pageNumber=1&pageSize=50")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS_DENIED")))
-        .exchange()
-        .expectStatus()
-        .is5xxServerError
-        .expectBody()
-    }
-
-    @Test
-    fun `User with ROLE_SAR_USER_ACCESS can get reports`() {
-      webTestClient.get()
-        .uri("/api/reports?pageNumber=1&pageSize=50")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS"), name = "TESTER"))
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody()
-    }
-
-    @Test
-    fun `User with ROLE_SAR_DATA_ACCESS can get reports`() {
-      webTestClient.get()
-        .uri("/api/reports?pageNumber=1&pageSize=50")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS"), name = "TESTER"))
         .exchange()
         .expectStatus()
         .isOk

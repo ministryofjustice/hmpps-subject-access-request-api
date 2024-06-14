@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
-import kotlinx.serialization.Serializable
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
@@ -67,8 +66,8 @@ class SubjectAccessRequestService(
     return "" // Maybe want to return Report ID?
   }
 
-  fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String): List<SubjectAccessRequest?> {
-    val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly, search)
+  fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, pageNumber: Int? = null, pageSize: Int? = null): List<SubjectAccessRequest?> {
+    val subjectAccessRequests = sarDbGateway.getSubjectAccessRequests(unclaimedOnly, search, pageNumber, pageSize)
     return subjectAccessRequests
   }
 
@@ -85,34 +84,6 @@ class SubjectAccessRequestService(
     val document = documentStorageGateway.retrieveDocument(sarId)
     return document
   }
-
-  fun getAllReports(pageNumber: Int, pageSize: Int): List<SubjectAccessRequestReport> {
-    val reports = sarDbGateway.getAllReports(pageNumber, pageSize)
-    try {
-      val reportInfo = reports.content
-      val condensedReportInfo = emptyList<SubjectAccessRequestReport>().toMutableList()
-      reportInfo.forEach {
-        if (it != null) {
-          val subjectId: String
-          if (it.nomisId == null || it.nomisId == "") {
-            subjectId = it.ndeliusCaseReferenceId!!
-          } else {
-            subjectId = it.nomisId
-          }
-          condensedReportInfo += SubjectAccessRequestReport(
-            it.id.toString(),
-            it.requestDateTime.toString(),
-            it.sarCaseReferenceNumber,
-            subjectId,
-            it.status.toString(),
-          )
-        }
-      }
-      return condensedReportInfo
-    } catch (e: NullPointerException) {
-      return emptyList()
-    }
-  }
 }
 
 private fun formatDate(date: String): LocalDate? {
@@ -123,12 +94,3 @@ private fun formatDate(date: String): LocalDate? {
     null
   }
 }
-
-@Serializable
-data class SubjectAccessRequestReport(
-  val uuid: String,
-  val dateOfRequest: String,
-  val sarCaseReference: String,
-  val subjectId: String,
-  val status: String,
-)

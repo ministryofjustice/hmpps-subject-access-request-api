@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.repository
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -12,17 +14,17 @@ import java.util.UUID
 
 @Repository
 interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, UUID> {
-  fun findByStatusIsAndClaimAttemptsIs(status: Status, claimAttempts: Int): List<SubjectAccessRequest?>
-
-  fun findByStatusIsAndClaimAttemptsGreaterThanAndClaimDateTimeBefore(status: Status, claimAttempts: Int, claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
-
   @Query(
     "SELECT report FROM SubjectAccessRequest report " +
-      "WHERE report.sarCaseReferenceNumber LIKE CONCAT('%', :search, '%') " +
-      "OR report.nomisId LIKE CONCAT('%', :search, '%') " +
-      "OR report.ndeliusCaseReferenceId LIKE CONCAT('%', :search, '%')",
+      "WHERE (report.status = 'Pending' " +
+      "AND report.claimAttempts = 0) " +
+      "OR (report.status = 'Pending' " +
+      "AND report.claimAttempts > 0 " +
+      "AND report.claimDateTime < :claimDateTime)",
   )
-  fun findFilteredRecords(search: String): List<SubjectAccessRequest?>
+  fun findUnclaimed(@Param("claimDateTime") claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
+
+  fun findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch: String, nomisSearch: String, ndeliusSearch: String, pagination: Pageable): Page<SubjectAccessRequest?>
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
