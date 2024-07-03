@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.config.trackEvent
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.AuditService
-import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestReport
 import uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
 import java.util.*
@@ -209,6 +208,18 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     required = false,
     example = "A1234AA",
   )
+  @Parameter(
+    name = "pageNumber",
+    description = "The number of the page requested.",
+    required = false,
+    example = "1",
+  )
+  @Parameter(
+    name = "pageSize",
+    description = "The number of results that make up a single page.",
+    required = false,
+    example = "20",
+  )
   fun getSubjectAccessRequests(
     @RequestParam(
       required = false,
@@ -218,8 +229,16 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       required = false,
       name = "search",
     ) search: String = "",
+    @RequestParam(
+      required = false,
+      name = "pageNumber",
+    ) pageNumber: Int? = null,
+    @RequestParam(
+      required = false,
+      name = "pageSize",
+    ) pageSize: Int? = null,
   ): List<SubjectAccessRequest?> {
-    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, search)
+    val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, search, pageNumber, pageSize)
     return response
   }
 
@@ -441,12 +460,6 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     } else {
       ResponseEntity(HttpStatus.OK)
     }
-  }
-
-  @GetMapping("reports")
-  fun getSubjectAccessRequestReports(@RequestParam(required = true, name = "pageNumber") pageNumber: Int, @RequestParam(required = true, name = "pageSize") pageSize: Int): List<SubjectAccessRequestReport> {
-    val response = subjectAccessRequestService.getAllReports(pageNumber, pageSize)
-    return response
   }
 }
 

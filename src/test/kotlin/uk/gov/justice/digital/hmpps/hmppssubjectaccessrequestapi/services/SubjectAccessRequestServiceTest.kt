@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
 import org.springframework.core.io.InputStreamResource
-import org.springframework.data.domain.PageImpl
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
@@ -93,6 +93,9 @@ class SubjectAccessRequestServiceTest {
   private val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
   private val authentication: Authentication = Mockito.mock(Authentication::class.java)
   private val documentGateway: DocumentStorageGateway = Mockito.mock(DocumentStorageGateway::class.java)
+  private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+  private val mockedCurrentTime = "02/01/2024 00:30"
+  private val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
 
   @Nested
   inner class CreateSubjectAccessRequest {
@@ -160,13 +163,9 @@ class SubjectAccessRequestServiceTest {
   @Nested
   inner class UpdateSubjectAccessRequest {
 
-    private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-
     @Test
     fun `claimSubjectAccessRequest calls gateway update method with time 5 minutes ago`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
-      val mockedCurrentTime = "02/01/2024 00:30"
-      val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
       val fiveMinutesAgo = "02/01/2024 00:25"
       val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
       SubjectAccessRequestService(sarGateway, documentGateway)
@@ -218,30 +217,12 @@ class SubjectAccessRequestServiceTest {
   }
 
   @Nested
-  inner class GetAllReports {
+  inner class GetSubjectAccessRequests {
     @Test
-    fun `getAllReports calls SAR gateway getAllReports method with pagination`() {
-      Mockito.`when`(sarGateway.getAllReports(0, 1)).thenReturn(PageImpl(listOf(sampleSAR)))
+    fun `getSubjectAccessRequests calls SAR gateway getSubjectAccessRequests method with specified arguments`() {
+      SubjectAccessRequestService(sarGateway, documentGateway).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
 
-      SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(0, 1)
-
-      verify(sarGateway, times(1)).getAllReports(0, 1)
-    }
-
-    @Test
-    fun `getAllReports extracts condensed report info`() {
-      Mockito.`when`(sarGateway.getAllReports(0, 1)).thenReturn(PageImpl(listOf(sampleSAR)))
-      val expectedResult =
-        SubjectAccessRequestReport(
-          uuid = "11111111-1111-1111-1111-111111111111",
-          dateOfRequest = requestTime.toString(),
-          sarCaseReference = "1234abc",
-          subjectId = "1",
-          status = "Pending",
-        )
-      val result = SubjectAccessRequestService(sarGateway, documentGateway).getAllReports(0, 1)
-      Assertions.assertThat(result[0].dateOfRequest).isEqualTo(sampleSAR.requestDateTime.toString())
-      Assertions.assertThat(result[0].toString()).isEqualTo(expectedResult.toString())
+      verify(sarGateway, times(1)).getSubjectAccessRequests(eq(true), eq("testSearchString"), eq(1), eq(1), any())
     }
   }
 }
