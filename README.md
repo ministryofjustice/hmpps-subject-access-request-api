@@ -7,6 +7,7 @@
 This is a Spring Boot application, written in Kotlin, used as an orchestration layer between the 
 Subject Access Request front end and external API calls like the document storage service, services data is requested from, prisoner-search and auth. Used by the [Subject Access Request UI](https://github.com/ministryofjustice/hmpps-subject-access-request-ui) and the [Subject Access Request worker](https://github.com/ministryofjustice/hmpps-subject-access-request-worker).
 
+The project Confluence pages can be found [here](https://dsdmoj.atlassian.net/wiki/spaces/SARS/pages/4771479564/Overview).
 
 ## Building
 
