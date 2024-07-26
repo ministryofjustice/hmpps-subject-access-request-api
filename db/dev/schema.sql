@@ -19,3 +19,6 @@ CREATE INDEX status_index ON subject_access_request (status);
 CREATE INDEX sar_case_reference_number_index ON subject_access_request (sar_case_reference_number);
 CREATE INDEX requested_by_index ON subject_access_request (requested_by);
 CREATE INDEX claim_attempts_index ON subject_access_request (claim_attempts);
+
+ALTER TABLE subject_access_request
+    ADD last_downloaded TIMESTAMP with time zone;
