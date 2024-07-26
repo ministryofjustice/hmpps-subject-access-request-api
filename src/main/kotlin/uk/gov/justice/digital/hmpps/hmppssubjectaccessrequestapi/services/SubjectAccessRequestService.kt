@@ -80,8 +80,11 @@ class SubjectAccessRequestService(
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 
-  fun retrieveSubjectAccessRequestDocument(sarId: UUID): ResponseEntity<Flux<InputStreamResource>>? {
+  fun retrieveSubjectAccessRequestDocument(sarId: UUID, downloadDateTime: LocalDateTime? = LocalDateTime.now()): ResponseEntity<Flux<InputStreamResource>>? {
     val document = documentStorageGateway.retrieveDocument(sarId)
+
+    sarDbGateway.updateLastDownloadedDateTime(sarId, downloadDateTime!!)
+
     return document
   }
 }
