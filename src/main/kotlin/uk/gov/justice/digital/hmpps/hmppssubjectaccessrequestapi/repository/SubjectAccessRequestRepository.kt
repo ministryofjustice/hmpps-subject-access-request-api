@@ -41,4 +41,12 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
       "WHERE (report.id = :id)",
   )
   fun updateStatus(@Param("id") id: UUID, @Param("status") status: Status): Int
+
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query(
+    "UPDATE SubjectAccessRequest report " +
+      "SET report.lastDownloaded = :downloadDateTime " +
+      "WHERE (report.id = :id)",
+  )
+  fun updateLastDownloaded(@Param("id") id: UUID, @Param("downloadDateTime") downloadDateTime: LocalDateTime): Int
 }
