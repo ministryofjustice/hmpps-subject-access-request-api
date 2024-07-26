@@ -38,63 +38,66 @@ class SubjectAccessRequestControllerTest {
     "ndeliusId: '1' " +
     "}"
 
-  @Test
-  fun `createSubjectAccessRequest post calls service createSubjectAccessRequest with same parameters`() {
-    Mockito.`when`(authentication.name).thenReturn("mockUserName")
-    Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)).thenReturn("")
-    val expected: ResponseEntity<String> = ResponseEntity("", HttpStatus.OK)
+  @Nested
+  inner class CreateSubjectAccessRequest {
+    @Test
+    fun `createSubjectAccessRequest post calls service createSubjectAccessRequest with same parameters`() {
+      Mockito.`when`(authentication.name).thenReturn("mockUserName")
+      Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)).thenReturn("")
+      val expected: ResponseEntity<String> = ResponseEntity("", HttpStatus.OK)
 
-    val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
-      .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
+      val result = SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
 
-    verify(sarService, times(1)).createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
-    Assertions.assertThat(result).isEqualTo(expected)
-  }
+      verify(sarService, times(1)).createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
+      Assertions.assertThat(result).isEqualTo(expected)
+    }
 
-  @Test
-  fun `createSubjectAccessRequest post returns http error if both nomis and ndelius ids are provided`() {
-    Mockito.`when`(authentication.name).thenReturn("aName")
-    val ndeliusAndNomisRequest = "{ " +
-      "dateFrom: '01/12/2023', " +
-      "dateTo: '03/01/2024', " +
-      "sarCaseReferenceNumber: '1234abc', " +
-      "services: '{1,2,4}', " +
-      "nomisId: null, " +
-      "ndeliusId: '1' " +
-      "}"
-    Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime))
-      .thenReturn("Both nomisId and ndeliusId are provided - exactly one is required")
+    @Test
+    fun `createSubjectAccessRequest post returns http error if both nomis and ndelius ids are provided`() {
+      Mockito.`when`(authentication.name).thenReturn("aName")
+      val ndeliusAndNomisRequest = "{ " +
+        "dateFrom: '01/12/2023', " +
+        "dateTo: '03/01/2024', " +
+        "sarCaseReferenceNumber: '1234abc', " +
+        "services: '{1,2,4}', " +
+        "nomisId: null, " +
+        "ndeliusId: '1' " +
+        "}"
+      Mockito.`when`(sarService.createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime))
+        .thenReturn("Both nomisId and ndeliusId are provided - exactly one is required")
 
-    val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
-      .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
+      val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
 
-    verify(sarService, times(1)).createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
-    val expected: ResponseEntity<String> =
-      ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
-    Assertions.assertThat(response).isEqualTo(expected)
-  }
+      verify(sarService, times(1)).createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
+      val expected: ResponseEntity<String> =
+        ResponseEntity("Both nomisId and ndeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
+      Assertions.assertThat(response).isEqualTo(expected)
+    }
 
-  @Test
-  fun `createSubjectAccessRequest post returns http error if neither nomis nor ndelius ids are provided`() {
-    val noIDRequest = "{ " +
-      "dateFrom: '01/12/2023', " +
-      "dateTo: '03/01/2024', " +
-      "sarCaseReferenceNumber: '1234abc', " +
-      "services: '{1,2,4}', " +
-      "nomisId: null, " +
-      "ndeliusId: null " +
-      "}"
+    @Test
+    fun `createSubjectAccessRequest post returns http error if neither nomis nor ndelius ids are provided`() {
+      val noIDRequest = "{ " +
+        "dateFrom: '01/12/2023', " +
+        "dateTo: '03/01/2024', " +
+        "sarCaseReferenceNumber: '1234abc', " +
+        "services: '{1,2,4}', " +
+        "nomisId: null, " +
+        "ndeliusId: null " +
+        "}"
 
-    Mockito.`when`(sarService.createSubjectAccessRequest(noIDRequest, authentication, requestTime))
-      .thenReturn("Neither nomisId nor ndeliusId is provided - exactly one is required")
-    Mockito.`when`(authentication.name).thenReturn("mockUserName")
+      Mockito.`when`(sarService.createSubjectAccessRequest(noIDRequest, authentication, requestTime))
+        .thenReturn("Neither nomisId nor ndeliusId is provided - exactly one is required")
+      Mockito.`when`(authentication.name).thenReturn("mockUserName")
 
-    val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
-      .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
-    verify(sarService, times(1)).createSubjectAccessRequest(noIDRequest, authentication, requestTime)
-    val expected: ResponseEntity<String> =
-      ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
-    Assertions.assertThat(response).isEqualTo(expected)
+      val response = SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
+      verify(sarService, times(1)).createSubjectAccessRequest(noIDRequest, authentication, requestTime)
+      val expected: ResponseEntity<String> =
+        ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
+      Assertions.assertThat(response).isEqualTo(expected)
+    }
   }
 
   @Nested
