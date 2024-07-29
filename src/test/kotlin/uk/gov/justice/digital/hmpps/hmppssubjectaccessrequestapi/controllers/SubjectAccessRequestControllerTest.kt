@@ -37,6 +37,7 @@ class SubjectAccessRequestControllerTest {
     "nomisId: null, " +
     "ndeliusId: '1' " +
     "}"
+  private val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
 
   @Nested
   inner class CreateSubjectAccessRequest {
@@ -133,8 +134,6 @@ class SubjectAccessRequestControllerTest {
 
   @Nested
   inner class PatchSubjectAccessRequest {
-    private val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
-
     @Test
     fun `claimSubjectAccessRequest returns Bad Request if updateSubjectAccessRequest returns 0 with claim time update`() {
       Mockito.`when`(sarService.claimSubjectAccessRequest(eq(testUuid), any(LocalDateTime::class.java))).thenReturn(0)
@@ -182,17 +181,16 @@ class SubjectAccessRequestControllerTest {
 
   @Nested
   inner class GetReport {
-    private val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
-
     @Test
     fun `getReport returns 200 if service retrieveSubjectAccessRequestDocument returns a response`() {
       val mockByteArrayInputStream = Mockito.mock(ByteArrayInputStream::class.java)
       val mockStream = Flux.just(InputStreamResource(mockByteArrayInputStream))
-      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid))
+      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(sarId = eq(testUuid), downloadDateTime = any()))
         .thenReturn(ResponseEntity.ok().contentType(MediaType.parseMediaType("application/pdf")).body(mockStream))
 
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
-      verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
+
+      verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(sarId = eq(testUuid), downloadDateTime = any())
       Assertions.assertThat(result).isEqualTo(
         ResponseEntity.ok()
           .contentType(MediaType.parseMediaType("application/pdf"))
@@ -203,11 +201,11 @@ class SubjectAccessRequestControllerTest {
     @Test
     fun `getReport returns 404 if service retrieveSubjectAccessRequestDocument does not return a response`() {
       val errorMessage = "Report Not Found"
-      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(testUuid)).thenReturn(null)
+      Mockito.`when`(sarService.retrieveSubjectAccessRequestDocument(sarId = eq(testUuid), downloadDateTime = any())).thenReturn(null)
 
       val result = SubjectAccessRequestController(sarService, auditService, telemetryClient).getReport(testUuid)
 
-      verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(testUuid)
+      verify(sarService, times(1)).retrieveSubjectAccessRequestDocument(sarId = eq(testUuid), downloadDateTime = any())
       Assertions.assertThat(result).isEqualTo(
         ResponseEntity(errorMessage, HttpStatus.NOT_FOUND),
       )
