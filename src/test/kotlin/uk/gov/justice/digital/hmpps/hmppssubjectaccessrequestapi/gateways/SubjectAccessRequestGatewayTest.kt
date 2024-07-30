@@ -147,4 +147,17 @@ class SubjectAccessRequestGatewayTest {
       verify(sarRepository, times(1)).findUnclaimed(claimDateTime = requestTimeFormatted.minusMinutes(5))
     }
   }
+
+  @Nested
+  inner class UpdateLastDownloaded {
+    @Test
+    fun `calls updateLastDownloaded with correct parameters`() {
+      val downloadTime = LocalDateTime.parse("01/07/2024 00:00", dateTimeFormatter)
+
+      SubjectAccessRequestGateway(sarRepository)
+        .updateLastDownloadedDateTime(testUuid, downloadTime)
+
+      verify(sarRepository, times(1)).updateLastDownloaded(testUuid, downloadTime)
+    }
+  }
 }

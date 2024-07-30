@@ -33,6 +33,8 @@ class SubjectAccessRequestRepositoryTest {
   private val claimDateTimeFormatted = LocalDateTime.parse(claimDateTime, dateTimeFormatter)
   private val claimDateTimeEarlier = "30/01/2023 00:00"
   private val claimDateTimeEarlierFormatted = LocalDateTime.parse(claimDateTimeEarlier, dateTimeFormatter)
+  private val downloadDateTime = "01/06/2024 00:00"
+  private val downloadDateTimeFormatted = LocalDateTime.parse(downloadDateTime, dateTimeFormatter)
 
   val unclaimedSar = SubjectAccessRequest(
     id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
@@ -74,6 +76,7 @@ class SubjectAccessRequestRepositoryTest {
     requestDateTime = requestTimeFormatted,
     claimAttempts = 1,
     claimDateTime = claimDateTimeFormatted,
+    lastDownloaded = downloadDateTimeFormatted,
   )
   val sarWithPendingStatusClaimedEarlier = SubjectAccessRequest(
     id = UUID.fromString("44444444-4444-4444-4444-444444444444"),
@@ -295,6 +298,58 @@ class SubjectAccessRequestRepositoryTest {
 
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
       Assertions.assertThat(result).containsAll(allSars)
+    }
+  }
+
+  @Nested
+  inner class UpdateLastDownloaded {
+
+    val completedSar = SubjectAccessRequest(
+      id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
+      status = Status.Completed,
+      dateFrom = dateFromFormatted,
+      dateTo = dateToFormatted,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = requestTimeFormatted,
+      claimAttempts = 1,
+      claimDateTime = claimDateTimeFormatted,
+      lastDownloaded = downloadDateTimeFormatted,
+    )
+
+    @Test
+    fun `updates lastDownloaded`() {
+      databaseInsert()
+      val newDownloadDateTime = "02/06/2024 00:00"
+      val newDownloadDateTimeFormatted = LocalDateTime.parse(newDownloadDateTime, dateTimeFormatter)
+      val expectedUpdatedRecord = SubjectAccessRequest(
+        id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
+        status = Status.Completed,
+        dateFrom = dateFromFormatted,
+        dateTo = dateToFormatted,
+        sarCaseReferenceNumber = "1234abc",
+        services = "{1,2,4}",
+        nomisId = "",
+        ndeliusCaseReferenceId = "1",
+        requestedBy = "Test",
+        requestDateTime = requestTimeFormatted,
+        claimAttempts = 1,
+        claimDateTime = claimDateTimeFormatted,
+        lastDownloaded = newDownloadDateTimeFormatted,
+      )
+
+      val numberOfDbRecordsUpdated = sarRepository?.updateLastDownloaded(
+        completedSar.id,
+        newDownloadDateTimeFormatted,
+      )
+
+      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
+      Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
+      Assertions.assertThat(sarRepository?.getReferenceById(completedSar.id))
+        .isEqualTo(expectedUpdatedRecord)
     }
   }
 }
