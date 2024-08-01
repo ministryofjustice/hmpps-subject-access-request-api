@@ -510,11 +510,11 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  fun deleteSubjectAccessRequests(): ResponseEntity<String> {
+  fun deleteOldSubjectAccessRequests(): ResponseEntity<String> {
     telemetryClient.trackEvent(
-      "deleteSubjectAccessRequests",
+      "deleteOldSubjectAccessRequests",
     )
-    val response = subjectAccessRequestService.deleteSubjectAccessRequests()
+    val response = subjectAccessRequestService.deleteOldSubjectAccessRequests()
     return if (response == 0) {
       ResponseEntity(HttpStatus.BAD_REQUEST)
     } else {

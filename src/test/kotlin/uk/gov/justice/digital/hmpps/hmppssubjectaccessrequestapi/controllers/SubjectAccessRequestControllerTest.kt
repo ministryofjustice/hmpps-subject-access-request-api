@@ -285,12 +285,12 @@ class SubjectAccessRequestControllerTest {
   }
 
   @Nested
-  inner class DeleteSubjectAccessRequests : IntegrationTestBase() {
+  inner class DeleteOldSubjectAccessRequests : IntegrationTestBase() {
     @Test
     fun `deleteSubjectAccessRequests calls deleteSubjectAccessRequests`() {
       SubjectAccessRequestController(sarService, auditService, telemetryClient)
-        .deleteTotalSubjectAccessRequests()
-      verify(sarService, times(1)).deleteSubjectAccessRequests()
+        .deleteOldSubjectAccessRequests()
+      verify(sarService, times(1)).deleteOldSubjectAccessRequests()
     }
   }
 }

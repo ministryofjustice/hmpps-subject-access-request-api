@@ -80,6 +80,10 @@ class SubjectAccessRequestService(
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 
+  fun deleteOldSubjectAccessRequests(): Int {
+    return sarDbGateway.deleteOldSubjectAccessRequests()
+  }
+
   fun retrieveSubjectAccessRequestDocument(sarId: UUID, downloadDateTime: LocalDateTime? = LocalDateTime.now()): ResponseEntity<Flux<InputStreamResource>>? {
     val document = documentStorageGateway.retrieveDocument(sarId)
 
