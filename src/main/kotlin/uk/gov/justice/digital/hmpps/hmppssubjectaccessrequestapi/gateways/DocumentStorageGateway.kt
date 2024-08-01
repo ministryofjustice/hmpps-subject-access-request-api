@@ -33,4 +33,18 @@ class DocumentStorageGateway(
     log.info("Response from document storage service $response.")
     return if (response !== null) response else null
   }
+
+  fun deleteDocument(documentId: UUID): ResponseEntity<Flux<InputStreamResource>>? {
+    val token = hmppsAuthGateway.getClientToken()
+
+    val response = webClient.post().uri("/deleteDocument/$documentId")
+      .header("Authorization", "Bearer $token")
+      .header("Service-Name", "DPS-Subject-Access-Requests")
+      .retrieve()
+      .toEntityFlux(InputStreamResource::class.java)
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block()
+    log.info("Response from document storage service $response.")
+    return if (response !== null) response else null
+  }
 }

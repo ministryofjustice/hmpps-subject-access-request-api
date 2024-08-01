@@ -236,11 +236,20 @@ class SubjectAccessRequestServiceTest {
   @Nested
   inner class DeleteOldSubjectAccessRequests {
     @Test
-    fun `deleteOldSubjectAccessRequests calls SAR gateway deleteOldSubjectAccessRequests`() {
+    fun `deleteOldSubjectAccessRequests calls SAR gateway getOldSubjectAccessRequests`() {
       SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
 
       verify(sarGateway, times(1)).getOldSubjectAccessRequests()
-      // get old sars
+      // try to delete them from doc storage
+      // if successful, delete from database
+
+    }
+
+    @Test
+    fun `deleteOldSubjectAccessRequests calls document gateway deleteDocument`() {
+      Mockito.`when`(sarGateway.getOldSubjectAccessRequests()).thenReturn(listOf(sampleSAR))
+      SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
+      verify(documentGateway, times(1)).deleteDocument(UUID.fromString("11111111-1111-1111-1111-111111111111"))
       // try to delete them from doc storage
       // if successful, delete from database
 
