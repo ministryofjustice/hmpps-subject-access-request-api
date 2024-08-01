@@ -164,7 +164,7 @@ class SubjectAccessRequestGatewayTest {
   @Nested
   inner class DeleteOldSubjectAccessRequests {
     @Test
-    fun `calls deleteOldSubjectAccessRequests with 7 days threshold`() {
+    fun `calls findByRequestDateTimeBefore with 7 days threshold`() {
       val timeNow = LocalDateTime.now()
       SubjectAccessRequestGateway(sarRepository)
         .getOldSubjectAccessRequests(timeNow)

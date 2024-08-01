@@ -80,7 +80,7 @@ class SubjectAccessRequestService(
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
   }
 
-  fun getOldSubjectAccessRequests(): List<SubjectAccessRequest?> {
+  fun deleteOldSubjectAccessRequests(): List<SubjectAccessRequest?> {
     return sarDbGateway.getOldSubjectAccessRequests()
   }
 
