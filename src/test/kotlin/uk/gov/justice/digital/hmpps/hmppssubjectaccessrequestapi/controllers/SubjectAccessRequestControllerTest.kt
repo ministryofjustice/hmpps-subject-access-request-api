@@ -283,4 +283,14 @@ class SubjectAccessRequestControllerTest {
         .expectBody()
     }
   }
+
+  @Nested
+  inner class DeleteSubjectAccessRequests : IntegrationTestBase() {
+    @Test
+    fun `deleteSubjectAccessRequests calls deleteSubjectAccessRequests`() {
+      SubjectAccessRequestController(sarService, auditService, telemetryClient)
+        .deleteTotalSubjectAccessRequests()
+      verify(sarService, times(1)).deleteSubjectAccessRequests()
+    }
+  }
 }

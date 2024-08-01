@@ -461,6 +461,66 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ResponseEntity(HttpStatus.OK)
     }
   }
+
+  @PostMapping("deleteSubjectAccessRequests")
+  @Operation(
+    summary = "Delete old Subject Access Requests.",
+    description = "Delete old requests for a Subject Access Request report.",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Successfully deleted Subject Access Requests.",
+        content = [
+          Content(
+            mediaType = "application/json",
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden - user not authorised to create a Subject Access Request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Failed to delete Subject Access Requests.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  fun deleteSubjectAccessRequests(): ResponseEntity<String> {
+    telemetryClient.trackEvent(
+      "deleteSubjectAccessRequests",
+    )
+    val response = subjectAccessRequestService.deleteSubjectAccessRequests()
+    return if (response == 0) {
+      ResponseEntity(HttpStatus.BAD_REQUEST)
+    } else {
+      ResponseEntity(HttpStatus.OK)
+    }
+  }
 }
 
 @Serializable
