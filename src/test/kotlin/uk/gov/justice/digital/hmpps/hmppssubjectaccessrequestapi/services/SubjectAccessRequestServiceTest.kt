@@ -214,6 +214,13 @@ class SubjectAccessRequestServiceTest {
       verify(documentGateway, times(1)).retrieveDocument(mockUUID)
       Assertions.assertThat(result).isEqualTo(null)
     }
+
+    @Test
+    fun `retrieveSubjectAccessRequestDocument calls SAR gateway updateLastDownloadedDateTime method with id and dateTime`() {
+      SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID, formattedMockedCurrentTime)
+
+      verify(sarGateway, times(1)).updateLastDownloadedDateTime(mockUUID, formattedMockedCurrentTime)
+    }
   }
 
   @Nested
