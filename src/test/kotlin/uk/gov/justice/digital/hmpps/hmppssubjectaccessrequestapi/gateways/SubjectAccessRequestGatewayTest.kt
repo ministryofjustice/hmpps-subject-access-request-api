@@ -160,4 +160,15 @@ class SubjectAccessRequestGatewayTest {
       verify(sarRepository, times(1)).updateLastDownloaded(testUuid, downloadTime)
     }
   }
+
+  @Nested
+  inner class DeleteOldSubjectAccessRequests {
+    @Test
+    fun `calls deleteOldSubjectAccessRequests`() {
+      SubjectAccessRequestGateway(sarRepository)
+        .deleteOldSubjectAccessRequests()
+
+      verify(sarRepository, times(1)).deleteOldSubjectAccessRequests()
+    }
+  }
 }

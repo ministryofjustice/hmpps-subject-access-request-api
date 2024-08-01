@@ -232,4 +232,14 @@ class SubjectAccessRequestServiceTest {
       verify(sarGateway, times(1)).getSubjectAccessRequests(eq(true), eq("testSearchString"), eq(1), eq(1), any())
     }
   }
+
+  @Nested
+  inner class DeleteOldSubjectAccessRequests {
+    @Test
+    fun `deleteOldSubjectAccessRequests calls SAR gateway deleteOldSubjectAccessRequests`() {
+      SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
+
+      verify(sarGateway, times(1)).deleteOldSubjectAccessRequests()
+    }
+  }
 }
