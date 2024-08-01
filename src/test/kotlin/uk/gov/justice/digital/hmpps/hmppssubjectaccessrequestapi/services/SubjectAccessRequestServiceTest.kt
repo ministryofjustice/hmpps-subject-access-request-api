@@ -256,7 +256,8 @@ class SubjectAccessRequestServiceTest {
     fun `deleteOldSubjectAccessRequests calls SAR DB gateway deleteSubjectAccessRequest`() {
       Mockito.`when`(sarGateway.getOldSubjectAccessRequests(any())).thenReturn(listOf(sampleSAR))
       Mockito.`when`(documentGateway.deleteDocument(UUID.fromString("11111111-1111-1111-1111-111111111111"))).thenReturn(
-        HttpStatus.NOT_FOUND)
+        HttpStatus.NOT_FOUND,
+      )
       SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
 
       verify(sarGateway, times(1)).deleteSubjectAccessRequest(UUID.fromString("11111111-1111-1111-1111-111111111111"))
