@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
+import org.springframework.data.jpa.domain.AbstractPersistable_.id
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -84,6 +86,9 @@ class SubjectAccessRequestService(
     val oldSubjectAccessRequests = sarDbGateway.getOldSubjectAccessRequests()
     for (oldSubjectAccessRequest in oldSubjectAccessRequests) {
       val response = documentStorageGateway.deleteDocument(oldSubjectAccessRequest!!.id)
+      if (response?.statusCode == HttpStatus.OK) {
+        sarDbGateway.deleteSubjectAccessRequest(oldSubjectAccessRequest.id)
+      }
     }
     return 0
   }
