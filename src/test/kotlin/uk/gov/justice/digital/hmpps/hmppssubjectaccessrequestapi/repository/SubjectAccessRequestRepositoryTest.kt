@@ -352,4 +352,12 @@ class SubjectAccessRequestRepositoryTest {
         .isEqualTo(expectedUpdatedRecord)
     }
   }
+
+  @Nested
+  inner class DeleteOldSubjectAccessRequests {
+    @Test
+    fun `deletes old subjectAccessRequests`() {
+      databaseInsert()
+    }
+  }
 }

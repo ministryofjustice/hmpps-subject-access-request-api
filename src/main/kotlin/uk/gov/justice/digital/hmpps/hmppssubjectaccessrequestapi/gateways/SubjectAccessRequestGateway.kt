@@ -47,6 +47,7 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
   }
 
   fun deleteOldSubjectAccessRequests(): Int {
-    return repo.deleteOldSubjectAccessRequests()
+
+    return repo.deleteSubjectAccessRequestsOlderThan(7)
   }
 }

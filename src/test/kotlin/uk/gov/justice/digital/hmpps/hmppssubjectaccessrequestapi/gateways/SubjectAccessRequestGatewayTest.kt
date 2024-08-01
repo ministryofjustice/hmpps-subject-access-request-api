@@ -164,11 +164,11 @@ class SubjectAccessRequestGatewayTest {
   @Nested
   inner class DeleteOldSubjectAccessRequests {
     @Test
-    fun `calls deleteOldSubjectAccessRequests`() {
+    fun `calls deleteOldSubjectAccessRequests with 7 days threshold`() {
       SubjectAccessRequestGateway(sarRepository)
         .deleteOldSubjectAccessRequests()
 
-      verify(sarRepository, times(1)).deleteOldSubjectAccessRequests()
+      verify(sarRepository, times(1)).deleteSubjectAccessRequestsOlderThan(7)
     }
   }
 }
