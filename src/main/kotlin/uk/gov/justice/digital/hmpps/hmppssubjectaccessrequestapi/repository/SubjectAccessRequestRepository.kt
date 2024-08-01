@@ -59,4 +59,5 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
 //
   fun findByRequestDateTimeBefore(thresholdTime: LocalDateTime): List<SubjectAccessRequest?>
 
+
 }

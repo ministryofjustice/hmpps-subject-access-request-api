@@ -10,6 +10,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.springframework.core.io.InputStreamResource
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
@@ -240,9 +241,6 @@ class SubjectAccessRequestServiceTest {
       SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
 
       verify(sarGateway, times(1)).getOldSubjectAccessRequests()
-      // try to delete them from doc storage
-      // if successful, delete from database
-
     }
 
     @Test
@@ -252,7 +250,19 @@ class SubjectAccessRequestServiceTest {
       verify(documentGateway, times(1)).deleteDocument(UUID.fromString("11111111-1111-1111-1111-111111111111"))
       // try to delete them from doc storage
       // if successful, delete from database
+    }
 
+    @Test
+    fun `deleteOldSubjectAccessRequests calls SAR DB gateway deleteSubjectAccessRequest`() {
+      Mockito.`when`(sarGateway.getOldSubjectAccessRequests()).thenReturn(listOf(sampleSAR))
+      val mockByteArrayInputStream = Mockito.mock(ByteArrayInputStream::class.java)
+      val mockStream = Flux.just(InputStreamResource(mockByteArrayInputStream))
+      Mockito.`when`(documentGateway.deleteDocument(UUID.fromString("11111111-1111-1111-1111-111111111111"))).thenReturn(
+        ResponseEntity.ok().body(mockStream))
+      SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
+      verify(sarGateway, times(1)).deleteSubjectAccessRequest(UUID.fromString("11111111-1111-1111-1111-111111111111"))
+      // try to delete them from doc storage
+      // if successful, delete from database
     }
   }
 }
