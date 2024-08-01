@@ -86,7 +86,7 @@ class SubjectAccessRequestService(
     val oldSubjectAccessRequests = sarDbGateway.getOldSubjectAccessRequests()
     for (oldSubjectAccessRequest in oldSubjectAccessRequests) {
       val response = documentStorageGateway.deleteDocument(oldSubjectAccessRequest!!.id)
-      if (response?.statusCode == HttpStatus.NOT_FOUND || response?.statusCode == HttpStatus.NO_CONTENT) {
+      if (response == HttpStatus.NOT_FOUND || response == HttpStatus.NO_CONTENT) {
         sarDbGateway.deleteSubjectAccessRequest(oldSubjectAccessRequest.id)
       }
     }
