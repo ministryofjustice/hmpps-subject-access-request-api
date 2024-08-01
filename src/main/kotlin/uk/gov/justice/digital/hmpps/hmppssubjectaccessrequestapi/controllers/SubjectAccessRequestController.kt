@@ -471,7 +471,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Successfully deleted Subject Access Requests.",
+        description = "Successfully deleted old Subject Access Requests.",
         content = [
           Content(
             mediaType = "application/json",
@@ -480,7 +480,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
       ApiResponse(
         responseCode = "403",
-        description = "Forbidden - user not authorised to create a Subject Access Request.",
+        description = "Forbidden - user not authorised to delete Subject Access Requests.",
         content = [
           Content(
             mediaType = "application/json",
@@ -490,7 +490,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
       ApiResponse(
         responseCode = "404",
-        description = "Failed to delete Subject Access Requests.",
+        description = "Failed to delete old Subject Access Requests.",
         content = [
           Content(
             mediaType = "application/json",
