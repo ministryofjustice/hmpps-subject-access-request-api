@@ -167,11 +167,11 @@ class SubjectAccessRequestGatewayTest {
     fun `calls deleteOldSubjectAccessRequests with 7 days threshold`() {
       val timeNow = LocalDateTime.now()
       SubjectAccessRequestGateway(sarRepository)
-        .deleteOldSubjectAccessRequests(timeNow)
+        .getOldSubjectAccessRequests(timeNow)
 
       val thresholdTime = timeNow.minusDays(7)
 
-      verify(sarRepository, times(1)).deleteSubjectAccessRequestsOlderThan(thresholdTime)
+      verify(sarRepository, times(1)).findByRequestDateTimeBefore(thresholdTime)
     }
   }
 }

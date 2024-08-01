@@ -50,10 +50,13 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
   )
   fun updateLastDownloaded(@Param("id") id: UUID, @Param("downloadDateTime") downloadDateTime: LocalDateTime): Int
 
-  @Modifying(clearAutomatically = true, flushAutomatically = true)
-  @Query(
-    "DELETE SubjectAccessRequest report " +
-      "WHERE report.requestDateTime < :thresholdTime ",
-  )
-  fun deleteSubjectAccessRequestsOlderThan(thresholdTime: LocalDateTime): Int
+//  @Modifying(clearAutomatically = true, flushAutomatically = true)
+//  @Query(
+//    "DELETE SubjectAccessRequest report " +
+//      "WHERE report.requestDateTime < :thresholdTime ",
+//  )
+//  fun deleteSubjectAccessRequestsOlderThan(thresholdTime: LocalDateTime): Int
+//
+  fun findByRequestDateTimeBefore(thresholdTime: LocalDateTime): List<SubjectAccessRequest?>
+
 }

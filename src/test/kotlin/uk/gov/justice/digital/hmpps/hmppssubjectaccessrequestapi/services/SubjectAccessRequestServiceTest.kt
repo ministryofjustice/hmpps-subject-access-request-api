@@ -237,9 +237,13 @@ class SubjectAccessRequestServiceTest {
   inner class DeleteOldSubjectAccessRequests {
     @Test
     fun `deleteOldSubjectAccessRequests calls SAR gateway deleteOldSubjectAccessRequests`() {
-      SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
+      SubjectAccessRequestService(sarGateway, documentGateway).getOldSubjectAccessRequests()
 
-      verify(sarGateway, times(1)).deleteOldSubjectAccessRequests(any())
+      verify(sarGateway, times(1)).getOldSubjectAccessRequests()
+      // get old sars
+      // try to delete them from doc storage
+      // if successful, delete from database
+
     }
   }
 }
