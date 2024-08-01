@@ -37,7 +37,7 @@ class DocumentStorageGateway(
   fun deleteDocument(documentId: UUID): ResponseEntity<Flux<InputStreamResource>>? {
     val token = hmppsAuthGateway.getClientToken()
 
-    val response = webClient.post().uri("/deleteDocument/$documentId")
+    val response = webClient.delete().uri("/documents/$documentId")
       .header("Authorization", "Bearer $token")
       .header("Service-Name", "DPS-Subject-Access-Requests")
       .retrieve()
