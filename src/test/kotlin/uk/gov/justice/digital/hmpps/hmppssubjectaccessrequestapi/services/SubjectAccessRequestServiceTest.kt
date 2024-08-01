@@ -239,7 +239,7 @@ class SubjectAccessRequestServiceTest {
     fun `deleteOldSubjectAccessRequests calls SAR gateway deleteOldSubjectAccessRequests`() {
       SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
 
-      verify(sarGateway, times(1)).deleteOldSubjectAccessRequests()
+      verify(sarGateway, times(1)).deleteOldSubjectAccessRequests(any())
     }
   }
 }

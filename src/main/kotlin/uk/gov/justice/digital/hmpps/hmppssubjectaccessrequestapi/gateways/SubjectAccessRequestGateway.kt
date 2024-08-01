@@ -47,7 +47,7 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
   }
 
   fun deleteOldSubjectAccessRequests(timeNow: LocalDateTime? = LocalDateTime.now()): Int {
-    val thresholdTime: LocalDateTime = timeNow ?: LocalDateTime.now().minusDays(7)
+    val thresholdTime: LocalDateTime = timeNow!!.minusDays(7)
     return repo.deleteSubjectAccessRequestsOlderThan(thresholdTime)
   }
 }
