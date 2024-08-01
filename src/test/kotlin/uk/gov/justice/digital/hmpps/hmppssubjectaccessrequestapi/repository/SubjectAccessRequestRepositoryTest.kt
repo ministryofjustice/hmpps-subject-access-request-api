@@ -355,9 +355,15 @@ class SubjectAccessRequestRepositoryTest {
 
   @Nested
   inner class DeleteOldSubjectAccessRequests {
+
     @Test
     fun `deletes old subjectAccessRequests`() {
       databaseInsert()
+      val thresholdTime = "30/02/2024 00:00"
+      val thresholdTimeFormatted = LocalDateTime.parse(thresholdTime, dateTimeFormatter)
+      sarRepository?.deleteSubjectAccessRequestsOlderThan(thresholdTimeFormatted)
+      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(1)
+      Assertions.assertThat(sarRepository?.findAll()?.contains(sarWithSearchableNdeliusId))
     }
   }
 }
