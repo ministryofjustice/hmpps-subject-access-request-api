@@ -462,7 +462,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     }
   }
 
-  @PostMapping("deleteSubjectAccessRequests")
+  @PostMapping("deleteOldSubjectAccessRequests")
   @Operation(
     summary = "Delete old Subject Access Requests.",
     description = "Delete old requests for a Subject Access Request report.",
