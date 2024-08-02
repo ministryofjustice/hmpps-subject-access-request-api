@@ -49,4 +49,6 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
       "WHERE (report.id = :id)",
   )
   fun updateLastDownloaded(@Param("id") id: UUID, @Param("downloadDateTime") downloadDateTime: LocalDateTime): Int
+
+  fun findByRequestDateTimeBefore(thresholdTime: LocalDateTime): List<SubjectAccessRequest?>
 }

@@ -10,6 +10,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.springframework.core.io.InputStreamResource
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
@@ -230,6 +231,36 @@ class SubjectAccessRequestServiceTest {
       SubjectAccessRequestService(sarGateway, documentGateway).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
 
       verify(sarGateway, times(1)).getSubjectAccessRequests(eq(true), eq("testSearchString"), eq(1), eq(1), any())
+    }
+  }
+
+  @Nested
+  inner class DeleteOldSubjectAccessRequests {
+    @Test
+    fun `deleteOldSubjectAccessRequests calls SAR gateway getOldSubjectAccessRequests`() {
+      SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
+
+      verify(sarGateway, times(1)).getOldSubjectAccessRequests(any())
+    }
+
+    @Test
+    fun `deleteOldSubjectAccessRequests calls document gateway deleteDocument`() {
+      Mockito.`when`(sarGateway.getOldSubjectAccessRequests(any())).thenReturn(listOf(sampleSAR))
+      Mockito.`when`(documentGateway.deleteDocument(UUID.fromString("11111111-1111-1111-1111-111111111111"))).thenReturn(HttpStatus.NO_CONTENT)
+      SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
+
+      verify(documentGateway, times(1)).deleteDocument(UUID.fromString("11111111-1111-1111-1111-111111111111"))
+    }
+
+    @Test
+    fun `deleteOldSubjectAccessRequests calls SAR DB gateway deleteSubjectAccessRequest`() {
+      Mockito.`when`(sarGateway.getOldSubjectAccessRequests(any())).thenReturn(listOf(sampleSAR))
+      Mockito.`when`(documentGateway.deleteDocument(UUID.fromString("11111111-1111-1111-1111-111111111111"))).thenReturn(
+        HttpStatus.NOT_FOUND,
+      )
+      SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
+
+      verify(sarGateway, times(1)).deleteSubjectAccessRequest(UUID.fromString("11111111-1111-1111-1111-111111111111"))
     }
   }
 }

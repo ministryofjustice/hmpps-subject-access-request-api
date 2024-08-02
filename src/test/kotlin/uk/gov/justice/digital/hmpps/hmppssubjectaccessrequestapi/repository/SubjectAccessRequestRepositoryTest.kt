@@ -352,4 +352,17 @@ class SubjectAccessRequestRepositoryTest {
         .isEqualTo(expectedUpdatedRecord)
     }
   }
+
+  @Nested
+  inner class FindByRequestDateTimeBefore {
+
+    @Test
+    fun `finds old subjectAccessRequests`() {
+      databaseInsert()
+      val thresholdTime = "30/02/2024 00:00"
+      val thresholdTimeFormatted = LocalDateTime.parse(thresholdTime, dateTimeFormatter)
+      val oldSars = sarRepository?.findByRequestDateTimeBefore(thresholdTimeFormatted)
+      Assertions.assertThat(oldSars!!.size).isEqualTo(5)
+    }
+  }
 }

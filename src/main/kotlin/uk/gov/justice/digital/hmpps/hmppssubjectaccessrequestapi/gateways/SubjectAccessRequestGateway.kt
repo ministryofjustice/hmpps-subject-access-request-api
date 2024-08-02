@@ -45,4 +45,13 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
   fun updateLastDownloadedDateTime(id: UUID, downloadTime: LocalDateTime): Int {
     return repo.updateLastDownloaded(id, downloadTime)
   }
+
+  fun getOldSubjectAccessRequests(timeNow: LocalDateTime? = LocalDateTime.now()): List<SubjectAccessRequest?> {
+    val thresholdTime: LocalDateTime = timeNow!!.minusDays(7)
+    return repo.findByRequestDateTimeBefore(thresholdTime)
+  }
+
+  fun deleteSubjectAccessRequest(id: UUID) {
+    repo.deleteById(id)
+  }
 }
