@@ -257,34 +257,34 @@ class SubjectAccessRequestRepositoryTest {
   @Nested
   inner class FindBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining {
     @Test
-    fun `findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining returns only SAR entries where the given string is contained within the entry and paginates`() {
+    fun `findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase returns only SAR entries where the given string is contained within the entry and paginates`() {
       val expectedSearchResult: List<SubjectAccessRequest> = listOf(sarWithSearchableCaseReference)
 
       databaseInsert()
 
-      val result = sarRepository?.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining("test", "test", "test", PageRequest.of(1, 1, Sort.by("RequestDateTime").descending()))?.content
+      val result = sarRepository?.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("test", "test", "test", PageRequest.of(1, 1, Sort.by("RequestDateTime").descending()))?.content
 
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
       Assertions.assertThat(result).isEqualTo(expectedSearchResult)
     }
 
     @Test
-    fun `findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining returns all entries containing given string sorted on request date when unpaged`() {
+    fun `findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase returns all entries containing given string sorted on request date when unpaged`() {
       val expectedSearchResult: List<SubjectAccessRequest> = listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
 
       databaseInsert()
 
-      val result = sarRepository?.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining("test", "test", "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))?.content
+      val result = sarRepository?.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("test", "test", "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))?.content
 
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
       Assertions.assertThat(result).isEqualTo(expectedSearchResult)
     }
 
     @Test
-    fun `findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining returns all SAR entries when searching on blank strings`() {
+    fun `findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase returns all SAR entries when searching on blank strings`() {
       databaseInsert()
 
-      val result = sarRepository?.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(
+      val result = sarRepository?.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(
         "",
         "",
         "",
@@ -295,6 +295,18 @@ class SubjectAccessRequestRepositoryTest {
 
       Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
       Assertions.assertThat(result).containsAll(allSars)
+    }
+
+    @Test
+    fun `findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase is case insensitive`() {
+      val expectedSearchResult: List<SubjectAccessRequest> = listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
+
+      databaseInsert()
+
+      val result = sarRepository?.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("TEST", "TEST", "TEST", Pageable.unpaged(Sort.by("RequestDateTime").descending()))?.content
+
+      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
+      Assertions.assertThat(result).isEqualTo(expectedSearchResult)
     }
   }
 }
