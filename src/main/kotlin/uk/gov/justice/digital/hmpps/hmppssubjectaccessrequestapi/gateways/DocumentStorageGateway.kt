@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.InputStreamResource
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -32,5 +33,19 @@ class DocumentStorageGateway(
       .block()
     log.info("Response from document storage service $response.")
     return if (response !== null) response else null
+  }
+
+  fun deleteDocument(documentId: UUID): HttpStatusCode? {
+    val token = hmppsAuthGateway.getClientToken()
+
+    val response = webClient.delete().uri("/documents/$documentId")
+      .header("Authorization", "Bearer $token")
+      .header("Service-Name", "DPS-Subject-Access-Requests")
+      .retrieve()
+      .toEntityFlux(InputStreamResource::class.java)
+      .onErrorResume(WebClientResponseException.NotFound::class.java) { Mono.empty() }
+      .block()
+    log.info("Response from document storage service $response.")
+    return if (response !== null) response.statusCode else null
   }
 }
