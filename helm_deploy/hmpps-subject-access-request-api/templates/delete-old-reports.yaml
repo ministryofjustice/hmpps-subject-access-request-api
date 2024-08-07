@@ -18,7 +18,7 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl --retry 1 -X POST "https://{{ Values.generic-service.ingress.host }}/api/deleteOldSubjectAccessRequests"
+                - curl --retry 1 -X POST "https://{{ .Values.generic-service.ingress.host }}/api/deleteOldSubjectAccessRequests"
               securityContext:
                 capabilities:
                   drop:
