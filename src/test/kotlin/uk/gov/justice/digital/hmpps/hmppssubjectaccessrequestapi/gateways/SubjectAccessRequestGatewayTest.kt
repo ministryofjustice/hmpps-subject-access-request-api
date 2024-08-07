@@ -93,47 +93,47 @@ class SubjectAccessRequestGatewayTest {
   @Nested
   inner class GetSubjectAccessRequests {
     @Test
-    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining with no search or pagination when no arguments are given`() {
-      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
+    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase with no search or pagination when no arguments are given`() {
+      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
         Page.empty(),
       )
 
       SubjectAccessRequestGateway(sarRepository).getSubjectAccessRequests(false, "", null, null)
 
-      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", Pageable.unpaged(Sort.by("RequestDateTime").descending()))
+      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", Pageable.unpaged(Sort.by("RequestDateTime").descending()))
     }
 
     @Test
-    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with search string`() {
-      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
+    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase method with search string`() {
+      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
         Page.empty(),
       )
 
       SubjectAccessRequestGateway(sarRepository).getSubjectAccessRequests(false, "test", null, null)
 
-      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))
+      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))
     }
 
     @Test
-    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with requestDateTime-sorted pagination`() {
-      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
+    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase method with requestDateTime-sorted pagination`() {
+      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
         Page.empty(),
       )
 
       SubjectAccessRequestGateway(sarRepository).getSubjectAccessRequests(false, "", 0, 1)
 
-      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
+      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
     }
 
     @Test
-    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining method with search string and requestDateTime-sorted pagination`() {
-      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
+    fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase method with search string and requestDateTime-sorted pagination`() {
+      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
         Page.empty(),
       )
 
       SubjectAccessRequestGateway(sarRepository).getSubjectAccessRequests(false, "test", 0, 1)
 
-      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
+      verify(sarRepository, times(1)).findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))
     }
 
     @Test

@@ -23,7 +23,8 @@ class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepos
     if (pageNumber != null && pageSize != null) {
       pagination = PageRequest.of(pageNumber, pageSize, Sort.by("RequestDateTime").descending())
     }
-    return repo.findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch = search, nomisSearch = search, ndeliusSearch = search, pagination = pagination).content
+
+    return repo.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = search, nomisSearch = search, ndeliusSearch = search, pagination = pagination).content
   }
 
   fun saveSubjectAccessRequest(sar: SubjectAccessRequest) {
