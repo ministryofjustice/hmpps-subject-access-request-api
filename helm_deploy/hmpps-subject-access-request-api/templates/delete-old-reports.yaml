@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: purge-inactive-users-cronjob
+  name: delete-old-reports-cronjob
 spec:
   schedule: "@hourly"
   concurrencyPolicy: Forbid
@@ -19,12 +19,3 @@ spec:
                 - /bin/sh
                 - -c
                 - curl --retry 1 -X POST https://subject-access-request-api-dev.hmpps.service.justice.gov.uk/api/deleteOldSubjectAccessRequests
-              securityContext:
-                capabilities:
-                  drop:
-                    - ALL
-                runAsNonRoot: true
-                allowPrivilegeEscalation: false
-                seccompProfile:
-                  type: RuntimeDefault
-          restartPolicy: Never
