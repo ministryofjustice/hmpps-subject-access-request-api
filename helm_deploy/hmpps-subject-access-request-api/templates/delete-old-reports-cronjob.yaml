@@ -20,7 +20,7 @@ spec:
               volumeMounts:
                 - name: script-volume
                   mountPath: /scripts
-              command: ["/script/delete-old-reports.sh"]
+              command: ["/scripts/delete-old-reports.sh"]
               env:
               - name: SYSTEM_CLIENT_ID
                 valueFrom:
