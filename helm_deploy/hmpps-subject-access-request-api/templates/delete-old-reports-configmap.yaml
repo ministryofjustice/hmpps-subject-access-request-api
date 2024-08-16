@@ -4,6 +4,7 @@ metadata:
   name: script-configmap
 data:
   delete-old-reports.sh: |
+    #!/bin/bash
     echo "Starting script"
     auth_response_role=$(curl -X POST https://sign-in-dev.hmpps.service.justice.gov.uk/auth/oauth/token?grant_type=client_credentials \ -H 'Content-Type: application/json' -H "Authorization: Basic $(echo -n $SYSTEM_CLIENT_ID:$SYSTEM_CLIENT_SECRET | base64 -w 0)" --http1.1)
     role_token=$( echo $auth_response_role | grep "\"access_token\":*" | awk -F\: '{print $2}' | awk -F\, '{print $1}' | sed 's/"//g')
