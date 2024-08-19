@@ -24,7 +24,7 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
   )
   fun findUnclaimed(@Param("claimDateTime") claimDateTime: LocalDateTime): List<SubjectAccessRequest?>
 
-  fun findBySarCaseReferenceNumberContainingOrNomisIdContainingOrNdeliusCaseReferenceIdContaining(caseReferenceSearch: String, nomisSearch: String, ndeliusSearch: String, pagination: Pageable): Page<SubjectAccessRequest?>
+  fun findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch: String, nomisSearch: String, ndeliusSearch: String, pagination: Pageable): Page<SubjectAccessRequest?>
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
