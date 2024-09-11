@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.services
 
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.jpa.domain.AbstractPersistable_.id
@@ -23,6 +24,7 @@ class SubjectAccessRequestService(
   @Autowired val sarDbGateway: SubjectAccessRequestGateway,
   @Autowired val documentStorageGateway: DocumentStorageGateway,
 ) {
+  private val log = LoggerFactory.getLogger(this::class.java)
 
   fun createSubjectAccessRequest(
     request: String,
@@ -94,10 +96,11 @@ class SubjectAccessRequestService(
   }
 
   fun retrieveSubjectAccessRequestDocument(sarId: UUID, downloadDateTime: LocalDateTime? = LocalDateTime.now()): ResponseEntity<Flux<InputStreamResource>>? {
+    log.info("Retrieving document in service")
     val document = documentStorageGateway.retrieveDocument(sarId)
-
+    log.info("Retrieved document")
     sarDbGateway.updateLastDownloadedDateTime(sarId, downloadDateTime!!)
-
+    log.info("Updated download time")
     return document
   }
 }
