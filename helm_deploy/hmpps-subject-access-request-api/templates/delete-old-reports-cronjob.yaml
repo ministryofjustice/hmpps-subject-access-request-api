@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: delete-old-reports-cronjob
+  annotations:
+    meta.helm.sh/release-namespace: hmpps-subject-access-request-dev
+    meta.helm.sh/release-name: hmpps-subject-access-request-api
+  labels:
+    app.kubernetes.io/managed-by: Helm
+spec:
+  schedule: "0 9 * * *"
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: hmpps-subject-access-request-api
+          restartPolicy: Never
+          containers:
+            - name: delete-old-reports
+              image: ghcr.io/ministryofjustice/hmpps-devops-tools
+              volumeMounts:
+                - name: script-volume
+                  mountPath: /scripts
+              command: ["/scripts/delete-old-reports.sh"]
+              env:
+              - name: SYSTEM_CLIENT_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: hmpps-subject-access-request-worker
+                    key: SYSTEM_CLIENT_ID
+              - name: SYSTEM_CLIENT_SECRET
+                valueFrom:
+                  secretKeyRef:
+                    name: hmpps-subject-access-request-worker
+                    key: SYSTEM_CLIENT_SECRET
+              securityContext:
+                capabilities:
+                  drop:
+                    - ALL
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
+                seccompProfile:
+                  type: RuntimeDefault
+          volumes:
+            - name: script-volume
+              configMap:
+                name: script-configmap
+                defaultMode: 0777

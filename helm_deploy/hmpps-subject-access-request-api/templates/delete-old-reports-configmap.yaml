@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: script-configmap
+  annotations:
+    meta.helm.sh/release-namespace: hmpps-subject-access-request-dev
+    meta.helm.sh/release-name: hmpps-subject-access-request-api
+  labels:
+    app.kubernetes.io/managed-by: Helm
+data:
+  delete-old-reports.sh: |
+    #!/bin/bash
+    echo "Starting script"
+    auth_response_role=$(curl -X POST https://sign-in-dev.hmpps.service.justice.gov.uk/auth/oauth/token?grant_type=client_credentials \ -H 'Content-Type: application/json' -H "Authorization: Basic $(echo -n $SYSTEM_CLIENT_ID:$SYSTEM_CLIENT_SECRET | base64 -w 0)" --http1.1)
+    role_token=$( echo $auth_response_role | grep "\"access_token\":*" | awk -F\: '{print $2}' | awk -F\, '{print $1}' | sed 's/"//g')
+    echo "Deleting reports"
+    curl -X POST "https://subject-access-request-api-dev.hmpps.service.justice.gov.uk/api/deleteOldSubjectAccessRequests" --header "Authorization: Bearer $role_token" -H "Content-Type: application/json"
