@@ -18,7 +18,7 @@ class DocumentStorageGateway(
   @Autowired val hmppsAuthGateway: HmppsAuthGateway,
   @Value("\${services.document-storage.base-url}") hmppsDocumentApiUrl: String,
 ) {
-  private val webClient: WebClient = WebClient.builder().baseUrl(hmppsDocumentApiUrl).build()
+  private val webClient: WebClient = WebClient.builder().baseUrl(hmppsDocumentApiUrl).codecs { configurer -> configurer.defaultCodecs().maxInMemorySize(3932160) }.build()
   private val log = LoggerFactory.getLogger(this::class.java)
 
   fun retrieveDocument(documentId: UUID): ResponseEntity<Flux<InputStreamResource>>? {
