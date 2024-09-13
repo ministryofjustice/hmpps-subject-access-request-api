@@ -8,6 +8,11 @@ spring:
   codec:
     max-in-memory-size: 10MB
 
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
   flyway:
     enabled: true
     locations: classpath:db/migration
