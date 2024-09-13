@@ -14,6 +14,7 @@ import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -349,6 +350,14 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     log.info("Retrieving report for ID $id.")
     val docResponse = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)
     log.info("Retrieved document")
+    if (docResponse == null) {
+      log.info("Null docResponse")
+    }
+    if (docResponse?.body == null) {
+      log.info("Null docResponse.body")
+    }
+    log.info(docResponse.toString())
+    log.info(docResponse?.body.toString())
     val fileStream = docResponse?.body?.blockFirst()
     log.info("Extracted file stream")
     if (docResponse === null) {
