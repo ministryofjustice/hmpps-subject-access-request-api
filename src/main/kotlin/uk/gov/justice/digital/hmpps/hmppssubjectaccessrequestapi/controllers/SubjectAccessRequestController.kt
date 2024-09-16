@@ -348,19 +348,8 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<out Any?>? {
     log.info("Retrieving report for ID $id.")
     val docResponse = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)
-    log.info("Retrieved document")
-    if (docResponse == null) {
-      log.info("Null docResponse")
-    }
-    if (docResponse?.body == null) {
-      log.info("Null docResponse.body")
-    }
-    log.info(docResponse.toString())
-    log.info(docResponse?.body.toString())
     val fileStream = docResponse?.body?.blockFirst()
-    log.info("Extracted file stream")
     if (docResponse === null) {
-      log.info("No docResponse detected")
       return ResponseEntity("Report Not Found", HttpStatus.NOT_FOUND)
     }
     log.info("Retrieval successful.")
