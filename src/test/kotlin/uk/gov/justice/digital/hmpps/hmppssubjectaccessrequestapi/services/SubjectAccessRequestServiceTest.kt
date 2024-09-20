@@ -165,15 +165,15 @@ class SubjectAccessRequestServiceTest {
   inner class UpdateSubjectAccessRequest {
 
     @Test
-    fun `claimSubjectAccessRequest calls gateway update method with time 5 minutes ago`() {
+    fun `claimSubjectAccessRequest calls gateway update method with time 30 minutes ago`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
-      val fiveMinutesAgo = "02/01/2024 00:25"
-      val fiveMinutesAgoFormatted = LocalDateTime.parse(fiveMinutesAgo, dateTimeFormatter)
+      val thirtyMinutesAgo = "02/01/2024 00:00"
+      val thirtyMinutesAgoFormatted = LocalDateTime.parse(thirtyMinutesAgo, dateTimeFormatter)
       SubjectAccessRequestService(sarGateway, documentGateway)
         .claimSubjectAccessRequest(testUuid, formattedMockedCurrentTime)
       verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(
         testUuid,
-        fiveMinutesAgoFormatted,
+        thirtyMinutesAgoFormatted,
         formattedMockedCurrentTime,
       )
     }
