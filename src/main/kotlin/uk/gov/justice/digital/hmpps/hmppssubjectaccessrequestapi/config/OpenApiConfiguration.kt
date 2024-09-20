@@ -13,7 +13,7 @@ class OpenApiConfiguration {
   fun customConfiguration(): OpenAPI = OpenAPI()
     .servers(
       listOf(
-        Server().url("https://subject-access-request-prod.hmpps.service.justice.gov.uk")
+        Server().url("https://subject-access-request.hmpps.service.justice.gov.uk")
           .description("Production"),
         Server().url("https://subject-access-request-preprod.hmpps.service.justice.gov.uk")
           .description("Preproduction"),
