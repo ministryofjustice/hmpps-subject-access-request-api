@@ -76,7 +76,7 @@ class SubjectAccessRequestService(
   }
 
   fun claimSubjectAccessRequest(id: UUID, time: LocalDateTime? = LocalDateTime.now()): Int {
-    val thresholdTime = time!!.minusMinutes(5)
+    val thresholdTime = time!!.minusMinutes(30)
     return sarDbGateway.updateSubjectAccessRequestClaim(id, thresholdTime, time)
   }
 
