@@ -16,7 +16,7 @@ import java.util.*
 class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepository) {
   fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, pageNumber: Int?, pageSize: Int?, currentTime: LocalDateTime = LocalDateTime.now()): List<SubjectAccessRequest?> {
     if (unclaimedOnly) {
-      return repo.findUnclaimed(claimDateTime = currentTime.minusMinutes(5))
+      return repo.findUnclaimed(claimDateTime = currentTime.minusMinutes(30))
     }
 
     var pagination = Pageable.unpaged(Sort.by("RequestDateTime").descending())
