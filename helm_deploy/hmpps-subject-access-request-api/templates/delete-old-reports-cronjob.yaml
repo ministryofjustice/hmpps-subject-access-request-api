@@ -1,9 +1,10 @@
+{{- $genericService := index .Values "generic-service" -}}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: delete-old-reports-cronjob
   annotations:
-    meta.helm.sh/release-namespace: hmpps-subject-access-request-{{ .Values.generic-service.env.SENTRY_ENV }}
+    meta.helm.sh/release-namespace: "hmpps-subject-access-request-{{ include "generic-service.env.SENTRY_ENV" }}"
     meta.helm.sh/release-name: hmpps-subject-access-request-api
   labels:
     app.kubernetes.io/managed-by: Helm
