@@ -39,7 +39,7 @@ spec:
                     name: hmpps-subject-access-request-worker
                     key: SYSTEM_CLIENT_SECRET
               - name: HMPPS_AUTH_URL
-                value: {{ .Values.generic-service.env.HMPPS_AUTH_URL }}
+                value: "{{ include "generic-service.env.HMPPS_AUTH_URL" }}"
               - name: SAR_URL
                 value: {{ .Values.generic-service.ingress.host }}
               securityContext:
