@@ -41,7 +41,7 @@ spec:
               - name: HMPPS_AUTH_URL
                 value: "{{ include "generic-service.env.HMPPS_AUTH_URL" }}"
               - name: SAR_URL
-                value: {{ .Values.generic-service.ingress.host }}
+                value: "{{ include "generic-service.ingress.host" }}"
               securityContext:
                 capabilities:
                   drop:
