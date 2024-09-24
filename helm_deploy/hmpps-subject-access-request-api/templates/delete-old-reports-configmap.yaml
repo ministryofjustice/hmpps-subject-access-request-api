@@ -1,5 +1,3 @@
-{{- $genericService := index .Values "generic-service" -}}
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
