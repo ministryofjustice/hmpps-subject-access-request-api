@@ -5,7 +5,7 @@ kind: ConfigMap
 metadata:
   name: script-configmap
   annotations:
-    meta.helm.sh/release-namespace: "hmpps-subject-access-request-api-{{ $genericService.env.SENTRY_ENV }}"
+    meta.helm.sh/release-namespace: {{ .Release.namespace }}
     meta.helm.sh/release-name: hmpps-subject-access-request-api
   labels:
     app.kubernetes.io/managed-by: Helm
