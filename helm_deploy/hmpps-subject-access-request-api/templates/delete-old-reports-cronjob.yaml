@@ -5,7 +5,6 @@ kind: CronJob
 metadata:
   name: delete-old-reports-cronjob
   annotations:
-    meta.helm.sh/release-namespace: {{ .Release.namespace }}
     meta.helm.sh/release-name: hmpps-subject-access-request-api
   labels:
     app.kubernetes.io/managed-by: Helm
