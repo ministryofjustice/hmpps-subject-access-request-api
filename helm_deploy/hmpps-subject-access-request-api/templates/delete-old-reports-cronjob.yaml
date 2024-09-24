@@ -1,10 +1,11 @@
 {{- $genericService := index .Values "generic-service" -}}
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: delete-old-reports-cronjob
   annotations:
-    meta.helm.sh/release-namespace: "hmpps-subject-access-request-api-{{ include "generic-service.env.SENTRY_ENV" . }}"
+    meta.helm.sh/release-namespace: "hmpps-subject-access-request-api-{{ $genericService.env.SENTRY_ENV }}"
     meta.helm.sh/release-name: hmpps-subject-access-request-api
   labels:
     app.kubernetes.io/managed-by: Helm
@@ -39,9 +40,9 @@ spec:
                     name: hmpps-subject-access-request-worker
                     key: SYSTEM_CLIENT_SECRET
               - name: HMPPS_AUTH_URL
-                value: "{{ include "generic-service.env.HMPPS_AUTH_URL" . }}"
+                value: "{{ $genericService.env.HMPPS_AUTH_URL }}"
               - name: SAR_URL
-                value: "{{ include "generic-service.ingress.host" . }}"
+                value: "{{ $genericService.ingress.host }}"
               securityContext:
                 capabilities:
                   drop:
