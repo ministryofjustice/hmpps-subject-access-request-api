@@ -50,7 +50,7 @@ generic-service:
 
   allowlist:
     groups:
-      - digital_staff_and_mojo
+      - internal
 
 generic-prometheus-alerts:
   targetApplication: hmpps-subject-access-request-api
