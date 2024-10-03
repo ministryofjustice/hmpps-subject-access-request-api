@@ -1,11 +1,10 @@
 ---
 generic-service:
   nameOverride: hmpps-subject-access-request-api
-  productId: "DPS083"   # productId for the product that this belongs too, i.e. DPS001, see README.md for details
+  serviceAccountName: hmpps-subject-access-request
+  productId: "DPS083"
 
   replicaCount: 4
-
-  serviceAccountName: hmpps-subject-access-request-api
 
   image:
     repository: quay.io/hmpps/hmpps-subject-access-request-api
@@ -50,14 +49,8 @@ generic-service:
       HMPPS_SQS_QUEUES_AUDIT_QUEUE_NAME: "sqs_queue_name"
 
   allowlist:
-    office: "217.33.148.210/32"
-    health-kick: "35.177.252.195/32"
-    petty-france-wifi: "213.121.161.112/28"
-    global-protect: "35.176.93.186/32"
-    mojvpn: "81.134.202.29/32"
-    cloudplatform-live-1: "35.178.209.113/32"
-    cloudplatform-live-2: "3.8.51.207/32"
-    cloudplatform-live-3: "35.177.252.54/32"
+    groups:
+      - digital_staff_and_mojo
 
 generic-prometheus-alerts:
   targetApplication: hmpps-subject-access-request-api
