@@ -18,7 +18,7 @@ spec:
     spec:
       template:
         spec:
-          serviceAccountName: hmpps-subject-access-request-api
+          serviceAccountName: hmpps-subject-access-request
           restartPolicy: Never
           containers:
             - name: delete-old-reports
