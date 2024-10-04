@@ -90,42 +90,12 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  @Parameter(
-    name = "nomisId",
-    description = "Subject's NOMIS prisoner number. Either nomisId OR ndeliusId is required.",
-    required = false,
-    example = "A1234BC",
-  )
-  @Parameter(
-    name = "ndeliusId",
-    description = "Subject's nDelius case reference number. Either nomisId OR ndeliusId is required.",
-    required = false,
-    example = "A123456",
-  )
-  @Parameter(
-    name = "dateFrom",
-    description = "Start date of the period of time the requested SAR report must cover.",
-    required = false,
-    example = "31/12/1999",
-  )
-  @Parameter(
-    name = "dateTo",
-    description = "End date of the period of time the requested SAR report must cover.",
-    required = false,
-    example = "31/12/2000",
-  )
-  @Parameter(
-    name = "sarCaseReferenceNumber",
-    description = "Case reference number of the Subject Access Request.",
-    required = true,
-    example = "exampleCaseReferenceNumber",
-  )
-  @Parameter(
-    name = "services",
-    description = "List of services from which subject data must be retrieved.",
-    required = true,
-    example = "[\"service1, service1.prison.service.justice.gov.uk\"]",
-  )
+  @Parameter(name = "nomisId", description = "Subject's NOMIS prisoner number. Either nomisId OR ndeliusId is required.", required = false, example = "A1234BC")
+  @Parameter(name = "ndeliusId", description = "Subject's nDelius case reference number. Either nomisId OR ndeliusId is required.", required = false, example = "A123456")
+  @Parameter(name = "dateFrom", description = "Start date of the period of time the requested SAR report must cover.", required = false, example = "31/12/1999")
+  @Parameter(name = "dateTo", description = "End date of the period of time the requested SAR report must cover.", required = false, example = "31/12/2000")
+  @Parameter(name = "sarCaseReferenceNumber", description = "Case reference number of the Subject Access Request.", required = true, example = "exampleCaseReferenceNumber")
+  @Parameter(name = "services", description = "List of services from which subject data must be retrieved.", required = true, example = "[\"service1, service1.prison.service.justice.gov.uk\"]")
   fun createSubjectAccessRequest(
     @RequestBody request: String,
     authentication: Authentication,
@@ -196,47 +166,15 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  @Parameter(
-    name = "unclaimed",
-    description = "Return only Subject Access Requests that are unclaimed by a worker for report generation. Defaults to false.",
-    required = false,
-    example = "false",
-  )
-  @Parameter(
-    name = "search",
-    description = "If provided, only results containing this string in the case reference number or subject ID will be returned.",
-    required = false,
-    example = "A1234AA",
-  )
-  @Parameter(
-    name = "pageNumber",
-    description = "The number of the page requested.",
-    required = false,
-    example = "1",
-  )
-  @Parameter(
-    name = "pageSize",
-    description = "The number of results that make up a single page.",
-    required = false,
-    example = "20",
-  )
+  @Parameter(name = "unclaimed", description = "Return only Subject Access Requests that are unclaimed by a worker for report generation. Defaults to false.", required = false, example = "false")
+  @Parameter(name = "search", description = "If provided, only results containing this string in the case reference number or subject ID will be returned.", required = false, example = "A1234AA")
+  @Parameter(name = "pageNumber", description = "The number of the page requested.", required = false, example = "1")
+  @Parameter(name = "pageSize", description = "The number of results that make up a single page.", required = false, example = "20")
   fun getSubjectAccessRequests(
-    @RequestParam(
-      required = false,
-      name = "unclaimed",
-    ) unclaimed: Boolean = false,
-    @RequestParam(
-      required = false,
-      name = "search",
-    ) search: String = "",
-    @RequestParam(
-      required = false,
-      name = "pageNumber",
-    ) pageNumber: Int? = null,
-    @RequestParam(
-      required = false,
-      name = "pageSize",
-    ) pageSize: Int? = null,
+    @RequestParam(required = false, name = "unclaimed") unclaimed: Boolean = false,
+    @RequestParam(required = false, name = "search") search: String = "",
+    @RequestParam(required = false, name = "pageNumber") pageNumber: Int? = null,
+    @RequestParam(required = false, name = "pageSize") pageSize: Int? = null,
   ): List<SubjectAccessRequest?> {
     val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, search, pageNumber, pageSize)
     return response
@@ -281,17 +219,9 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  @Parameter(
-    name = "search",
-    description = "If provided, only results containing this string in the case reference number or subject ID will be returned.",
-    required = false,
-    example = "A1234AA",
-  )
+  @Parameter(name = "search", description = "If provided, only results containing this string in the case reference number or subject ID will be returned.", required = false, example = "A1234AA")
   fun getTotalSubjectAccessRequests(
-    @RequestParam(
-      required = false,
-      name = "search",
-    ) search: String = "",
+    @RequestParam(required = false, name = "search") search: String = "",
   ): Int {
     val response = subjectAccessRequestService.getSubjectAccessRequests(false, search)
     return response.size
@@ -339,12 +269,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  @Parameter(
-    name = "id",
-    description = "ID for the Subject Access Request Report to download.",
-    required = true,
-    example = "11111111-2222-3333-4444-555555555555",
-  )
+  @Parameter(name = "id", description = "ID for the Subject Access Request Report to download.", required = true, example = "11111111-2222-3333-4444-555555555555")
   fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<out Any?>? {
     log.info("Retrieving report for ID $id.")
     val docResponse = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)
