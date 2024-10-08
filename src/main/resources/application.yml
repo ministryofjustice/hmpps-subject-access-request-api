@@ -56,6 +56,11 @@ server:
   error:
     include-message: always
 
+application:
+  remove-reports:
+    age: 7
+    frequency: 3600000
+
 management:
   endpoints:
     web:
