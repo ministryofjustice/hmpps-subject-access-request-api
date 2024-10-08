@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONObject
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -10,7 +10,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
@@ -109,7 +108,7 @@ class SubjectAccessRequestServiceTest {
         .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime, sampleSAR.id)
 
       verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
-      Assertions.assertThat(result).isEqualTo(expected)
+      assertThat(result).isEqualTo(expected)
     }
 
     @Test
@@ -121,7 +120,7 @@ class SubjectAccessRequestServiceTest {
         .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime, sampleSAR.id)
 
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
-      Assertions.assertThat(result).isEqualTo(expected)
+      assertThat(result).isEqualTo(expected)
     }
 
     @Test
@@ -133,7 +132,7 @@ class SubjectAccessRequestServiceTest {
         .createSubjectAccessRequest(noIDRequest, authentication, requestTime, sampleSAR.id)
 
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
-      Assertions.assertThat(result).isEqualTo(expected)
+      assertThat(result).isEqualTo(expected)
     }
 
     @Test
@@ -145,7 +144,7 @@ class SubjectAccessRequestServiceTest {
         .createSubjectAccessRequest(noDateToRequest, authentication, requestTime, sampleSAR.id)
 
       verify(sarGateway, times(1)).saveSubjectAccessRequest(any())
-      Assertions.assertThat(result).isEqualTo(expected)
+      assertThat(result).isEqualTo(expected)
     }
 
     @Test
@@ -157,7 +156,7 @@ class SubjectAccessRequestServiceTest {
         .createSubjectAccessRequest(noDateFromRequest, authentication, requestTime, sampleSAR.id)
 
       verify(sarGateway, times(1)).saveSubjectAccessRequest(any())
-      Assertions.assertThat(result).isEqualTo(expected)
+      assertThat(result).isEqualTo(expected)
     }
   }
 
@@ -205,7 +204,7 @@ class SubjectAccessRequestServiceTest {
       Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(ResponseEntity.ok().body(mockStream))
       val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
       verify(documentGateway, times(1)).retrieveDocument(mockUUID)
-      Assertions.assertThat(result).isEqualTo(ResponseEntity.ok().body(mockStream))
+      assertThat(result).isEqualTo(ResponseEntity.ok().body(mockStream))
     }
 
     @Test
@@ -213,7 +212,7 @@ class SubjectAccessRequestServiceTest {
       Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(null)
       val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
       verify(documentGateway, times(1)).retrieveDocument(mockUUID)
-      Assertions.assertThat(result).isEqualTo(null)
+      assertThat(result).isEqualTo(null)
     }
 
     @Test
@@ -231,36 +230,6 @@ class SubjectAccessRequestServiceTest {
       SubjectAccessRequestService(sarGateway, documentGateway).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
 
       verify(sarGateway, times(1)).getSubjectAccessRequests(eq(true), eq("testSearchString"), eq(1), eq(1), any())
-    }
-  }
-
-  @Nested
-  inner class DeleteOldSubjectAccessRequests {
-    @Test
-    fun `deleteOldSubjectAccessRequests calls SAR gateway getOldSubjectAccessRequests`() {
-      SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
-
-      verify(sarGateway, times(1)).getOldSubjectAccessRequests(any())
-    }
-
-    @Test
-    fun `deleteOldSubjectAccessRequests calls document gateway deleteDocument`() {
-      Mockito.`when`(sarGateway.getOldSubjectAccessRequests(any())).thenReturn(listOf(sampleSAR))
-      Mockito.`when`(documentGateway.deleteDocument(UUID.fromString("11111111-1111-1111-1111-111111111111"))).thenReturn(HttpStatus.NO_CONTENT)
-      SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
-
-      verify(documentGateway, times(1)).deleteDocument(UUID.fromString("11111111-1111-1111-1111-111111111111"))
-    }
-
-    @Test
-    fun `deleteOldSubjectAccessRequests calls SAR DB gateway deleteSubjectAccessRequest`() {
-      Mockito.`when`(sarGateway.getOldSubjectAccessRequests(any())).thenReturn(listOf(sampleSAR))
-      Mockito.`when`(documentGateway.deleteDocument(UUID.fromString("11111111-1111-1111-1111-111111111111"))).thenReturn(
-        HttpStatus.NOT_FOUND,
-      )
-      SubjectAccessRequestService(sarGateway, documentGateway).deleteOldSubjectAccessRequests()
-
-      verify(sarGateway, times(1)).deleteSubjectAccessRequest(UUID.fromString("11111111-1111-1111-1111-111111111111"))
     }
   }
 }

@@ -4,7 +4,6 @@ import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -81,17 +80,6 @@ class SubjectAccessRequestService(
 
   fun completeSubjectAccessRequest(id: UUID): Int {
     return sarDbGateway.updateSubjectAccessRequestStatusCompleted(id)
-  }
-
-  fun deleteOldSubjectAccessRequests(): Int {
-    val oldSubjectAccessRequests = sarDbGateway.getOldSubjectAccessRequests()
-    for (oldSubjectAccessRequest in oldSubjectAccessRequests) {
-      val response = documentStorageGateway.deleteDocument(oldSubjectAccessRequest!!.id)
-      if (response == HttpStatus.NOT_FOUND || response == HttpStatus.NO_CONTENT) {
-        sarDbGateway.deleteSubjectAccessRequest(oldSubjectAccessRequest.id)
-      }
-    }
-    return 0
   }
 
   fun retrieveSubjectAccessRequestDocument(sarId: UUID, downloadDateTime: LocalDateTime? = LocalDateTime.now()): ResponseEntity<Flux<InputStreamResource>>? {

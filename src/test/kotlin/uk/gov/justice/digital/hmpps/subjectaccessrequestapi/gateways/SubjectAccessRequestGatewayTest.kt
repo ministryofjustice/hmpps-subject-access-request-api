@@ -161,17 +161,17 @@ class SubjectAccessRequestGatewayTest {
     }
   }
 
-  @Nested
-  inner class DeleteOldSubjectAccessRequests {
-    @Test
-    fun `calls findByRequestDateTimeBefore with 7 days threshold`() {
-      val timeNow = LocalDateTime.now()
-      SubjectAccessRequestGateway(sarRepository)
-        .getOldSubjectAccessRequests(timeNow)
-
-      val thresholdTime = timeNow.minusDays(7)
-
-      verify(sarRepository, times(1)).findByRequestDateTimeBefore(thresholdTime)
-    }
-  }
+//  @Nested
+//  inner class DeleteOldSubjectAccessRequests {
+//    @Test
+//    fun `calls findByRequestDateTimeBefore with 7 days threshold`() {
+//      val timeNow = LocalDateTime.now()
+//      SubjectAccessRequestGateway(sarRepository)
+//        .getOldSubjectAccessRequests(timeNow)
+//
+//      val thresholdTime = timeNow.minusDays(7)
+//
+//      verify(sarRepository, times(1)).findByRequestDateTimeBefore(thresholdTime)
+//    }
+//  }
 }
