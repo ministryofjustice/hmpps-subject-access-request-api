@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -15,7 +16,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAc
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.UUID
 
 class SubjectAccessRequestGatewayTest {
   private val testUuid = UUID.fromString("11111111-1111-1111-1111-111111111111")
@@ -94,7 +95,7 @@ class SubjectAccessRequestGatewayTest {
   inner class GetSubjectAccessRequests {
     @Test
     fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase with no search or pagination when no arguments are given`() {
-      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
+      whenever(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
         Page.empty(),
       )
 
@@ -105,7 +106,7 @@ class SubjectAccessRequestGatewayTest {
 
     @Test
     fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase method with search string`() {
-      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
+      whenever(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))).thenReturn(
         Page.empty(),
       )
 
@@ -116,7 +117,7 @@ class SubjectAccessRequestGatewayTest {
 
     @Test
     fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase method with requestDateTime-sorted pagination`() {
-      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
+      whenever(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "", nomisSearch = "", ndeliusSearch = "", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
         Page.empty(),
       )
 
@@ -127,7 +128,7 @@ class SubjectAccessRequestGatewayTest {
 
     @Test
     fun `getSubjectAccessRequests calls repository findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase method with search string and requestDateTime-sorted pagination`() {
-      Mockito.`when`(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
+      whenever(sarRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = "test", nomisSearch = "test", ndeliusSearch = "test", PageRequest.of(0, 1, Sort.by("RequestDateTime").descending()))).thenReturn(
         Page.empty(),
       )
 
@@ -138,7 +139,7 @@ class SubjectAccessRequestGatewayTest {
 
     @Test
     fun `getSubjectAccessRequests calls repository findUnclaimed if unclaimedOnly is true`() {
-      Mockito.`when`(sarRepository.findUnclaimed(claimDateTime = requestTimeFormatted.minusMinutes(30))).thenReturn(
+      whenever(sarRepository.findUnclaimed(claimDateTime = requestTimeFormatted.minusMinutes(30))).thenReturn(
         emptyList(),
       )
 

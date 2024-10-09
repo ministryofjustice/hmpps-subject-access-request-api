@@ -6,9 +6,3 @@ services:
 
   document-storage:
     base-url: http://localhost:4040
-
-hmpps.sqs:
-  provider: localstack
-  queues:
-    audit:
-      queueName: ${random.uuid}

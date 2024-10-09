@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.gateways
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.ActiveProfiles
@@ -11,7 +11,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.mockservers.DocumentStorageMockServer
 import java.io.File
-import java.util.*
+import java.util.UUID
 
 @ActiveProfiles("test")
 @ContextConfiguration(
@@ -24,7 +24,7 @@ class DocumentStorageGatewayTest(
   {
     val documentStorageMockServer = DocumentStorageMockServer()
 
-    Mockito.`when`(mockHmppsAuthGateway.getClientToken()).thenReturn("mock-bearer-token")
+    whenever(mockHmppsAuthGateway.getClientToken()).thenReturn("mock-bearer-token")
 
     beforeEach {
       documentStorageMockServer.start()

@@ -5,12 +5,6 @@ services:
   document-storage:
     base-url: https://document-api-dev.hmpps.service.justice.gov.uk/
 
-hmpps.sqs:
-  provider: localstack
-  queues:
-    audit:
-      queueName: "audit"
-
 spring:
   datasource:
     url: 'jdbc:postgresql://localhost:5432/postgres'

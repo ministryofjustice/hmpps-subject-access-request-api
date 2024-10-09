@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccess
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Component
 class SubjectAccessRequestGateway(@Autowired val repo: SubjectAccessRequestRepository) {

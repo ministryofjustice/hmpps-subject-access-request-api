@@ -8,9 +8,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,16 +27,15 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.AuditService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @RestController
 @Transactional
 @PreAuthorize("hasAnyRole('ROLE_SAR_USER_ACCESS', 'ROLE_SAR_DATA_ACCESS')")
 @RequestMapping("/api/")
-class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, @Autowired val auditService: AuditService, val telemetryClient: TelemetryClient) {
+class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, val telemetryClient: TelemetryClient) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
   @PostMapping("subjectAccessRequest")
@@ -113,8 +109,6 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
         "requestTime" to requestTime.toString(),
       ),
     )
-    val auditDetails = Json.encodeToString(AuditDetails(nomisId, ndeliusId))
-    auditService.createEvent(authentication.name, "CREATE_SUBJECT_ACCESS_REQUEST", auditDetails)
     val response = subjectAccessRequestService.createSubjectAccessRequest(
       request = request,
       authentication = authentication,
@@ -398,6 +392,3 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     }
   }
 }
-
-@Serializable
-data class AuditDetails(val nomisId: String, val ndeliusId: String)

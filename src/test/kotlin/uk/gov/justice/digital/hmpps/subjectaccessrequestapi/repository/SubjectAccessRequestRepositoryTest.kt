@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccess
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.UUID
 
 @DataJpaTest
 class SubjectAccessRequestRepositoryTest {
@@ -139,8 +139,8 @@ class SubjectAccessRequestRepositoryTest {
       val expectedUnclaimed: List<SubjectAccessRequest> = listOf(unclaimedSar, sarWithPendingStatusClaimedEarlier)
       databaseInsert()
 
-      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
-      Assertions.assertThat(
+      assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
+      assertThat(
         sarRepository?.findUnclaimed(
           claimDateTimeFormatted,
         ),
@@ -180,9 +180,9 @@ class SubjectAccessRequestRepositoryTest {
         currentDateTimeFormatted,
       )
 
-      Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
-      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
-      Assertions.assertThat(sarRepository?.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
+      assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
+      assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
+      assertThat(sarRepository?.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
         .isEqualTo(expectedUpdatedRecord)
     }
 
@@ -216,9 +216,9 @@ class SubjectAccessRequestRepositoryTest {
         currentDateTimeFormatted,
       )
 
-      Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(0)
-      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
-      Assertions.assertThat(sarRepository?.getReferenceById(claimedSarWithPendingStatus.id))
+      assertThat(numberOfDbRecordsUpdated).isEqualTo(0)
+      assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
+      assertThat(sarRepository?.getReferenceById(claimedSarWithPendingStatus.id))
         .isEqualTo(expectedUpdatedRecord)
     }
   }
@@ -250,9 +250,9 @@ class SubjectAccessRequestRepositoryTest {
         newStatus,
       )
 
-      Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
-      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
-      Assertions.assertThat(sarRepository?.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
+      assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
+      assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
+      assertThat(sarRepository?.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
         .isEqualTo(expectedUpdatedRecord)
     }
   }
@@ -267,8 +267,8 @@ class SubjectAccessRequestRepositoryTest {
 
       val result = sarRepository?.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("test", "test", "test", PageRequest.of(1, 1, Sort.by("RequestDateTime").descending()))?.content
 
-      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
-      Assertions.assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(sarRepository?.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
     }
 
     @Test
@@ -279,8 +279,8 @@ class SubjectAccessRequestRepositoryTest {
 
       val result = sarRepository?.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("test", "test", "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))?.content
 
-      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
-      Assertions.assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(sarRepository?.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
     }
 
     @Test
@@ -296,8 +296,8 @@ class SubjectAccessRequestRepositoryTest {
         ),
       )?.content
 
-      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
-      Assertions.assertThat(result).containsAll(allSars)
+      assertThat(sarRepository?.findAll()).isEqualTo(allSars)
+      assertThat(result).containsAll(allSars)
     }
 
     @Test
@@ -308,8 +308,8 @@ class SubjectAccessRequestRepositoryTest {
 
       val result = sarRepository?.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("TEST", "TEST", "TEST", Pageable.unpaged(Sort.by("RequestDateTime").descending()))?.content
 
-      Assertions.assertThat(sarRepository?.findAll()).isEqualTo(allSars)
-      Assertions.assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(sarRepository?.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
     }
   }
 
@@ -358,9 +358,9 @@ class SubjectAccessRequestRepositoryTest {
         newDownloadDateTimeFormatted,
       )
 
-      Assertions.assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
-      Assertions.assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
-      Assertions.assertThat(sarRepository?.getReferenceById(completedSar.id))
+      assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
+      assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
+      assertThat(sarRepository?.getReferenceById(completedSar.id))
         .isEqualTo(expectedUpdatedRecord)
     }
   }
@@ -374,7 +374,7 @@ class SubjectAccessRequestRepositoryTest {
       val thresholdTime = "30/02/2024 00:00"
       val thresholdTimeFormatted = LocalDateTime.parse(thresholdTime, dateTimeFormatter)
       val oldSars = sarRepository?.findByRequestDateTimeBefore(thresholdTimeFormatted)
-      Assertions.assertThat(oldSars!!.size).isEqualTo(5)
+      assertThat(oldSars!!.size).isEqualTo(5)
     }
   }
 }
