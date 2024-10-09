@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class RemoveOldRequestsAndReportsTest {
   private val documentStorageGateway: DocumentStorageGateway = mock()

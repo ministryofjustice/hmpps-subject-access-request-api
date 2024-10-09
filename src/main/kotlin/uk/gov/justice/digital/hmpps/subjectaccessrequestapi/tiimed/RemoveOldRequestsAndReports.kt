@@ -49,6 +49,7 @@ class RemoveOldReportRequestsService(
   fun removeOldRequestsAndReports() {
     val removeDateTime = LocalDateTime.now().minusDays(removeReportsOver)
     val subjectAccessRequestsToDelete = repository.findByRequestDateTimeBefore(removeDateTime)
+    log.info("Request/reports over {} days removal started. Deleting {} with date/time prior to {}  ", removeReportsOver, subjectAccessRequestsToDelete.size, removeDateTime)
     subjectAccessRequestsToDelete.forEach {
       val result = documentStorageGateway.deleteDocument(it!!.id)
       if (result == HttpStatus.NOT_FOUND || result == HttpStatus.NO_CONTENT) {

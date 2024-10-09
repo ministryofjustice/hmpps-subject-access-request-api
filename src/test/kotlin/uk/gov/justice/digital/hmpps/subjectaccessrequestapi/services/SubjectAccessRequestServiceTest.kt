@@ -6,9 +6,11 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
-import org.mockito.kotlin.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -90,9 +92,11 @@ class SubjectAccessRequestServiceTest {
     requestDateTime = requestTime,
     claimAttempts = 0,
   )
-  private val sarGateway = Mockito.mock(SubjectAccessRequestGateway::class.java)
-  private val authentication: Authentication = Mockito.mock(Authentication::class.java)
-  private val documentGateway: DocumentStorageGateway = Mockito.mock(DocumentStorageGateway::class.java)
+  private val sarGateway: SubjectAccessRequestGateway = mock()
+  private val authentication: Authentication = mock()
+  private val documentGateway: DocumentStorageGateway = mock()
+  private val subjectAccessRequestService = SubjectAccessRequestService(sarGateway, documentGateway)
+
   private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
   private val mockedCurrentTime = "02/01/2024 00:30"
   private val formattedMockedCurrentTime = LocalDateTime.parse(mockedCurrentTime, dateTimeFormatter)
@@ -101,10 +105,10 @@ class SubjectAccessRequestServiceTest {
   inner class CreateSubjectAccessRequest {
     @Test
     fun `createSubjectAccessRequest returns empty string`() {
-      Mockito.`when`(authentication.name).thenReturn("mockUserName")
+      whenever(authentication.name).thenReturn("mockUserName")
       val expected = ""
 
-      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
+      val result: String = subjectAccessRequestService
         .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime, sampleSAR.id)
 
       verify(sarGateway, times(1)).saveSubjectAccessRequest(sampleSAR)
@@ -116,7 +120,7 @@ class SubjectAccessRequestServiceTest {
       val expected =
         "Both nomisId and ndeliusId are provided - exactly one is required"
 
-      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
+      val result: String = subjectAccessRequestService
         .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime, sampleSAR.id)
 
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
@@ -128,7 +132,7 @@ class SubjectAccessRequestServiceTest {
       val expected =
         "Neither nomisId nor ndeliusId is provided - exactly one is required"
 
-      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
+      val result: String = subjectAccessRequestService
         .createSubjectAccessRequest(noIDRequest, authentication, requestTime, sampleSAR.id)
 
       verify(sarGateway, times(0)).saveSubjectAccessRequest(sampleSAR)
@@ -137,10 +141,10 @@ class SubjectAccessRequestServiceTest {
 
     @Test
     fun `createSubjectAccessRequest does not error when dateTo is not provided`() {
-      Mockito.`when`(authentication.name).thenReturn("mockUserName")
+      whenever(authentication.name).thenReturn("mockUserName")
       val expected = ""
 
-      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
+      val result: String = subjectAccessRequestService
         .createSubjectAccessRequest(noDateToRequest, authentication, requestTime, sampleSAR.id)
 
       verify(sarGateway, times(1)).saveSubjectAccessRequest(any())
@@ -149,10 +153,10 @@ class SubjectAccessRequestServiceTest {
 
     @Test
     fun `createSubjectAccessRequest does not error when dateFrom is not provided`() {
-      Mockito.`when`(authentication.name).thenReturn("mockUserName")
+      whenever(authentication.name).thenReturn("mockUserName")
       val expected = ""
 
-      val result: String = SubjectAccessRequestService(sarGateway, documentGateway)
+      val result: String = subjectAccessRequestService
         .createSubjectAccessRequest(noDateFromRequest, authentication, requestTime, sampleSAR.id)
 
       verify(sarGateway, times(1)).saveSubjectAccessRequest(any())
@@ -168,7 +172,7 @@ class SubjectAccessRequestServiceTest {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       val thirtyMinutesAgo = "02/01/2024 00:00"
       val thirtyMinutesAgoFormatted = LocalDateTime.parse(thirtyMinutesAgo, dateTimeFormatter)
-      SubjectAccessRequestService(sarGateway, documentGateway)
+      subjectAccessRequestService
         .claimSubjectAccessRequest(testUuid, formattedMockedCurrentTime)
       verify(sarGateway, times(1)).updateSubjectAccessRequestClaim(
         testUuid,
@@ -180,7 +184,7 @@ class SubjectAccessRequestServiceTest {
     @Test
     fun `completeSubjectAccessRequest calls gateway update method with status`() {
       val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
-      SubjectAccessRequestService(sarGateway, documentGateway)
+      subjectAccessRequestService
         .completeSubjectAccessRequest(testUuid)
       verify(sarGateway, times(1)).updateSubjectAccessRequestStatusCompleted(testUuid)
     }
@@ -189,37 +193,37 @@ class SubjectAccessRequestServiceTest {
   @Nested
   inner class DocumentRetrieval {
     private val expectedRetrievalResponse = Mockito.mock(ByteArrayInputStream::class.java)
-    val mockUUID = UUID.randomUUID()
+    val uuid = UUID.randomUUID()
 
     @Test
     fun `retrieveSubjectAccessRequestDocument calls document gateway retrieve method with id`() {
-      SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
-      verify(documentGateway, times(1)).retrieveDocument(mockUUID)
+      subjectAccessRequestService.retrieveSubjectAccessRequestDocument(uuid)
+      verify(documentGateway, times(1)).retrieveDocument(uuid)
     }
 
     @Test
     fun `retrieveSubjectAccessRequestDocument returns ResponseEntity if response from gateway is provided`() {
       val mockByteArrayInputStream = Mockito.mock(ByteArrayInputStream::class.java)
       val mockStream = Flux.just(InputStreamResource(mockByteArrayInputStream))
-      Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(ResponseEntity.ok().body(mockStream))
-      val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
-      verify(documentGateway, times(1)).retrieveDocument(mockUUID)
+      whenever(documentGateway.retrieveDocument(uuid)).thenReturn(ResponseEntity.ok().body(mockStream))
+      val result = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(uuid)
+      verify(documentGateway, times(1)).retrieveDocument(uuid)
       assertThat(result).isEqualTo(ResponseEntity.ok().body(mockStream))
     }
 
     @Test
     fun `retrieveSubjectAccessRequestDocument returns null if response from gateway is not provided`() {
-      Mockito.`when`(documentGateway.retrieveDocument(mockUUID)).thenReturn(null)
-      val result = SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID)
-      verify(documentGateway, times(1)).retrieveDocument(mockUUID)
+      whenever(documentGateway.retrieveDocument(uuid)).thenReturn(null)
+      val result = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(uuid)
+      verify(documentGateway, times(1)).retrieveDocument(uuid)
       assertThat(result).isEqualTo(null)
     }
 
     @Test
     fun `retrieveSubjectAccessRequestDocument calls SAR gateway updateLastDownloadedDateTime method with id and dateTime`() {
-      SubjectAccessRequestService(sarGateway, documentGateway).retrieveSubjectAccessRequestDocument(mockUUID, formattedMockedCurrentTime)
+      subjectAccessRequestService.retrieveSubjectAccessRequestDocument(uuid, formattedMockedCurrentTime)
 
-      verify(sarGateway, times(1)).updateLastDownloadedDateTime(mockUUID, formattedMockedCurrentTime)
+      verify(sarGateway, times(1)).updateLastDownloadedDateTime(uuid, formattedMockedCurrentTime)
     }
   }
 
@@ -227,7 +231,7 @@ class SubjectAccessRequestServiceTest {
   inner class GetSubjectAccessRequests {
     @Test
     fun `getSubjectAccessRequests calls SAR gateway getSubjectAccessRequests method with specified arguments`() {
-      SubjectAccessRequestService(sarGateway, documentGateway).getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
+      subjectAccessRequestService.getSubjectAccessRequests(unclaimedOnly = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
 
       verify(sarGateway, times(1)).getSubjectAccessRequests(eq(true), eq("testSearchString"), eq(1), eq(1), any())
     }
