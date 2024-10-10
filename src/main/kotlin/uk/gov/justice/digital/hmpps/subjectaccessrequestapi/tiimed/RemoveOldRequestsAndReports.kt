@@ -19,7 +19,7 @@ class RemoveOldRequestsAndReports(private val service: RemoveOldReportRequestsSe
 
   @Scheduled(
     fixedDelayString = "\${application.remove-reports.frequency}",
-    initialDelayString = "\${random.int[600000,\${aapplication.remove-reports.frequency}]}",
+    initialDelayString = "\${random.int[600000,\${application.remove-reports.frequency}]}",
   )
   fun removeExpiredReports() {
     try {
