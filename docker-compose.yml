@@ -1,47 +1,31 @@
 version: "3"
 services:
-  local-stack-aws:
-    image: localstack/localstack:0.14.0
+
+  hmpps-auth:
+    image: quay.io/hmpps/hmpps-subject-access-request-api:latest
+    #    build:
+    #      context: .
+    container_name: hmpps-subject-access-request-api
+    ports:
+      - "8000:8080"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_PROFILES_ACTIVE=local
+
+  sar-db:
+    image: postgres:15
     networks:
       - hmpps
-    container_name: local-stack-aws
-    ports:
-      - "4566:4566"
-    environment:
-      - SERVICES=sns,sqs
-      - DEBUG=${DEBUG- }
-      - DATA_DIR=${DATA_DIR- }
-      - PORT_WEB_UI=${PORT_WEB_UI- }
-      - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR- }
-      - KINESIS_ERROR_PROBABILITY=${KINESIS_ERROR_PROBABILITY- }
-      - DOCKER_HOST=unix:///var/run/docker.sock
-      - AWS_EXECUTION_ENV=True
-      - DEFAULT_REGION=eu-west-2
-    volumes:
-      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-
-  db:
-    container_name: subject-access-request-db
-    image: postgres:latest
+    container_name: sar-db
     restart: always
-    environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_USER=postgres
     ports:
-      - '5432:5432'
-    networks:
-      - db-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    volumes:
-      - ./db/data:/var/lib/postgresql/data
-      - ./db/dev/schema.sql:/docker-entrypoint-initdb.d/1-dev-database.sql
-      - ./db/dev/roles.sql:/docker-entrypoint-initdb.d/2-dev-roles.sql
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=admin_password
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=auth-db
 
 networks:
   hmpps:
-  db-network:
