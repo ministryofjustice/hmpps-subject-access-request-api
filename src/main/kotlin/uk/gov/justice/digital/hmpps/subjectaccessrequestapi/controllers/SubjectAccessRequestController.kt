@@ -34,11 +34,11 @@ import java.util.UUID
 @RestController
 @Transactional
 @PreAuthorize("hasAnyRole('ROLE_SAR_USER_ACCESS', 'ROLE_SAR_DATA_ACCESS')")
-@RequestMapping("/api/")
+@RequestMapping("/api")
 class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, val telemetryClient: TelemetryClient) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  @PostMapping("subjectAccessRequest")
+  @PostMapping("/subjectAccessRequest")
   @Operation(
     summary = "Create a Subject Access Request.",
     description = "Create a request for a Subject Access Request report.",
@@ -111,7 +111,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     )
     val response = subjectAccessRequestService.createSubjectAccessRequest(
       request = request,
-      authentication = authentication,
+      requestedBy = authentication.name,
       requestTime = requestTime,
     )
     return if (response == "") {
@@ -121,7 +121,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     }
   }
 
-  @GetMapping("subjectAccessRequests")
+  @GetMapping("/subjectAccessRequests")
   @Operation(summary = "Get Subject Access Requests.", description = "Return a list of Subject Access Requests.")
   @ApiResponses(
     value = [
@@ -174,7 +174,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     return response
   }
 
-  @GetMapping("totalSubjectAccessRequests")
+  @GetMapping("/totalSubjectAccessRequests")
   @Operation(summary = "Get total number of Subject Access Requests.", description = "Return the number of Subject Access Requests.")
   @ApiResponses(
     value = [
@@ -221,7 +221,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     return response.size
   }
 
-  @GetMapping("report")
+  @GetMapping("/report")
   @Operation(
     summary = "Get Subject Access Request Report.",
     description = "Return a completed Subject Access Request Report.",
@@ -288,7 +288,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       .body(fileStream)
   }
 
-  @PatchMapping("subjectAccessRequests/{id}/claim")
+  @PatchMapping("/subjectAccessRequests/{id}/claim")
   @Operation(summary = "Claim Subject Access Request.", description = "Claim a Subject Access Request for a limited time to generate the requested report.")
   @ApiResponses(
     value = [
@@ -340,7 +340,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     }
   }
 
-  @PatchMapping("subjectAccessRequests/{id}/complete")
+  @PatchMapping("/subjectAccessRequests/{id}/complete")
   @Operation(summary = "Complete Subject Access Request.", description = "Mark a Subject Access Request as complete when the report has been successfully generated.")
   @ApiResponses(
     value = [
