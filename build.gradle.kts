@@ -2,6 +2,7 @@ plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.6"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.0.20"
   kotlin("plugin.spring") version "2.0.20"
+  kotlin("plugin.jpa") version "2.0.20"
 }
 
 configurations {
@@ -16,6 +17,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.0.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.7")
   implementation("org.json:json:20240303")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
@@ -27,16 +29,13 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.7.4")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.7")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.wiremock:wiremock-standalone:3.9.1")
-  testImplementation("io.kotest:kotest-assertions-json-jvm:5.9.1")
-  testImplementation("io.kotest:kotest-runner-junit5-jvm:5.9.1")
-  testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
-  testImplementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
 }
 
 kotlin {
@@ -44,25 +43,7 @@ kotlin {
 }
 
 tasks {
-  register<Test>("unitTest") {
-    filter {
-      excludeTestsMatching("uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.integration*")
-    }
-  }
-
-  register<Test>("integration") {
-    filter {
-      includeTestsMatching("uk.gov.justice.digital.hmpps.hmppssubjectaccessrequestapi.integration*")
-    }
-  }
-
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-      jvmTarget = "21"
-    }
-  }
-
-  test {
-    jvmArgs("--add-exports", "java.base/sun.security.util=ALL-UNNAMED")
+    compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
   }
 }

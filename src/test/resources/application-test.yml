@@ -14,10 +14,8 @@ management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
-hmpps:
-  auth:
-    url: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
-    username: test
-    password: test
-  document-storage:
+hmpps-auth:
+  url: "http://localhost:8090/auth"
+document-storage:
     url: http://localhost:4040
+

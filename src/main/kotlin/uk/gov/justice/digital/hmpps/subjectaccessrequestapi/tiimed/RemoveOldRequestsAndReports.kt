@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.gateways.DocumentStorageGateway
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.time.LocalDateTime
 
@@ -37,7 +37,7 @@ class RemoveOldRequestsAndReports(private val service: RemoveOldReportRequestsSe
 
 @Service
 class RemoveOldReportRequestsService(
-  private val documentStorageGateway: DocumentStorageGateway,
+  private val documentStorageClient: DocumentStorageClient,
   private val repository: SubjectAccessRequestRepository,
   @Value("\${application.remove-reports.age : 7}") private val removeReportsOver: Long,
 ) {
@@ -51,7 +51,7 @@ class RemoveOldReportRequestsService(
     val subjectAccessRequestsToDelete = repository.findByRequestDateTimeBefore(removeDateTime)
     log.info("Request/reports over {} days removal started. Deleting {} with date/time prior to {}  ", removeReportsOver, subjectAccessRequestsToDelete.size, removeDateTime)
     subjectAccessRequestsToDelete.forEach {
-      val result = documentStorageGateway.deleteDocument(it!!.id)
+      val result = documentStorageClient.deleteDocument(it!!.id)
       if (result == HttpStatus.NOT_FOUND || result == HttpStatus.NO_CONTENT) {
         repository.deleteById(it.id)
       } else {

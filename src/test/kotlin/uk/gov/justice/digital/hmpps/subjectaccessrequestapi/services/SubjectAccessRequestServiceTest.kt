@@ -19,7 +19,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.gateways.DocumentStorageGateway
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
@@ -33,7 +33,7 @@ class SubjectAccessRequestServiceTest {
 
   private val subjectAccessRequestRepository: SubjectAccessRequestRepository = mock()
   private val authentication: Authentication = mock()
-  private val documentGateway: DocumentStorageGateway = mock()
+  private val documentGateway: DocumentStorageClient = mock()
   private val subjectAccessRequestService = SubjectAccessRequestService(documentGateway, subjectAccessRequestRepository)
 
   private val formattedCurrentTime =
