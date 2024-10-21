@@ -37,7 +37,21 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: ${services.hmpps-auth.base-url}/.well-known/jwks.json
+          jwk-set-uri: ${hmpps-auth.url}/.well-known/jwks.json
+
+      client:
+        provider:
+          hmpps-auth:
+            token-uri: ${hmpps-auth.url}/oauth/token
+
+        registration:
+          sar-client:
+            provider: hmpps-auth
+            client-id: ${api.client.id}
+            client-secret: ${api.client.secret}
+            authorization-grant-type: client_credentials
+            scope: read
+
   sql:
     init:
       continue-on-error: true
@@ -78,13 +92,11 @@ management:
     info:
       cache:
         time-to-live: 2000ms
-services:
-  hmpps-auth:
-    base-url: http://localhost:9090/auth
-    username: test
-    password: test
-  document-storage:
-    base-url: http://localhost:4040
+
+hmpps-auth:
+  url: http://localhost:9090/auth
+document-storage:
+  url: http://localhost:4040
 
 sentry:
   traces-sample-rate: "0.05"

@@ -1,8 +1,0 @@
-services:
-  hmpps-auth:
-    base-url: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
-    username: test
-    password: test
-
-  document-storage:
-    base-url: http://localhost:4040

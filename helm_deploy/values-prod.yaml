@@ -6,8 +6,8 @@ generic-service:
     host: subject-access-request-api.hmpps.service.justice.gov.uk
 
   env:
-    SPRING_PROFILES_ACTIVE: prod
     HMPPS_AUTH_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
+    DOCUMENT_STORAGE_URL: "https://document-api.hmpps.service.justice.gov.uk"
     SENTRY_ENV: prod
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack

@@ -1,11 +1,31 @@
-services:
-  hmpps-auth:
-    base-url: https://sign-in-dev.hmpps.service.justice.gov.uk/auth
-    username: ${API_CLIENT_ID}
-    password: ${API_CLIENT_SECRET}
 
-  document-storage:
-    base-url: https://document-api-dev.hmpps.service.justice.gov.uk
+hmpps-auth:
+    url: http://localhost:9090/auth
 
-  env:
-    SENTRY_ENV: dev
+#document-storage:
+#    url: https://document-api-dev.hmpps.service.justice.gov.uk/
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sar-db
+    username: admin
+    password: admin_password
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${hmpps-auth.url}/.well-known/jwks.json
+
+      client:
+        provider:
+          hmpps-auth:
+            token-uri: ${hmpps-auth.url}/oauth/token
+
+        registration:
+          sar-client:
+            provider: hmpps-auth
+            client-id: "hmpps-subject-access-request"
+            client-secret: "clientsecret"
+            authorization-grant-type: client_credentials
+            scope: read

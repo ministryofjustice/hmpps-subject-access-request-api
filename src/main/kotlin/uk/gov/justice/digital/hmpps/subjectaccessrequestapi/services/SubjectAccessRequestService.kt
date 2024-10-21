@@ -10,7 +10,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.gateways.DocumentStorageGateway
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
@@ -21,7 +21,7 @@ import java.util.UUID
 
 @Service
 class SubjectAccessRequestService(
-  @Autowired val documentStorageGateway: DocumentStorageGateway,
+  @Autowired val documentStorageClient: DocumentStorageClient,
   @Autowired val subjectAccessRequestRepository: SubjectAccessRequestRepository,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -92,7 +92,7 @@ class SubjectAccessRequestService(
 
   fun retrieveSubjectAccessRequestDocument(sarId: UUID, downloadDateTime: LocalDateTime? = LocalDateTime.now()): ResponseEntity<Flux<InputStreamResource>>? {
     log.info("Retrieving document in service")
-    val document = documentStorageGateway.retrieveDocument(sarId)
+    val document = documentStorageClient.retrieveDocument(sarId)
     log.info("Retrieved document")
     subjectAccessRequestRepository.updateLastDownloaded(sarId, downloadDateTime!!)
     log.info("Updated download time")
