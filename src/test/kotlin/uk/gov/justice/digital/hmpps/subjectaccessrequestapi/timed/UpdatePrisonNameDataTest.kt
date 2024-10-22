@@ -29,7 +29,7 @@ class UpdatePrisonNameDataTest {
   fun `should update prison name data`() {
     whenever(prisonRegisterClient.getPrisonDetails()).thenReturn(prisonDetailsList)
 
-    updatePrisonNameDataService.updatePrisonIdData()
+    updatePrisonNameDataService.updatePrisonData()
 
     verify(prisonRegisterClient, times(1)).getPrisonDetails()
     verifyNoMoreInteractions(prisonRegisterClient)
