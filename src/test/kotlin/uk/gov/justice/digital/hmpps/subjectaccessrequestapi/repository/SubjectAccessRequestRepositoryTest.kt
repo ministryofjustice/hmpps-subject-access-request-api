@@ -18,116 +18,109 @@ import java.util.UUID
 @DataJpaTest
 class SubjectAccessRequestRepositoryTest {
   @Autowired
-  private val sarRepository: SubjectAccessRequestRepository? = null
+  lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-  private val dateFrom = "30/12/2023"
-  private val dateFromFormatted = LocalDate.parse(dateFrom, dateFormatter)
-  private val dateTo = "30/01/2024"
-  private val dateToFormatted = LocalDate.parse(dateTo, dateFormatter)
-  private val requestTime = "30/01/2024 00:00"
-  private val requestTimeFormatted = LocalDateTime.parse(requestTime, dateTimeFormatter)
-  private val requestTimeLater = "30/03/2024 00:00"
-  private val requestTimeLaterFormatted = LocalDateTime.parse(requestTimeLater, dateTimeFormatter)
-  private val claimDateTime = "30/01/2024 00:00"
-  private val claimDateTimeFormatted = LocalDateTime.parse(claimDateTime, dateTimeFormatter)
-  private val claimDateTimeEarlier = "30/01/2023 00:00"
-  private val claimDateTimeEarlierFormatted = LocalDateTime.parse(claimDateTimeEarlier, dateTimeFormatter)
-  private val downloadDateTime = "01/06/2024 00:00"
-  private val downloadDateTimeFormatted = LocalDateTime.parse(downloadDateTime, dateTimeFormatter)
+  private val dateFrom = LocalDate.parse("30/12/2023", dateFormatter)
+  private val dateTo = LocalDate.parse("30/01/2024", dateFormatter)
+  private val requestTime = LocalDateTime.parse("30/01/2024 00:00", dateTimeFormatter)
+  private val requestTimeLater = LocalDateTime.parse("30/03/2024 00:00", dateTimeFormatter)
+  private val claimDateTime = LocalDateTime.parse("30/01/2024 00:00", dateTimeFormatter)
+  private val claimDateTimeEarlier = LocalDateTime.parse("30/01/2023 00:00", dateTimeFormatter)
+  private val downloadDateTime = LocalDateTime.parse("01/06/2024 00:00", dateTimeFormatter)
 
-  val unclaimedSar = SubjectAccessRequest(
+  final val unclaimedSar = SubjectAccessRequest(
     id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
     status = Status.Pending,
-    dateFrom = dateFromFormatted,
-    dateTo = dateToFormatted,
+    dateFrom = dateFrom,
+    dateTo = dateTo,
     sarCaseReferenceNumber = "1234abc",
     services = "{1,2,4}",
     nomisId = "",
     ndeliusCaseReferenceId = "1",
     requestedBy = "Test",
-    requestDateTime = requestTimeFormatted,
+    requestDateTime = requestTime,
     claimAttempts = 0,
   )
-  val claimedSarWithPendingStatus = SubjectAccessRequest(
+  final val claimedSarWithPendingStatus = SubjectAccessRequest(
     id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
     status = Status.Pending,
-    dateFrom = dateFromFormatted,
-    dateTo = dateToFormatted,
+    dateFrom = dateFrom,
+    dateTo = dateTo,
     sarCaseReferenceNumber = "1234abc",
     services = "{1,2,4}",
     nomisId = "",
     ndeliusCaseReferenceId = "1",
     requestedBy = "Test",
-    requestDateTime = requestTimeFormatted,
+    requestDateTime = requestTime,
     claimAttempts = 1,
-    claimDateTime = claimDateTimeFormatted,
+    claimDateTime = claimDateTime,
   )
-  val completedSar = SubjectAccessRequest(
+  final val completedSar = SubjectAccessRequest(
     id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
     status = Status.Completed,
-    dateFrom = dateFromFormatted,
-    dateTo = dateToFormatted,
+    dateFrom = dateFrom,
+    dateTo = dateTo,
     sarCaseReferenceNumber = "1234abc",
     services = "{1,2,4}",
     nomisId = "",
     ndeliusCaseReferenceId = "1",
     requestedBy = "Test",
-    requestDateTime = requestTimeFormatted,
+    requestDateTime = requestTime,
     claimAttempts = 1,
-    claimDateTime = claimDateTimeFormatted,
-    lastDownloaded = downloadDateTimeFormatted,
+    claimDateTime = claimDateTime,
+    lastDownloaded = downloadDateTime,
   )
-  val sarWithPendingStatusClaimedEarlier = SubjectAccessRequest(
+  final val sarWithPendingStatusClaimedEarlier = SubjectAccessRequest(
     id = UUID.fromString("44444444-4444-4444-4444-444444444444"),
     status = Status.Pending,
-    dateFrom = dateFromFormatted,
-    dateTo = dateToFormatted,
+    dateFrom = dateFrom,
+    dateTo = dateTo,
     sarCaseReferenceNumber = "1234abc",
     services = "{1,2,4}",
     nomisId = "",
     ndeliusCaseReferenceId = "1",
     requestedBy = "Test",
-    requestDateTime = requestTimeFormatted,
+    requestDateTime = requestTime,
     claimAttempts = 1,
-    claimDateTime = claimDateTimeEarlierFormatted,
+    claimDateTime = claimDateTimeEarlier,
   )
-  val sarWithSearchableCaseReference = SubjectAccessRequest(
+  final val sarWithSearchableCaseReference = SubjectAccessRequest(
     id = UUID.fromString("55555555-5555-5555-5555-555555555555"),
     status = Status.Completed,
-    dateFrom = dateFromFormatted,
-    dateTo = dateToFormatted,
+    dateFrom = dateFrom,
+    dateTo = dateTo,
     sarCaseReferenceNumber = "testForSearch",
     services = "{1,2,4}",
     nomisId = "",
     ndeliusCaseReferenceId = "1",
     requestedBy = "Test",
-    requestDateTime = requestTimeFormatted,
+    requestDateTime = requestTime,
     claimAttempts = 1,
-    claimDateTime = claimDateTimeEarlierFormatted,
+    claimDateTime = claimDateTimeEarlier,
   )
-  val sarWithSearchableNdeliusId = SubjectAccessRequest(
+  final val sarWithSearchableNdeliusId = SubjectAccessRequest(
     id = UUID.fromString("66666666-6666-6666-6666-666666666666"),
     status = Status.Completed,
-    dateFrom = dateFromFormatted,
-    dateTo = dateToFormatted,
+    dateFrom = dateFrom,
+    dateTo = dateTo,
     sarCaseReferenceNumber = "1234abc",
     services = "{1,2,4}",
     nomisId = "",
     ndeliusCaseReferenceId = "testForSearch",
     requestedBy = "Test",
-    requestDateTime = requestTimeLaterFormatted,
+    requestDateTime = requestTimeLater,
     claimAttempts = 1,
-    claimDateTime = claimDateTimeEarlierFormatted,
+    claimDateTime = claimDateTimeEarlier,
   )
 
   fun databaseInsert() {
-    sarRepository?.save(unclaimedSar)
-    sarRepository?.save(claimedSarWithPendingStatus)
-    sarRepository?.save(completedSar)
-    sarRepository?.save(sarWithPendingStatusClaimedEarlier)
-    sarRepository?.save(sarWithSearchableCaseReference)
-    sarRepository?.save(sarWithSearchableNdeliusId)
+    subjectAccessRequestRepository.save(unclaimedSar)
+    subjectAccessRequestRepository.save(claimedSarWithPendingStatus)
+    subjectAccessRequestRepository.save(completedSar)
+    subjectAccessRequestRepository.save(sarWithPendingStatusClaimedEarlier)
+    subjectAccessRequestRepository.save(sarWithSearchableCaseReference)
+    subjectAccessRequestRepository.save(sarWithSearchableNdeliusId)
   }
 
   val allSars = listOf(unclaimedSar, claimedSarWithPendingStatus, completedSar, sarWithPendingStatusClaimedEarlier, sarWithSearchableCaseReference, sarWithSearchableNdeliusId)
@@ -139,10 +132,10 @@ class SubjectAccessRequestRepositoryTest {
       val expectedUnclaimed: List<SubjectAccessRequest> = listOf(unclaimedSar, sarWithPendingStatusClaimedEarlier)
       databaseInsert()
 
-      assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
+      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
       assertThat(
-        sarRepository?.findUnclaimed(
-          claimDateTimeFormatted,
+        subjectAccessRequestRepository.findUnclaimed(
+          claimDateTime,
         ),
       ).isEqualTo(expectedUnclaimed)
     }
@@ -152,73 +145,69 @@ class SubjectAccessRequestRepositoryTest {
   inner class UpdateSubjectAccessRequestIfClaimDateTimeLessThanWithClaimDateTimeIsAndClaimAttemptsIs {
     @Test
     fun `updates claimDateTime and claimAttempts if claimDateTime before threshold`() {
-      val thresholdClaimDateTime = "30/06/2023 00:00"
-      val thresholdClaimDateTimeFormatted = LocalDateTime.parse(thresholdClaimDateTime, dateTimeFormatter)
-      val currentDateTime = "01/02/2024 00:00"
-      val currentDateTimeFormatted = LocalDateTime.parse(currentDateTime, dateTimeFormatter)
+      val thresholdClaimDateTime = LocalDateTime.parse("30/06/2023 00:00", dateTimeFormatter)
+      val currentDateTime = LocalDateTime.parse("01/02/2024 00:00", dateTimeFormatter)
 
       databaseInsert()
 
       val expectedUpdatedRecord = SubjectAccessRequest(
         id = sarWithPendingStatusClaimedEarlier.id,
         status = Status.Pending,
-        dateFrom = dateFromFormatted,
-        dateTo = dateToFormatted,
+        dateFrom = dateFrom,
+        dateTo = dateTo,
         sarCaseReferenceNumber = "1234abc",
         services = "{1,2,4}",
         nomisId = "",
         ndeliusCaseReferenceId = "1",
         requestedBy = "Test",
-        requestDateTime = requestTimeFormatted,
+        requestDateTime = requestTime,
         claimAttempts = 2,
-        claimDateTime = currentDateTimeFormatted,
+        claimDateTime = currentDateTime,
       )
 
-      val numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
+      val numberOfDbRecordsUpdated = subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
         sarWithPendingStatusClaimedEarlier.id,
-        thresholdClaimDateTimeFormatted,
-        currentDateTimeFormatted,
+        thresholdClaimDateTime,
+        currentDateTime,
       )
 
       assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
-      assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
-      assertThat(sarRepository?.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
+      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
+      assertThat(subjectAccessRequestRepository.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
         .isEqualTo(expectedUpdatedRecord)
     }
 
     @Test
     fun `does not update claimDateTime or claimAttempts if claimDateTime after threshold`() {
-      val thresholdClaimDateTime = "30/06/2023 00:00"
-      val thresholdClaimDateTimeFormatted = LocalDateTime.parse(thresholdClaimDateTime, dateTimeFormatter)
-      val currentDateTime = "01/02/2024 00:00"
-      val currentDateTimeFormatted = LocalDateTime.parse(currentDateTime, dateTimeFormatter)
+      val thresholdClaimDateTime = LocalDateTime.parse("30/06/2023 00:00", dateTimeFormatter)
+      val currentDateTime = LocalDateTime.parse("01/02/2024 00:00", dateTimeFormatter)
 
       databaseInsert()
 
       val expectedUpdatedRecord = SubjectAccessRequest(
         id = claimedSarWithPendingStatus.id,
         status = Status.Pending,
-        dateFrom = dateFromFormatted,
-        dateTo = dateToFormatted,
+        dateFrom = dateFrom,
+        dateTo = dateTo,
         sarCaseReferenceNumber = "1234abc",
         services = "{1,2,4}",
         nomisId = "",
         ndeliusCaseReferenceId = "1",
         requestedBy = "Test",
-        requestDateTime = requestTimeFormatted,
+        requestDateTime = requestTime,
         claimAttempts = 1,
-        claimDateTime = claimDateTimeFormatted,
+        claimDateTime = claimDateTime,
       )
 
-      val numberOfDbRecordsUpdated = sarRepository?.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
+      val numberOfDbRecordsUpdated = subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
         claimedSarWithPendingStatus.id,
-        thresholdClaimDateTimeFormatted,
-        currentDateTimeFormatted,
+        thresholdClaimDateTime,
+        currentDateTime,
       )
 
       assertThat(numberOfDbRecordsUpdated).isEqualTo(0)
-      assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
-      assertThat(sarRepository?.getReferenceById(claimedSarWithPendingStatus.id))
+      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
+      assertThat(subjectAccessRequestRepository.getReferenceById(claimedSarWithPendingStatus.id))
         .isEqualTo(expectedUpdatedRecord)
     }
   }
@@ -233,26 +222,26 @@ class SubjectAccessRequestRepositoryTest {
       val expectedUpdatedRecord = SubjectAccessRequest(
         id = sarWithPendingStatusClaimedEarlier.id,
         status = newStatus,
-        dateFrom = dateFromFormatted,
-        dateTo = dateToFormatted,
+        dateFrom = dateFrom,
+        dateTo = dateTo,
         sarCaseReferenceNumber = "1234abc",
         services = "{1,2,4}",
         nomisId = "",
         ndeliusCaseReferenceId = "1",
         requestedBy = "Test",
-        requestDateTime = requestTimeFormatted,
+        requestDateTime = requestTime,
         claimAttempts = 1,
-        claimDateTime = claimDateTimeEarlierFormatted,
+        claimDateTime = claimDateTimeEarlier,
       )
 
-      val numberOfDbRecordsUpdated = sarRepository?.updateStatus(
+      val numberOfDbRecordsUpdated = subjectAccessRequestRepository.updateStatus(
         sarWithPendingStatusClaimedEarlier.id,
         newStatus,
       )
 
       assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
-      assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
-      assertThat(sarRepository?.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
+      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
+      assertThat(subjectAccessRequestRepository.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
         .isEqualTo(expectedUpdatedRecord)
     }
   }
@@ -265,9 +254,9 @@ class SubjectAccessRequestRepositoryTest {
 
       databaseInsert()
 
-      val result = sarRepository?.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("test", "test", "test", PageRequest.of(1, 1, Sort.by("RequestDateTime").descending()))?.content
+      val result = subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("test", "test", "test", PageRequest.of(1, 1, Sort.by("RequestDateTime").descending()))?.content
 
-      assertThat(sarRepository?.findAll()).isEqualTo(allSars)
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
       assertThat(result).isEqualTo(expectedSearchResult)
     }
 
@@ -277,9 +266,9 @@ class SubjectAccessRequestRepositoryTest {
 
       databaseInsert()
 
-      val result = sarRepository?.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("test", "test", "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))?.content
+      val result = subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("test", "test", "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))?.content
 
-      assertThat(sarRepository?.findAll()).isEqualTo(allSars)
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
       assertThat(result).isEqualTo(expectedSearchResult)
     }
 
@@ -287,16 +276,16 @@ class SubjectAccessRequestRepositoryTest {
     fun `findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase returns all SAR entries when searching on blank strings`() {
       databaseInsert()
 
-      val result = sarRepository?.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(
+      val result = subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(
         "",
         "",
         "",
         Pageable.unpaged(
           Sort.by("RequestDateTime").descending(),
         ),
-      )?.content
+      ).content
 
-      assertThat(sarRepository?.findAll()).isEqualTo(allSars)
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
       assertThat(result).containsAll(allSars)
     }
 
@@ -306,9 +295,9 @@ class SubjectAccessRequestRepositoryTest {
 
       databaseInsert()
 
-      val result = sarRepository?.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("TEST", "TEST", "TEST", Pageable.unpaged(Sort.by("RequestDateTime").descending()))?.content
+      val result = subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("TEST", "TEST", "TEST", Pageable.unpaged(Sort.by("RequestDateTime").descending()))?.content
 
-      assertThat(sarRepository?.findAll()).isEqualTo(allSars)
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
       assertThat(result).isEqualTo(expectedSearchResult)
     }
   }
@@ -319,48 +308,47 @@ class SubjectAccessRequestRepositoryTest {
     val completedSar = SubjectAccessRequest(
       id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
       status = Status.Completed,
-      dateFrom = dateFromFormatted,
-      dateTo = dateToFormatted,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
       sarCaseReferenceNumber = "1234abc",
       services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "1",
       requestedBy = "Test",
-      requestDateTime = requestTimeFormatted,
+      requestDateTime = requestTime,
       claimAttempts = 1,
-      claimDateTime = claimDateTimeFormatted,
-      lastDownloaded = downloadDateTimeFormatted,
+      claimDateTime = claimDateTime,
+      lastDownloaded = downloadDateTime,
     )
 
     @Test
     fun `updates lastDownloaded`() {
       databaseInsert()
-      val newDownloadDateTime = "02/06/2024 00:00"
-      val newDownloadDateTimeFormatted = LocalDateTime.parse(newDownloadDateTime, dateTimeFormatter)
+      val newDownloadDateTime = LocalDateTime.parse("02/06/2024 00:00", dateTimeFormatter)
       val expectedUpdatedRecord = SubjectAccessRequest(
         id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
         status = Status.Completed,
-        dateFrom = dateFromFormatted,
-        dateTo = dateToFormatted,
+        dateFrom = dateFrom,
+        dateTo = dateTo,
         sarCaseReferenceNumber = "1234abc",
         services = "{1,2,4}",
         nomisId = "",
         ndeliusCaseReferenceId = "1",
         requestedBy = "Test",
-        requestDateTime = requestTimeFormatted,
+        requestDateTime = requestTime,
         claimAttempts = 1,
-        claimDateTime = claimDateTimeFormatted,
-        lastDownloaded = newDownloadDateTimeFormatted,
+        claimDateTime = claimDateTime,
+        lastDownloaded = newDownloadDateTime,
       )
 
-      val numberOfDbRecordsUpdated = sarRepository?.updateLastDownloaded(
+      val numberOfDbRecordsUpdated = subjectAccessRequestRepository.updateLastDownloaded(
         completedSar.id,
-        newDownloadDateTimeFormatted,
+        newDownloadDateTime,
       )
 
-      assertThat(sarRepository?.findAll()?.size).isEqualTo(6)
+      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
       assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
-      assertThat(sarRepository?.getReferenceById(completedSar.id))
+      assertThat(subjectAccessRequestRepository.getReferenceById(completedSar.id))
         .isEqualTo(expectedUpdatedRecord)
     }
   }
@@ -371,10 +359,9 @@ class SubjectAccessRequestRepositoryTest {
     @Test
     fun `finds old subjectAccessRequests`() {
       databaseInsert()
-      val thresholdTime = "30/02/2024 00:00"
-      val thresholdTimeFormatted = LocalDateTime.parse(thresholdTime, dateTimeFormatter)
-      val oldSars = sarRepository?.findByRequestDateTimeBefore(thresholdTimeFormatted)
-      assertThat(oldSars!!.size).isEqualTo(5)
+      val thresholdTime = LocalDateTime.parse("30/02/2024 00:00", dateTimeFormatter)
+      val oldSars = subjectAccessRequestRepository.findByRequestDateTimeBefore(thresholdTime)
+      assertThat(oldSars.size).isEqualTo(5)
     }
   }
 }

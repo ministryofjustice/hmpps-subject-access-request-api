@@ -71,6 +71,8 @@ server:
     include-message: always
 
 application:
+  prison-refresh:
+    frequency: 86400000
   remove-reports:
     age: 7
     frequency: 3600000
@@ -97,6 +99,8 @@ hmpps-auth:
   url: http://localhost:9090/auth
 document-storage:
   url: http://localhost:4040
+prison-register:
+  url: https://prison-register.hmpps.service.justice.gov.uk
 
 sentry:
   traces-sample-rate: "0.05"
