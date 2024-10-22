@@ -33,8 +33,8 @@ class SubjectAccessRequestServiceTest {
 
   private val subjectAccessRequestRepository: SubjectAccessRequestRepository = mock()
   private val authentication: Authentication = mock()
-  private val documentGateway: DocumentStorageClient = mock()
-  private val subjectAccessRequestService = SubjectAccessRequestService(documentGateway, subjectAccessRequestRepository)
+  private val documentStorageClient: DocumentStorageClient = mock()
+  private val subjectAccessRequestService = SubjectAccessRequestService(documentStorageClient, subjectAccessRequestRepository)
 
   private val formattedCurrentTime =
     LocalDateTime.parse("02/01/2024 00:30", DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
@@ -222,7 +222,7 @@ class SubjectAccessRequestServiceTest {
   inner class UpdateSubjectAccessRequest {
 
     @Test
-    fun `claimSubjectAccessRequest calls gateway update method with time 30 minutes ago`() {
+    fun `claimSubjectAccessRequest calls repository update method with time 30 minutes ago`() {
       val uuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
 
       subjectAccessRequestService.claimSubjectAccessRequest(uuid)
@@ -235,7 +235,7 @@ class SubjectAccessRequestServiceTest {
     }
 
     @Test
-    fun `completeSubjectAccessRequest calls gateway update method with status`() {
+    fun `completeSubjectAccessRequest calls repository with update status`() {
       val uuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
       subjectAccessRequestService
         .completeSubjectAccessRequest(uuid)
@@ -248,31 +248,31 @@ class SubjectAccessRequestServiceTest {
     private val uuid = UUID.randomUUID()
 
     @Test
-    fun `retrieveSubjectAccessRequestDocument calls document gateway retrieve method with id`() {
+    fun `retrieveSubjectAccessRequestDocument calls document storage client retrieve method with id`() {
       subjectAccessRequestService.retrieveSubjectAccessRequestDocument(uuid)
-      verify(documentGateway, times(1)).retrieveDocument(uuid)
+      verify(documentStorageClient, times(1)).retrieveDocument(uuid)
     }
 
     @Test
-    fun `retrieveSubjectAccessRequestDocument returns ResponseEntity if response from gateway is provided`() {
+    fun `retrieveSubjectAccessRequestDocument returns ResponseEntity if response from document storage is provided`() {
       val byteArrayInputStream: ByteArrayInputStream = mock()
       val stream = Flux.just(InputStreamResource(byteArrayInputStream))
-      whenever(documentGateway.retrieveDocument(uuid)).thenReturn(ResponseEntity.ok().body(stream))
+      whenever(documentStorageClient.retrieveDocument(uuid)).thenReturn(ResponseEntity.ok().body(stream))
       val result = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(uuid)
-      verify(documentGateway, times(1)).retrieveDocument(uuid)
+      verify(documentStorageClient, times(1)).retrieveDocument(uuid)
       assertThat(result).isEqualTo(ResponseEntity.ok().body(stream))
     }
 
     @Test
-    fun `retrieveSubjectAccessRequestDocument returns null if response from gateway is not provided`() {
-      whenever(documentGateway.retrieveDocument(uuid)).thenReturn(null)
+    fun `retrieveSubjectAccessRequestDocument returns null if response from document storage is not provided`() {
+      whenever(documentStorageClient.retrieveDocument(uuid)).thenReturn(null)
       val result = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(uuid)
-      verify(documentGateway, times(1)).retrieveDocument(uuid)
+      verify(documentStorageClient, times(1)).retrieveDocument(uuid)
       assertThat(result).isEqualTo(null)
     }
 
     @Test
-    fun `retrieveSubjectAccessRequestDocument calls SAR gateway updateLastDownloadedDateTime method with id and dateTime`() {
+    fun `retrieveSubjectAccessRequestDocument calls SAR repository updateLastDownloadedDateTime method with id and dateTime`() {
       subjectAccessRequestService.retrieveSubjectAccessRequestDocument(uuid, formattedCurrentTime)
 
       verify(subjectAccessRequestRepository, times(1)).updateLastDownloaded(uuid, formattedCurrentTime)

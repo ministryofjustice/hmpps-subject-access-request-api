@@ -13,7 +13,9 @@ import java.time.Duration
 class WebClientConfiguration(
   @Value("\${document-storage.url}") val documentStorageApiBaseUri: String,
   @Value("\${hmpps-auth.url}") val hmppsAuthBaseUri: String,
+  @Value("\${prison-register.url}") val prisonRegisterBaseUri: String,
   @Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
+  @Value("\${api.timeout:20s}") val timeout: Duration,
   @Value("\${api.timeout:300s}") val documentStoreTimeout: Duration,
 ) {
   @Bean
@@ -27,4 +29,7 @@ class WebClientConfiguration(
     builder
       .codecs { configurer -> configurer.defaultCodecs().maxInMemorySize(100 * 1024 * 1024) }
       .authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = documentStorageApiBaseUri, documentStoreTimeout)
+
+  @Bean
+  fun prisonRegisterWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(prisonRegisterBaseUri, healthTimeout)
 }

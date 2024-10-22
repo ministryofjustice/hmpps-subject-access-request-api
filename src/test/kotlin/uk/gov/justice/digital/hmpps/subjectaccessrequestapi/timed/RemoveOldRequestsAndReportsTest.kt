@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.tiimed
+package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

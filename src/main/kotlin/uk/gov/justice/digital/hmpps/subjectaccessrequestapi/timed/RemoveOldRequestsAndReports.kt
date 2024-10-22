@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.tiimed
+package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value

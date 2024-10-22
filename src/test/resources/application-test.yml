@@ -17,5 +17,7 @@ management.endpoint:
 hmpps-auth:
   url: "http://localhost:8090/auth"
 document-storage:
-    url: http://localhost:4040
+  url: "http://localhost:4040"
+prison-register:
+  url: "http://localhost:9099"
 
