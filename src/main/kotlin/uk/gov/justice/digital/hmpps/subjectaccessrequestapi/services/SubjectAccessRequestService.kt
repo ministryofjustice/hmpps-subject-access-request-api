@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
+import com.microsoft.applicationinsights.TelemetryClient
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
@@ -23,6 +25,7 @@ import java.util.UUID
 class SubjectAccessRequestService(
   @Autowired val documentStorageClient: DocumentStorageClient,
   @Autowired val subjectAccessRequestRepository: SubjectAccessRequestRepository,
+  private val telemetryClient: TelemetryClient,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -95,6 +98,7 @@ class SubjectAccessRequestService(
     val document = documentStorageClient.retrieveDocument(sarId)
     log.info("Retrieved document")
     subjectAccessRequestRepository.updateLastDownloaded(sarId, downloadDateTime!!)
+    telemetryClient.trackApiEvent("ReportDocumentDownloadTimeUpdated", sarId.toString(), "downloadDateTime" to downloadDateTime.toString())
     log.info("Updated download time")
     return document
   }

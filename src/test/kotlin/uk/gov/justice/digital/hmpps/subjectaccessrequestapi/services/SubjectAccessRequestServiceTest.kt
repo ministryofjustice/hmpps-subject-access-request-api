@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
+import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONObject
 import org.junit.jupiter.api.Nested
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
@@ -34,7 +36,8 @@ class SubjectAccessRequestServiceTest {
   private val subjectAccessRequestRepository: SubjectAccessRequestRepository = mock()
   private val authentication: Authentication = mock()
   private val documentStorageClient: DocumentStorageClient = mock()
-  private val subjectAccessRequestService = SubjectAccessRequestService(documentStorageClient, subjectAccessRequestRepository)
+  private val telemetryClient: TelemetryClient = mock()
+  private val subjectAccessRequestService = SubjectAccessRequestService(documentStorageClient, subjectAccessRequestRepository, telemetryClient)
 
   private val formattedCurrentTime =
     LocalDateTime.parse("02/01/2024 00:30", DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
@@ -276,6 +279,13 @@ class SubjectAccessRequestServiceTest {
       subjectAccessRequestService.retrieveSubjectAccessRequestDocument(uuid, formattedCurrentTime)
 
       verify(subjectAccessRequestRepository, times(1)).updateLastDownloaded(uuid, formattedCurrentTime)
+    }
+
+    @Test
+    fun `retrieveSubjectAccessRequestDocument calls telemetryClient trackApiEvent method with ReportDocumentDownloadTimeUpdated`() {
+      subjectAccessRequestService.retrieveSubjectAccessRequestDocument(uuid, formattedCurrentTime)
+
+      verify(telemetryClient, times(1)).trackApiEvent("ReportDocumentDownloadTimeUpdated", uuid.toString(), "downloadDateTime" to formattedCurrentTime.toString())
     }
   }
 
