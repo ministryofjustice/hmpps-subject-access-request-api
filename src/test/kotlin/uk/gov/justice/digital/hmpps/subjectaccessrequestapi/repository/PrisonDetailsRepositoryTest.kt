@@ -11,19 +11,19 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.PrisonDetail
 class PrisonDetailsRepositoryTest {
 
   @Autowired
-  lateinit var repository: PrisonDetailsRepository
+  lateinit var prisonDetailsRepository: PrisonDetailsRepository
 
   @BeforeEach
   fun setup() {
-    repository.deleteAll()
-    repository.save(PrisonDetail(prisonId = "AKI", prisonName = "Acklington (HMP)"))
-    repository.save(PrisonDetail(prisonId = "ALI", prisonName = "Albany (HMP)"))
-    repository.save(PrisonDetail(prisonId = "ANI", prisonName = "Aldington (HMP)"))
+    prisonDetailsRepository.deleteAll()
+    prisonDetailsRepository.save(PrisonDetail(prisonId = "AKI", prisonName = "Acklington (HMP)"))
+    prisonDetailsRepository.save(PrisonDetail(prisonId = "ALI", prisonName = "Albany (HMP)"))
+    prisonDetailsRepository.save(PrisonDetail(prisonId = "ANI", prisonName = "Aldington (HMP)"))
   }
 
   @Test
   fun testFindByPrisonId() {
-    val prisonDetails = repository.findById("AKI").orElseThrow()
+    val prisonDetails = prisonDetailsRepository.findById("AKI").orElseThrow()
 
     assertThat(prisonDetails).isNotNull
     assertThat(prisonDetails)
@@ -35,13 +35,13 @@ class PrisonDetailsRepositoryTest {
 
   @Test
   fun savingPrisonDetails() {
-    val before = repository.findAll()
+    val before = prisonDetailsRepository.findAll()
 
-    repository.save(PrisonDetail(prisonId = "AKI", prisonName = "Acklington (HMP)"))
-    repository.save(PrisonDetail(prisonId = "ALI", prisonName = "Albany (HMP)"))
-    repository.save(PrisonDetail(prisonId = "ANI", prisonName = "Aldington (HMP)"))
+    prisonDetailsRepository.save(PrisonDetail(prisonId = "AKI", prisonName = "Acklington (HMP)"))
+    prisonDetailsRepository.save(PrisonDetail(prisonId = "ALI", prisonName = "Albany (HMP)"))
+    prisonDetailsRepository.save(PrisonDetail(prisonId = "ANI", prisonName = "Aldington (HMP)"))
 
-    val after = repository.findAll()
+    val after = prisonDetailsRepository.findAll()
 
     assertThat(before).hasSize(3)
     assertThat(after).hasSize(3)
@@ -50,14 +50,14 @@ class PrisonDetailsRepositoryTest {
 
   @Test
   fun savingPrisonDetailsNewPrison() {
-    val before = repository.findAll()
+    val before = prisonDetailsRepository.findAll()
 
-    repository.save(PrisonDetail(prisonId = "AKI", prisonName = "Acklington (HMP)"))
-    repository.save(PrisonDetail(prisonId = "ALI", prisonName = "Albany (HMP)"))
-    repository.save(PrisonDetail(prisonId = "ANI", prisonName = "Aldington (HMP)"))
-    repository.save(PrisonDetail(prisonId = "MDI", prisonName = "Moorland (HMP & YOI)"))
+    prisonDetailsRepository.save(PrisonDetail(prisonId = "AKI", prisonName = "Acklington (HMP)"))
+    prisonDetailsRepository.save(PrisonDetail(prisonId = "ALI", prisonName = "Albany (HMP)"))
+    prisonDetailsRepository.save(PrisonDetail(prisonId = "ANI", prisonName = "Aldington (HMP)"))
+    prisonDetailsRepository.save(PrisonDetail(prisonId = "MDI", prisonName = "Moorland (HMP & YOI)"))
 
-    val after = repository.findAll()
+    val after = prisonDetailsRepository.findAll()
 
     assertThat(before).hasSize(3)
     assertThat(after).hasSize(4)
