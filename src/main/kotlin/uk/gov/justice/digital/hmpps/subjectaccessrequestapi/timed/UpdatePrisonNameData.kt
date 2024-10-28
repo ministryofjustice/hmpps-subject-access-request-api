@@ -10,14 +10,14 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.PrisonDetail
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.PrisonDetailsRepository
 
 /**
- * Refresh prison cache daily - 24hours = 86400000 millisecons
+ * Refresh prison cache daily - 24hours = 86400000 milliseconds
  */
 @Component
 class UpdatePrisonNameData(private val service: UpdatePrisonNameDataService) {
 
   @Scheduled(
     fixedDelayString = "\${application.prison-refresh.frequency}",
-    initialDelayString = "\${random.int[6000,\${application.prison-refresh.frequency}]}",
+    initialDelayString = "\${random.int[600000,\${application.prison-refresh.frequency}]}",
   )
   fun updatePrisonCache() {
     try {

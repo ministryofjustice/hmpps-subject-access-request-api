@@ -71,6 +71,8 @@ server:
     include-message: always
 
 application:
+  user-details-refresh:
+    frequency: 86400000
   prison-refresh:
     frequency: 86400000
   remove-reports:
@@ -101,6 +103,8 @@ document-storage:
   url: http://localhost:4040
 prison-register:
   url: https://prison-register.hmpps.service.justice.gov.uk
+nomis-user-roles-api:
+  url: http://localhost:8082
 
 sentry:
   traces-sample-rate: "0.05"

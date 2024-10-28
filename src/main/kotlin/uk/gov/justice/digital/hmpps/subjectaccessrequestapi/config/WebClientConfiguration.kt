@@ -14,6 +14,7 @@ class WebClientConfiguration(
   @Value("\${document-storage.url}") val documentStorageApiBaseUri: String,
   @Value("\${hmpps-auth.url}") val hmppsAuthBaseUri: String,
   @Value("\${prison-register.url}") val prisonRegisterBaseUri: String,
+  @Value("\${nomis-user-roles-api.url}") val nomisUserRolesApiBaseUri: String,
   @Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @Value("\${api.timeout:20s}") val timeout: Duration,
   @Value("\${api.timeout:300s}") val documentStoreTimeout: Duration,
@@ -32,4 +33,11 @@ class WebClientConfiguration(
 
   @Bean
   fun prisonRegisterWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(prisonRegisterBaseUri, healthTimeout)
+
+  @Bean
+  fun nomisUserRolesApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(nomisUserRolesApiBaseUri, healthTimeout)
+
+  @Bean
+  fun nomisUserRolesApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient =
+    builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = nomisUserRolesApiBaseUri, timeout)
 }
