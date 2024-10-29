@@ -14,3 +14,14 @@ class ApplicationInsightsConfiguration {
 }
 
 fun TelemetryClient.trackEvent(name: String, properties: Map<String, String>) = this.trackEvent(name, properties, null)
+
+fun TelemetryClient.trackApiEvent(name: String, id: String, vararg kvpairs: Pair<String, String> = emptyArray()) {
+  this.trackEvent(
+    name,
+    mapOf(
+      "id" to id,
+      *kvpairs,
+    ),
+    null,
+  )
+}

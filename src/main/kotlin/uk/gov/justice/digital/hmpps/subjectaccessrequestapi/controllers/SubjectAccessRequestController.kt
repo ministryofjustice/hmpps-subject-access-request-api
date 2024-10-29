@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
@@ -266,7 +267,11 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   @Parameter(name = "id", description = "ID for the Subject Access Request Report to download.", required = true, example = "11111111-2222-3333-4444-555555555555")
   fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<out Any?>? {
     log.info("Retrieving report for ID $id.")
+    telemetryClient.trackApiEvent("ReportDownloadStarted", id.toString())
     val docResponse = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)
+
+    val docSize = docResponse?.headers?.contentLength ?: 0
+    telemetryClient.trackApiEvent("ReportDocumentRetrieved", id.toString(), "docSize" to docSize.toString())
     log.info("Retrieved document")
     if (docResponse == null) {
       log.info("Null docResponse")
@@ -280,9 +285,11 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     log.info("Extracted file stream")
     if (docResponse === null) {
       log.info("No docResponse detected")
+      telemetryClient.trackApiEvent("ReportDownloadFailed", id.toString())
       return ResponseEntity("Report Not Found", HttpStatus.NOT_FOUND)
     }
     log.info("Retrieval successful.")
+    telemetryClient.trackApiEvent("ReportDownloadSuccessful", id.toString())
     return ResponseEntity.ok()
       .contentType(MediaType.parseMediaType(docResponse.headers.contentType?.toString() ?: ""))
       .body(fileStream)
