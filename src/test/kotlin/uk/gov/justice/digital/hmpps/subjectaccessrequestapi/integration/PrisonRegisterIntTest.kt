@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.PrisonDetails
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.PrisonRegisterClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.PrisonRegisterApiExtension.Companion.prisonRegisterApi
 
@@ -19,11 +18,6 @@ class PrisonRegisterIntTest : IntegrationTestBase() {
     prisonRegisterApi.stubGetPrisonDetails()
 
     val response = prisonRegisterClient.getPrisonDetails()
-    val prisonDetailsList = listOf(
-      PrisonDetails(prisonId = "AKI", prisonName = "Acklington (HMP)"),
-      PrisonDetails(prisonId = "ALI", prisonName = "Albany (HMP)"),
-      PrisonDetails(prisonId = "ANI", prisonName = "Aldington (HMP)"),
-    )
 
     assertThat(response).isNotNull
     assertThat(response[0].prisonId).isEqualTo("AKI")

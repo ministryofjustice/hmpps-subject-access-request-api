@@ -21,4 +21,7 @@ document-storage:
 prison-register:
   url: "http://localhost:9099"
 nomis-user-roles-api:
-  url: http://localhost:8082
+  url: "http://localhost:8082"
+  client:
+    id: "example-api-client"
+    secret: "example-api-client-secret"
