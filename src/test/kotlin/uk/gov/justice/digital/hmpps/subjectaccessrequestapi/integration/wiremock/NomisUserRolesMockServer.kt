@@ -21,9 +21,9 @@ class NomisUserRolesMockServer : WireMockServer(8082) {
     )
   }
 
-  fun stubGetPrisonDetails() {
+  fun stubGetUserDetails() {
     stubFor(
-      get("/prisons/names")
+      get("/users/lastnames")
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
@@ -31,16 +31,16 @@ class NomisUserRolesMockServer : WireMockServer(8082) {
             .withBody(
               """[
                         {
-                        "prisonId": "AKI",
-                        "prisonName": "Acklington (HMP)"
+                        "username": "AA46243",
+                        "lastName": "SMITH"
                         },
                         {
-                        "prisonId": "ALI",
-                        "prisonName": "Albany (HMP)"
+                        "username": "ALI241",
+                        "lastName": "JONES"
                         },
                         {
-                        "prisonId": "ANI",
-                        "prisonName": "Aldington (HMP)"
+                        "username": "DB128Z",
+                        "lastName": "ALI"
                         }
                         ]"""
                 .trimIndent(),
@@ -53,10 +53,10 @@ class NomisUserRolesMockServer : WireMockServer(8082) {
 class NomisUserRolesApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
   companion object {
     @JvmField
-    val nomisUserRolesApiExtension = NomisUserRolesMockServer()
+    val nomisUserRolesApi = NomisUserRolesMockServer()
   }
 
-  override fun beforeAll(context: ExtensionContext): Unit = nomisUserRolesApiExtension.start()
-  override fun beforeEach(context: ExtensionContext): Unit = nomisUserRolesApiExtension.resetAll()
-  override fun afterAll(context: ExtensionContext): Unit = nomisUserRolesApiExtension.stop()
+  override fun beforeAll(context: ExtensionContext): Unit = nomisUserRolesApi.start()
+  override fun beforeEach(context: ExtensionContext): Unit = nomisUserRolesApi.resetAll()
+  override fun afterAll(context: ExtensionContext): Unit = nomisUserRolesApi.stop()
 }
