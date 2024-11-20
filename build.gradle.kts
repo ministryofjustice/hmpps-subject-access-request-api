@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.8"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.9"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
   kotlin("plugin.spring") version "2.0.21"
   kotlin("plugin.jpa") version "2.0.21"
@@ -20,8 +20,8 @@ dependencies {
   implementation("org.json:json:20240303")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:7.16.0")
-  implementation("io.sentry:sentry-logback:7.16.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:7.18.0")
+  implementation("io.sentry:sentry-logback:7.18.0")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.3.232")
