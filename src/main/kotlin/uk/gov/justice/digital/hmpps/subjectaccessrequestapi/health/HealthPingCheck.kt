@@ -13,3 +13,6 @@ class PrisonRegisterHealthPing(@Qualifier("prisonRegisterWebClient") webClient: 
 
 @Component("nomisUserRolesApi")
 class NOMISHealthPing(@Qualifier("nomisUserRolesApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)
+
+@Component("sarAndDeliusApi")
+class SarAndDeliusHealthPing(@Qualifier("sarAndDeliusApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)

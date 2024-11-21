@@ -11,12 +11,12 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.UserDetails
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.UserDetailsClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.UserDetailsRepository
 
-class UpdateUserNameDataTest {
+class UpdateProbationUserNameDataTest {
 
   private val userDetailsRepository: UserDetailsRepository = mock()
   private val userDetailsClient: UserDetailsClient = mock()
 
-  private val updateUserNameDataService = UpdateUserNameDataService(userDetailsRepository, userDetailsClient)
+  private val updateProbationUserDataService = UpdateProbationUserNameDataService(userDetailsRepository, userDetailsClient)
 
   private val userDetailsList = listOf(
     UserDetails(username = "AA46243", lastName = "SMITH"),
@@ -27,13 +27,29 @@ class UpdateUserNameDataTest {
 
   @Test
   fun `should update User name data`() {
-    whenever(userDetailsClient.getNomisUserDetails()).thenReturn(userDetailsList)
+    whenever(userDetailsClient.getProbationUserDetails()).thenReturn(userDetailsList)
 
-    updateUserNameDataService.updateUserData()
+    updateProbationUserDataService.updateProbationUserData()
 
-    verify(userDetailsClient, times(1)).getNomisUserDetails()
+    verify(userDetailsClient, times(1)).getProbationUserDetails()
     verifyNoMoreInteractions(userDetailsClient)
 
     verify(userDetailsRepository, times(4)).save(any())
+  }
+
+  @Test
+  fun `should update User name data will not save entries with empty lastname`() {
+    val userDetailsList = listOf(
+      UserDetails(username = "AA46243", lastName = "SMITH"),
+      UserDetails(username = "ALI241", lastName = ""),
+    )
+    whenever(userDetailsClient.getProbationUserDetails()).thenReturn(userDetailsList)
+
+    updateProbationUserDataService.updateProbationUserData()
+
+    verify(userDetailsClient, times(1)).getProbationUserDetails()
+    verifyNoMoreInteractions(userDetailsClient)
+
+    verify(userDetailsRepository, times(1)).save(any())
   }
 }

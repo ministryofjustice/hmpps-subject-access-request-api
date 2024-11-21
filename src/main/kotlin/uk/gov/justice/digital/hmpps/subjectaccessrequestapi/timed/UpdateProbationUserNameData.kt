@@ -13,15 +13,15 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.UserDetai
  * Refresh prison cache daily - 24hours = 86400000 milliseconds
  */
 @Component
-class UpdateUserNameData(private val service: UpdateUserNameDataService) {
+class UpdateProbationUserNameData(private val service: UpdateProbationUserNameDataService) {
 
   @Scheduled(
     fixedDelayString = "\${application.user-details-refresh.frequency}",
-    initialDelayString = "\${random.int[6000,\${application.user-details-refresh.frequency}]}",
+    initialDelayString = "\${random.int[60000,\${application.user-details-refresh.frequency}]}",
   )
   fun updateUserCache() {
     try {
-      service.updateUserData()
+      service.updateProbationUserData()
     } catch (e: Exception) {
       // have to catch the exception here otherwise scheduling will stop
       log.error("Caught exception {} during User cache update", e.javaClass.simpleName, e)
@@ -34,7 +34,7 @@ class UpdateUserNameData(private val service: UpdateUserNameDataService) {
 }
 
 @Service
-class UpdateUserNameDataService(
+class UpdateProbationUserNameDataService(
   private val userDetailsRepository: UserDetailsRepository,
   private val userDetailsClient: UserDetailsClient,
 ) {
@@ -43,13 +43,15 @@ class UpdateUserNameDataService(
   }
 
   @Transactional
-  fun updateUserData() {
-    log.info("updating user details in database")
+  fun updateProbationUserData() {
+    log.info("updating probation user details in database")
 
-    val userDetails = userDetailsClient.getNomisUserDetails()
-    userDetails.forEach {
-      log.info(it.toString())
-      userDetailsRepository.save(UserDetail(username = it.username, lastName = it.lastName))
+    userDetailsClient.getProbationUserDetails().forEach {
+      if (it.lastName.isNotBlank()) {
+        userDetailsRepository.save(UserDetail(username = it.username, lastName = it.lastName))
+      }
     }
+
+    log.info("probation users details obtained, updated in database")
   }
 }

@@ -8,11 +8,19 @@ import org.springframework.web.reactive.function.client.WebClient
 @Component
 class UserDetailsClient(
   private val nomisUserRolesApiWebClient: WebClient,
+  private val sarAndDeliusApiWebClient: WebClient,
 ) {
 
   fun getNomisUserDetails(): List<UserDetails> =
     nomisUserRolesApiWebClient.get()
       .uri("/users/lastnames")
+      .retrieve()
+      .bodyToMono(object : ParameterizedTypeReference<List<UserDetails>>() {})
+      .block()!!
+
+  fun getProbationUserDetails(): List<UserDetails> =
+    sarAndDeliusApiWebClient.get()
+      .uri("/user")
       .retrieve()
       .bodyToMono(object : ParameterizedTypeReference<List<UserDetails>>() {})
       .block()!!

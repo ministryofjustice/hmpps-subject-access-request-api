@@ -22,6 +22,8 @@ prison-register:
   url: "http://localhost:9099"
 nomis-user-roles-api:
   url: "http://localhost:8082"
+sar-and-delius-api:
+  url: "http://localhost:8083"
   client:
     id: "example-api-client"
     secret: "example-api-client-secret"

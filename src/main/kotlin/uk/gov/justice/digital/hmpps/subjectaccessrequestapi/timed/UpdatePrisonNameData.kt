@@ -17,7 +17,7 @@ class UpdatePrisonNameData(private val service: UpdatePrisonNameDataService) {
 
   @Scheduled(
     fixedDelayString = "\${application.prison-refresh.frequency}",
-    initialDelayString = "\${random.int[600000,\${application.prison-refresh.frequency}]}",
+    initialDelayString = "\${random.int[60000,\${application.prison-refresh.frequency}]}",
   )
   fun updatePrisonCache() {
     try {
@@ -46,9 +46,10 @@ class UpdatePrisonNameDataService(
   fun updatePrisonData() {
     log.info("updating prison details in database")
 
-    val prisonDetails = prisonRegisterClient.getPrisonDetails()
-    prisonDetails.forEach {
+    prisonRegisterClient.getPrisonDetails().forEach {
       prisonRepository.save(PrisonDetail(prisonId = it.prisonId, prisonName = it.prisonName))
     }
+
+    log.info("prison details updated in database")
   }
 }

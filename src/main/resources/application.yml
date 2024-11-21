@@ -105,6 +105,8 @@ prison-register:
   url: https://prison-register.hmpps.service.justice.gov.uk
 nomis-user-roles-api:
   url: http://localhost:8082
+sar-and-delius-api:
+  url: http://localhost:8083
 
 sentry:
   traces-sample-rate: "0.05"
