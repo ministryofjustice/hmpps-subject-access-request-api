@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed
 
+import io.sentry.Sentry
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -17,7 +18,7 @@ class UpdatePrisonNameData(private val service: UpdatePrisonNameDataService) {
 
   @Scheduled(
     fixedDelayString = "\${application.prison-refresh.frequency}",
-    initialDelayString = "\${random.int[600000,\${application.prison-refresh.frequency}]}",
+    initialDelayString = "\${random.int[60000,\${application.prison-refresh.frequency}]}",
   )
   fun updatePrisonCache() {
     try {
@@ -25,6 +26,7 @@ class UpdatePrisonNameData(private val service: UpdatePrisonNameDataService) {
     } catch (e: Exception) {
       // have to catch the exception here otherwise scheduling will stop
       log.error("Caught exception {} during prison cache update", e.javaClass.simpleName, e)
+      Sentry.captureException(e)
     }
   }
 
@@ -46,9 +48,10 @@ class UpdatePrisonNameDataService(
   fun updatePrisonData() {
     log.info("updating prison details in database")
 
-    val prisonDetails = prisonRegisterClient.getPrisonDetails()
-    prisonDetails.forEach {
+    prisonRegisterClient.getPrisonDetails().forEach {
       prisonRepository.save(PrisonDetail(prisonId = it.prisonId, prisonName = it.prisonName))
     }
+
+    log.info("prison details updated in database")
   }
 }

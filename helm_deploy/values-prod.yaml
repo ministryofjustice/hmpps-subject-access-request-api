@@ -9,6 +9,7 @@ generic-service:
     HMPPS_AUTH_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
     DOCUMENT_STORAGE_URL: "https://document-api.hmpps.service.justice.gov.uk"
     NOMIS_USER_ROLES_API_URL: "https://nomis-user-roles-api.prison.service.justice.gov.uk"
+    SAR_AND_DELIUS_API_URL: "https://subject-access-requests-and-delius.hmpps.service.justice.gov.uk"
     SENTRY_ENV: prod
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack

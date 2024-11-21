@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed
 
+import io.sentry.Sentry
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -13,18 +14,19 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.UserDetai
  * Refresh prison cache daily - 24hours = 86400000 milliseconds
  */
 @Component
-class UpdateUserNameData(private val service: UpdateUserNameDataService) {
+class UpdatePrisonUserNameData(private val service: UpdatePrisonUserNameDataService) {
 
   @Scheduled(
     fixedDelayString = "\${application.user-details-refresh.frequency}",
-    initialDelayString = "\${random.int[6000,\${application.user-details-refresh.frequency}]}",
+    initialDelayString = "\${random.int[60000,\${application.user-details-refresh.frequency}]}",
   )
   fun updateUserCache() {
     try {
-      service.updateUserData()
+      service.updatePrisonUserData()
     } catch (e: Exception) {
       // have to catch the exception here otherwise scheduling will stop
       log.error("Caught exception {} during User cache update", e.javaClass.simpleName, e)
+      Sentry.captureException(e)
     }
   }
 
@@ -34,7 +36,7 @@ class UpdateUserNameData(private val service: UpdateUserNameDataService) {
 }
 
 @Service
-class UpdateUserNameDataService(
+class UpdatePrisonUserNameDataService(
   private val userDetailsRepository: UserDetailsRepository,
   private val userDetailsClient: UserDetailsClient,
 ) {
@@ -43,13 +45,15 @@ class UpdateUserNameDataService(
   }
 
   @Transactional
-  fun updateUserData() {
-    log.info("updating user details in database")
+  fun updatePrisonUserData() {
+    log.info("updating prison user details in database")
 
-    val userDetails = userDetailsClient.getNomisUserDetails()
-    userDetails.forEach {
-      log.info(it.toString())
-      userDetailsRepository.save(UserDetail(username = it.username, lastName = it.lastName))
+    userDetailsClient.getNomisUserDetails().forEach {
+      if (it.lastName.isNotBlank()) {
+        userDetailsRepository.save(UserDetail(username = it.username, lastName = it.lastName))
+      }
     }
+
+    log.info("prison users details obtained, updated in database")
   }
 }

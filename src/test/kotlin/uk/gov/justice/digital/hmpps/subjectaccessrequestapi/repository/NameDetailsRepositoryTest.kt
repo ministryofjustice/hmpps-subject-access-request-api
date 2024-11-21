@@ -62,4 +62,25 @@ class NameDetailsRepositoryTest {
     assertThat(before).hasSize(3)
     assertThat(after).hasSize(4)
   }
+
+  @Test
+  fun updateUserDetailsLastNameChange() {
+    val before = userDetailsRepository.findAll()
+
+    userDetailsRepository.save(UserDetail(username = "AA46243", lastName = "SMITH"))
+    userDetailsRepository.save(UserDetail(username = "ALI241", lastName = "JONES"))
+    userDetailsRepository.save(UserDetail(username = "DB128Z", lastName = "Bob"))
+
+    val after = userDetailsRepository.findAll()
+
+    assertThat(before).hasSize(3)
+    assertThat(after).hasSize(3)
+    assertThat(after[0].username).isEqualTo("AA46243")
+    assertThat(after[0].lastName).isEqualTo("SMITH")
+    assertThat(after[1].username).isEqualTo("ALI241")
+    assertThat(after[1].lastName).isEqualTo("JONES")
+
+    assertThat(after[2].username).isEqualTo("DB128Z")
+    assertThat(after[2].lastName).isEqualTo("Bob")
+  }
 }

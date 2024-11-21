@@ -14,10 +14,11 @@ class WebClientConfiguration(
   @Value("\${document-storage.url}") val documentStorageApiBaseUri: String,
   @Value("\${hmpps-auth.url}") val hmppsAuthBaseUri: String,
   @Value("\${prison-register.url}") val prisonRegisterBaseUri: String,
+  @Value("\${sar-and-delius-api.url}") val sarAndDeliusApiBaseUri: String,
   @Value("\${nomis-user-roles-api.url}") val nomisUserRolesApiBaseUri: String,
   @Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @Value("\${api.timeout:20s}") val timeout: Duration,
-  @Value("\${api.timeout:300s}") val documentStoreTimeout: Duration,
+  @Value("\${api.timeout:300s}") val longTimeout: Duration,
 ) {
   @Bean
   fun hmppsAuthHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(hmppsAuthBaseUri, healthTimeout)
@@ -29,7 +30,7 @@ class WebClientConfiguration(
   fun documentStorageWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient =
     builder
       .codecs { configurer -> configurer.defaultCodecs().maxInMemorySize(100 * 1024 * 1024) }
-      .authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = documentStorageApiBaseUri, documentStoreTimeout)
+      .authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = documentStorageApiBaseUri, longTimeout)
 
   @Bean
   fun prisonRegisterWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(prisonRegisterBaseUri, healthTimeout)
@@ -39,5 +40,12 @@ class WebClientConfiguration(
 
   @Bean
   fun nomisUserRolesApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient =
-    builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = nomisUserRolesApiBaseUri, timeout)
+    builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = nomisUserRolesApiBaseUri, longTimeout)
+
+  @Bean
+  fun sarAndDeliusApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(sarAndDeliusApiBaseUri, healthTimeout)
+
+  @Bean
+  fun sarAndDeliusApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient =
+    builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = sarAndDeliusApiBaseUri, longTimeout)
 }
