@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed
 
+import io.sentry.Sentry
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -25,6 +26,7 @@ class UpdateProbationUserNameData(private val service: UpdateProbationUserNameDa
     } catch (e: Exception) {
       // have to catch the exception here otherwise scheduling will stop
       log.error("Caught exception {} during User cache update", e.javaClass.simpleName, e)
+      Sentry.captureException(e)
     }
   }
 
