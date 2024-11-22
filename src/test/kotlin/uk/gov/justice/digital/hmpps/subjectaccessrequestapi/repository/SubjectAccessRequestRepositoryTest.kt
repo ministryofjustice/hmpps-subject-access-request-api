@@ -30,7 +30,7 @@ class SubjectAccessRequestRepositoryTest {
   private val claimDateTime = LocalDateTime.parse("30/01/2024 00:00", dateTimeFormatter)
   private val claimDateTimeEarlier = LocalDateTime.parse("30/01/2023 00:00", dateTimeFormatter)
   private val downloadDateTime = LocalDateTime.parse("01/06/2024 00:00", dateTimeFormatter)
-  private val dateTimeNow = LocalDateTime.now(ZoneId.of("UTC"))
+  private val dateTimeNow = LocalDateTime.now(ZoneId.of("UTC")).withNano(0)
 
   final val unclaimedSar = SubjectAccessRequest(
     id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
@@ -410,8 +410,12 @@ class SubjectAccessRequestRepositoryTest {
 
     @Test
     fun `should not return requests with status pending submitted at the threshold`() {
-      val dateTime12HoursAgo = dateTimeNow.minusHours(12)
-      val threshold12Hours = dateTimeNow.minusHours(12)
+      val dateTime12HoursAgo = dateTimeNow.minusHours(12).withNano(0)
+      val threshold12Hours = dateTimeNow.minusHours(12).withNano(0)
+      println(dateTimeNow)
+      println(dateTime12HoursAgo)
+      println(threshold12Hours)
+
       insertSubjectAccessRequests(subjectAccessRequestSubmittedAt(dateTime12HoursAgo, Status.Pending))
 
       val actual = subjectAccessRequestRepository.findOverdueSubjectAccessRequests(threshold12Hours)
