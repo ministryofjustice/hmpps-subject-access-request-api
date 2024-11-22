@@ -125,7 +125,7 @@ class SubjectAccessRequestService(
     }
     return ReportsOverdueSummary(
       overdueAlertConfiguration.thresholdAsString(),
-      overdueRequests
+      overdueRequests,
     )
   }
 }

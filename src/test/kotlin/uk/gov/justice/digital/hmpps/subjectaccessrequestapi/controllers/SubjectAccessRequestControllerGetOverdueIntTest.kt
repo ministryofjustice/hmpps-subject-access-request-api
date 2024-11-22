@@ -128,7 +128,8 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
     .blockFirst()
 
   data class TestCase(
-    val request: SubjectAccessRequest?, val description: String,
+    val request: SubjectAccessRequest?,
+    val description: String,
   ) {
     override fun toString(): String {
       return description

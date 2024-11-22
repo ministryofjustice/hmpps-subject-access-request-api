@@ -404,7 +404,7 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
   @PreAuthorize("hasRole('ROLE_SAR_SUPPORT')")
   @Operation(
     summary = "(Dev Support) Get overdue Subject Access Requests.",
-    description = "Returns a list of Subject Access Requests with status Pending that have exceeded the expected processing time threshold"
+    description = "Returns a list of Subject Access Requests with status Pending that have exceeded the expected processing time threshold",
   )
   @ApiResponses(
     value = [
