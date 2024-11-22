@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 import com.microsoft.applicationinsights.TelemetryClient
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -12,10 +11,14 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.ReportsOverdueAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueSubjectAccessRequests
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -23,8 +26,9 @@ import java.util.UUID
 
 @Service
 class SubjectAccessRequestService(
-  @Autowired val documentStorageClient: DocumentStorageClient,
-  @Autowired val subjectAccessRequestRepository: SubjectAccessRequestRepository,
+  val documentStorageClient: DocumentStorageClient,
+  val subjectAccessRequestRepository: SubjectAccessRequestRepository,
+  val overdueAlertConfiguration: ReportsOverdueAlertConfiguration,
   private val telemetryClient: TelemetryClient,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -101,6 +105,28 @@ class SubjectAccessRequestService(
     telemetryClient.trackApiEvent("ReportDocumentDownloadTimeUpdated", sarId.toString(), "downloadDateTime" to downloadDateTime.toString())
     log.info("Updated download time")
     return document
+  }
+
+  fun getOverdueSubjectAccessRequests(): ReportsOverdueSummary {
+    val threshold = overdueAlertConfiguration.calculateOverdueThreshold()
+    val overdue = subjectAccessRequestRepository.findOverdueSubjectAccessRequests(threshold)
+
+    val overdueRequests = overdue.map {
+      it?.let {
+        OverdueSubjectAccessRequests(
+          it.id,
+          it.sarCaseReferenceNumber,
+          it.requestDateTime,
+          it.claimDateTime,
+          it.claimAttempts,
+          Duration.between(it.requestDateTime, LocalDateTime.now()),
+        )
+      }
+    }
+    return ReportsOverdueSummary(
+      overdueAlertConfiguration.thresholdAsString(),
+      overdueRequests
+    )
   }
 }
 

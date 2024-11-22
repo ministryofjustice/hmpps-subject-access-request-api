@@ -5,6 +5,13 @@ hmpps-auth:
 #document-storage:
 #    url: https://document-api-dev.hmpps.service.justice.gov.uk/
 
+application:
+  alerts:
+    reports-overdue:
+      frequency: 1
+      threshold: 4
+      unit: HOURS
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/sar-db

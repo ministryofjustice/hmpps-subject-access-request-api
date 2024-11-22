@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.ReportsOverdueAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
@@ -37,7 +38,13 @@ class SubjectAccessRequestServiceTest {
   private val authentication: Authentication = mock()
   private val documentStorageClient: DocumentStorageClient = mock()
   private val telemetryClient: TelemetryClient = mock()
-  private val subjectAccessRequestService = SubjectAccessRequestService(documentStorageClient, subjectAccessRequestRepository, telemetryClient)
+  private val overdueAlertConfiguration: ReportsOverdueAlertConfiguration = mock()
+  private val subjectAccessRequestService = SubjectAccessRequestService(
+    documentStorageClient,
+    subjectAccessRequestRepository,
+    overdueAlertConfiguration,
+    telemetryClient,
+  )
 
   private val formattedCurrentTime =
     LocalDateTime.parse("02/01/2024 00:30", DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))

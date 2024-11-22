@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
@@ -397,5 +398,39 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
     } else {
       ResponseEntity(HttpStatus.OK)
     }
+  }
+
+  @GetMapping("/subjectAccessRequests/overdue")
+  @PreAuthorize("hasRole('ROLE_SAR_SUPPORT')")
+  @Operation(
+    summary = "(Dev Support) Get overdue Subject Access Requests.",
+    description = "Returns a list of Subject Access Requests with status Pending that have exceeded the expected processing time threshold"
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Request successful returns a list of overdue requests. Returns an empty list if no overdue request are identified",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ReportsOverdueSummary::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  fun listOverdueReports(): ReportsOverdueSummary {
+    return subjectAccessRequestService.getOverdueSubjectAccessRequests()
   }
 }
