@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -29,7 +30,7 @@ class SubjectAccessRequestRepositoryTest {
   private val claimDateTime = LocalDateTime.parse("30/01/2024 00:00", dateTimeFormatter)
   private val claimDateTimeEarlier = LocalDateTime.parse("30/01/2023 00:00", dateTimeFormatter)
   private val downloadDateTime = LocalDateTime.parse("01/06/2024 00:00", dateTimeFormatter)
-  private val dateTimeNow = LocalDateTime.now()
+  private val dateTimeNow = LocalDateTime.now(ZoneId.of("UTC"))
 
   final val unclaimedSar = SubjectAccessRequest(
     id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
