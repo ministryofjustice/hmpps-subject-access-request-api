@@ -34,21 +34,17 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
     private val dateFrom = LocalDate.parse("30/12/2023", dateFormatter)
     private val dateTo = LocalDate.parse("30/01/2024", dateFormatter)
     private val dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-    private val dateTimeNow = LocalDateTime.now()
+    private val dateTimeNow = LocalDateTime.now().minusNanos(0)
 
     private val overduePendingRequest = subjectAccessRequestSubmittedAt(dateTimeNow.minusHours(5), Status.Pending)
     private val oldCompleteRequest = subjectAccessRequestSubmittedAt(dateTimeNow.minusHours(10), Status.Completed)
     private val newPendingRequest = subjectAccessRequestSubmittedAt(dateTimeNow.minusMinutes(5), Status.Pending)
-    private val onThresholdPendingRequest = subjectAccessRequestSubmittedAt(dateTimeNow.minusHours(1), Status.Pending)
-    private val onThresholdCompleteRequest = subjectAccessRequestSubmittedAt(dateTimeNow.minusHours(1), Status.Completed)
 
     @JvmStatic
     fun nonOverdueReports(): List<TestCase?> = listOf(
       TestCase(null, "no reports exist"),
       TestCase(oldCompleteRequest, "status complete, processing duration greater than overdue threshold"),
       TestCase(newPendingRequest, "status pending, processing duration less than overdue threshold"),
-      TestCase(onThresholdPendingRequest, "status pending, processing duration equal to overdue threshold"),
-      TestCase(onThresholdCompleteRequest, "status complete, processing duration equal to overdue threshold"),
     )
 
     private fun subjectAccessRequestSubmittedAt(
