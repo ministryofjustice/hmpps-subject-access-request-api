@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAc
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -33,6 +34,7 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
     private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     private val dateFrom = LocalDate.parse("30/12/2023", dateFormatter)
     private val dateTo = LocalDate.parse("30/01/2024", dateFormatter)
+    private val dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
     private val dateTimeNow = LocalDateTime.now()
 
     private val overduePendingRequest = subjectAccessRequestSubmittedAt(dateTimeNow.minusHours(5), Status.Pending)
@@ -108,7 +110,7 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
     assertThat(overdueRequest).isNotNull
     assertThat(overdueRequest!!.id).isEqualTo(overduePendingRequest.id)
     assertThat(overdueRequest.sarCaseReferenceNumber).isEqualTo(overduePendingRequest.sarCaseReferenceNumber)
-    assertThat(overdueRequest.submitted).isEqualTo(overduePendingRequest.requestDateTime)
+    assertThat(overdueRequest.submitted!!.formatted()).isEqualTo(overduePendingRequest.requestDateTime.formatted())
     assertThat(overdueRequest.claimsAttempted).isEqualTo(0)
     assertThat(overdueRequest.lastClaimed).isEqualTo(overduePendingRequest.claimDateTime)
 
@@ -126,6 +128,13 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
     .returnResult(ReportsOverdueSummary::class.java)
     .responseBody
     .blockFirst()
+
+  /**
+   * Format the dateTime to "yyyy-MM-dd HH:mm"
+   */
+  fun LocalDateTime.formatted(): String? {
+    return dateTimeFormat.format(this)
+  }
 
   data class TestCase(
     val request: SubjectAccessRequest?,
