@@ -20,7 +20,7 @@ class ReportsOverdueAlert(
    * 12 hours
    */
   @Scheduled(
-    fixedDelayString = "\${application.alerts.reports-overdue.frequency:720}",
+    fixedDelayString = "\${application.alerts.reports-overdue.frequency-minutes:720}",
     timeUnit = TimeUnit.MINUTES,
   )
   fun alertOverdueRequests() {

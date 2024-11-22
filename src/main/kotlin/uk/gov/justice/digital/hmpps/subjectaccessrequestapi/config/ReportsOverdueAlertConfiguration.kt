@@ -8,7 +8,7 @@ import java.time.temporal.ChronoUnit
 @Configuration
 data class ReportsOverdueAlertConfiguration(
   @Value("\${application.alerts.reports-overdue.threshold:12}") val threshold: Long,
-  @Value("\${application.alerts.reports-overdue.unit:HOURS}") val chronoUnit: ChronoUnit,
+  @Value("\${application.alerts.reports-overdue.threshold-unit:HOURS}") val chronoUnit: ChronoUnit,
 ) {
   fun calculateOverdueThreshold(): LocalDateTime = LocalDateTime.now().minus(threshold, chronoUnit)
   fun thresholdAsString(): String = "$threshold $chronoUnit"
