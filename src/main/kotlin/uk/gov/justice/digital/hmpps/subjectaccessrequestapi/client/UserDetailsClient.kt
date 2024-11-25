@@ -7,9 +7,17 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Component
 class UserDetailsClient(
+  private val externalUserApiWebClient: WebClient,
   private val nomisUserRolesApiWebClient: WebClient,
   private val sarAndDeliusApiWebClient: WebClient,
 ) {
+
+  fun getExternalUserDetails(): List<UserDetails> =
+    externalUserApiWebClient.get()
+      .uri("/users/lastnames")
+      .retrieve()
+      .bodyToMono(object : ParameterizedTypeReference<List<UserDetails>>() {})
+      .block()!!
 
   fun getNomisUserDetails(): List<UserDetails> =
     nomisUserRolesApiWebClient.get()

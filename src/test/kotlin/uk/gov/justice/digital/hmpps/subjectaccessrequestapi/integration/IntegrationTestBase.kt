@@ -9,6 +9,8 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DocumentServiceApiExtension
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DocumentServiceApiExtension.Companion.documentServiceApi
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.ExternalUserApiExtension
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.ExternalUserApiExtension.Companion.externalUserApi
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthApiExtension.Companion.hmppsAuth
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.NomisUserRolesApiExtension
@@ -19,7 +21,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.SarAndDeliusApiExtension.Companion.sarAndDeliusApi
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
-@ExtendWith(HmppsAuthApiExtension::class, DocumentServiceApiExtension::class, PrisonRegisterApiExtension::class, NomisUserRolesApiExtension::class, SarAndDeliusApiExtension::class)
+@ExtendWith(HmppsAuthApiExtension::class, DocumentServiceApiExtension::class, PrisonRegisterApiExtension::class, ExternalUserApiExtension::class, NomisUserRolesApiExtension::class, SarAndDeliusApiExtension::class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 abstract class IntegrationTestBase {
@@ -40,6 +42,7 @@ abstract class IntegrationTestBase {
     hmppsAuth.stubHealthPing(status)
     documentServiceApi.stubHealthPing(status)
     prisonRegisterApi.stubHealthPing(status)
+    externalUserApi.stubHealthPing(status)
     nomisUserRolesApi.stubHealthPing(status)
     sarAndDeliusApi.stubHealthPing(status)
   }
