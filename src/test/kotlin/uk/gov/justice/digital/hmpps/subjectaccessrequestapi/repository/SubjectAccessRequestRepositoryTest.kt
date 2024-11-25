@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,6 +13,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -28,6 +30,7 @@ class SubjectAccessRequestRepositoryTest {
   private val claimDateTime = LocalDateTime.parse("30/01/2024 00:00", dateTimeFormatter)
   private val claimDateTimeEarlier = LocalDateTime.parse("30/01/2023 00:00", dateTimeFormatter)
   private val downloadDateTime = LocalDateTime.parse("01/06/2024 00:00", dateTimeFormatter)
+  private val dateTimeNow = LocalDateTime.now(ZoneId.of("UTC")).withNano(0)
 
   final val unclaimedSar = SubjectAccessRequest(
     id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
@@ -123,7 +126,19 @@ class SubjectAccessRequestRepositoryTest {
     subjectAccessRequestRepository.save(sarWithSearchableNdeliusId)
   }
 
-  val allSars = listOf(unclaimedSar, claimedSarWithPendingStatus, completedSar, sarWithPendingStatusClaimedEarlier, sarWithSearchableCaseReference, sarWithSearchableNdeliusId)
+  @BeforeEach
+  fun setup() {
+    subjectAccessRequestRepository.deleteAll()
+  }
+
+  val allSars = listOf(
+    unclaimedSar,
+    claimedSarWithPendingStatus,
+    completedSar,
+    sarWithPendingStatusClaimedEarlier,
+    sarWithSearchableCaseReference,
+    sarWithSearchableNdeliusId,
+  )
 
   @Nested
   inner class FindUnclaimed {
@@ -362,6 +377,92 @@ class SubjectAccessRequestRepositoryTest {
       val thresholdTime = LocalDateTime.parse("30/02/2024 00:00", dateTimeFormatter)
       val oldSars = subjectAccessRequestRepository.findByRequestDateTimeBefore(thresholdTime)
       assertThat(oldSars.size).isEqualTo(5)
+    }
+  }
+
+  @Nested
+  inner class FindPendingRequestsSubmittedBefore {
+    @Test
+    fun `should return requests with status pending submitted before threshold`() {
+      val dateTime14HoursAgo = dateTimeNow.minusHours(14)
+      val threshold12Hours = dateTimeNow.minusHours(12)
+
+      val request = subjectAccessRequestSubmittedAt(dateTime14HoursAgo, Status.Pending)
+      insertSubjectAccessRequests(request)
+
+      val actual = subjectAccessRequestRepository.findOverdueSubjectAccessRequests(threshold12Hours)
+      assertThat(actual).isNotNull
+      assertThat(actual).hasSize(1)
+      assertThat(actual[0]).isEqualTo(request)
+    }
+
+    @Test
+    fun `should not return requests with status completed submitted before threshold`() {
+      val dateTime10HoursAgo = dateTimeNow.minusHours(14)
+      val longRunningRequestThreshold = dateTimeNow.minusHours(12)
+
+      insertSubjectAccessRequests(subjectAccessRequestSubmittedAt(dateTime10HoursAgo, Status.Completed))
+
+      val actual = subjectAccessRequestRepository.findOverdueSubjectAccessRequests(longRunningRequestThreshold)
+      assertThat(actual).isNotNull
+      assertThat(actual).isEmpty()
+    }
+
+    @Test
+    fun `should not return requests with status pending submitted at the threshold`() {
+      val dateTime12HoursAgo = dateTimeNow.minusHours(12).withNano(0)
+      val threshold12Hours = dateTimeNow.minusHours(12).withNano(0)
+      println(dateTimeNow)
+      println(dateTime12HoursAgo)
+      println(threshold12Hours)
+
+      insertSubjectAccessRequests(subjectAccessRequestSubmittedAt(dateTime12HoursAgo, Status.Pending))
+
+      val actual = subjectAccessRequestRepository.findOverdueSubjectAccessRequests(threshold12Hours)
+      assertThat(actual).isNotNull
+      assertThat(actual).isEmpty()
+    }
+
+    @Test
+    fun `should not return requests with status pending submitted after threshold`() {
+      val dateTime11HoursAgo = dateTimeNow.minusHours(11)
+      val threshold12Hours = dateTimeNow.minusHours(12)
+      insertSubjectAccessRequests(subjectAccessRequestSubmittedAt(dateTime11HoursAgo, Status.Pending))
+
+      val actual = subjectAccessRequestRepository.findOverdueSubjectAccessRequests(threshold12Hours)
+      assertThat(actual).isNotNull
+      assertThat(actual).isEmpty()
+    }
+
+    @Test
+    fun `should not return requests with status completed submitted after threshold`() {
+      val dateTime11HoursAgo = dateTimeNow.minusHours(11)
+      val threshold12Hours = dateTimeNow.minusHours(12)
+      insertSubjectAccessRequests(subjectAccessRequestSubmittedAt(dateTime11HoursAgo, Status.Completed))
+
+      val actual = subjectAccessRequestRepository.findOverdueSubjectAccessRequests(threshold12Hours)
+      assertThat(actual).isNotNull
+      assertThat(actual).isEmpty()
+    }
+
+    private fun subjectAccessRequestSubmittedAt(requestSubmittedAt: LocalDateTime, status: Status) =
+      SubjectAccessRequest(
+        id = UUID.randomUUID(),
+        status = status,
+        dateFrom = dateFrom,
+        dateTo = dateTo,
+        sarCaseReferenceNumber = "666xzy",
+        services = "{1,2,4}",
+        nomisId = "",
+        ndeliusCaseReferenceId = "hansGruber99",
+        requestedBy = "Hans Gruber",
+        requestDateTime = requestSubmittedAt,
+        claimAttempts = 0,
+        claimDateTime = null,
+      )
+
+    private fun insertSubjectAccessRequests(vararg subjectAccessRequests: SubjectAccessRequest) {
+      subjectAccessRequestRepository.saveAll(listOf(*subjectAccessRequests))
     }
   }
 }

@@ -10,6 +10,13 @@ spring:
 server:
   shutdown: immediate
 
+application:
+  alerts:
+    reports-overdue:
+      frequency-minutes: 1
+      threshold: 12
+      threshold-unit: HOURS
+
 management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0

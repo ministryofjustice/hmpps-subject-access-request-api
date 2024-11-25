@@ -51,4 +51,12 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
   fun updateLastDownloaded(@Param("id") id: UUID, @Param("downloadDateTime") downloadDateTime: LocalDateTime): Int
 
   fun findByRequestDateTimeBefore(thresholdTime: LocalDateTime): List<SubjectAccessRequest?>
+
+  @Query(
+    "SELECT s FROM SubjectAccessRequest s " +
+      "WHERE :threshold > s.requestDateTime " +
+      "AND s.status = 'Pending' " +
+      "ORDER BY s.requestDateTime ASC",
+  )
+  fun findOverdueSubjectAccessRequests(@Param("threshold") threshold: LocalDateTime): List<SubjectAccessRequest?>
 }
