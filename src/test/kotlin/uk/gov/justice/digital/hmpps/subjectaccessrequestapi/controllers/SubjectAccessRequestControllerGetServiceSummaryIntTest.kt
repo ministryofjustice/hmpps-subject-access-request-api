@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
-class SubjectAccessRequestControllerGetServiceSummaryIntTest: IntegrationTestBase() {
+class SubjectAccessRequestControllerGetServiceSummaryIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
@@ -84,7 +84,8 @@ class SubjectAccessRequestControllerGetServiceSummaryIntTest: IntegrationTestBas
       .jsonPath("$.backlog.alertThreshold").isEqualTo(100)
       .jsonPath("$.backlog.alertFrequency").isEqualTo("720 Minutes")
       .jsonPath("$.overdueReports.count").isEqualTo(1)
-      .jsonPath("$.overdueReports.alertThreshold").isEqualTo("status == pending && requestDateTime < (time.now - 12 Hours)")
+      .jsonPath("$.overdueReports.alertThreshold")
+      .isEqualTo("status == pending && requestDateTime < (time.now - 12 Hours)")
       .jsonPath("$.overdueReports.alertFrequency").isEqualTo("720 Minutes")
   }
 }
