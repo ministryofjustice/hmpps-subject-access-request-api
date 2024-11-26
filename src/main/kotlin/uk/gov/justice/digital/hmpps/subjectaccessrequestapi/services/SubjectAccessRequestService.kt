@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.ReportsOverdueAlertConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueSubjectAccessRequests
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
@@ -28,7 +28,7 @@ import java.util.UUID
 class SubjectAccessRequestService(
   val documentStorageClient: DocumentStorageClient,
   val subjectAccessRequestRepository: SubjectAccessRequestRepository,
-  val overdueAlertConfiguration: ReportsOverdueAlertConfiguration,
+  val alertsConfiguration: AlertsConfiguration,
   private val telemetryClient: TelemetryClient,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
@@ -107,8 +107,8 @@ class SubjectAccessRequestService(
     return document
   }
 
-  fun getOverdueSubjectAccessRequests(): ReportsOverdueSummary {
-    val threshold = overdueAlertConfiguration.calculateOverdueThreshold()
+  fun getOverdueSubjectAccessRequestsSummary(): ReportsOverdueSummary {
+    val threshold = alertsConfiguration.calculateOverdueThreshold()
     val overdue = subjectAccessRequestRepository.findOverdueSubjectAccessRequests(threshold)
 
     val overdueRequests = overdue.map {
@@ -124,9 +124,13 @@ class SubjectAccessRequestService(
       }
     }
     return ReportsOverdueSummary(
-      overdueAlertConfiguration.thresholdAsString(),
+      alertsConfiguration.overdueThresholdAsString(),
       overdueRequests,
     )
+  }
+
+  fun countPendingSubjectAccessRequests(): Int {
+    return subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Pending)
   }
 }
 

@@ -59,4 +59,7 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
       "ORDER BY s.requestDateTime ASC",
   )
   fun findOverdueSubjectAccessRequests(@Param("threshold") threshold: LocalDateTime): List<SubjectAccessRequest?>
+
+  @Query("SELECT COUNT(1) FROM SubjectAccessRequest s WHERE s.status = :status")
+  fun countSubjectAccessRequestsByStatus(@Param("status") status: Status): Int
 }

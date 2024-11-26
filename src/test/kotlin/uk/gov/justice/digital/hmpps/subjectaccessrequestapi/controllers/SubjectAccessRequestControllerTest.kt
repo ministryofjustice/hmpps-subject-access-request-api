@@ -18,6 +18,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.io.ByteArrayInputStream
@@ -28,7 +29,9 @@ class SubjectAccessRequestControllerTest {
   private val subjectAccessRequestService: SubjectAccessRequestService = mock()
   private val authentication: Authentication = mock()
   private val telemetryClient: TelemetryClient = mock()
-  private val subjectAccessRequestController = SubjectAccessRequestController(subjectAccessRequestService, telemetryClient)
+  private val alertsConfiguration: AlertsConfiguration = mock()
+  private val subjectAccessRequestController =
+    SubjectAccessRequestController(subjectAccessRequestService, telemetryClient, alertsConfiguration)
   private val requestTime = LocalDateTime.now()
   private val ndeliusRequest = "{ " +
     "dateFrom: '01/12/2023', " +

@@ -8,7 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.ReportsOverdueAlertConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
@@ -27,7 +27,7 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
   private lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
 
   @MockBean
-  private lateinit var alertConfiguration: ReportsOverdueAlertConfiguration
+  private lateinit var alertConfiguration: AlertsConfiguration
 
   companion object {
     private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -69,10 +69,10 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    whenever(alertConfiguration.threshold).thenReturn(1)
-    whenever(alertConfiguration.chronoUnit).thenReturn(ChronoUnit.HOURS)
+    whenever(alertConfiguration.overdueThreshold).thenReturn(1)
+    whenever(alertConfiguration.overdueThresholdChronoUnit).thenReturn(ChronoUnit.HOURS)
     whenever(alertConfiguration.calculateOverdueThreshold()).thenReturn(dateTimeNow.minusHours(1))
-    whenever(alertConfiguration.thresholdAsString()).thenReturn("1 Hours")
+    whenever(alertConfiguration.overdueThresholdAsString()).thenReturn("1 Hours")
 
     subjectAccessRequestRepository.deleteAll()
   }

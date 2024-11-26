@@ -13,9 +13,12 @@ server:
 application:
   alerts:
     reports-overdue:
-      frequency-minutes: 1
+      alert-frequency: 720
       threshold: 12
       threshold-unit: HOURS
+    backlog-threshold:
+      alert-frequency: 720
+      threshold: 100
 
 management.endpoint:
   health.cache.time-to-live: 0

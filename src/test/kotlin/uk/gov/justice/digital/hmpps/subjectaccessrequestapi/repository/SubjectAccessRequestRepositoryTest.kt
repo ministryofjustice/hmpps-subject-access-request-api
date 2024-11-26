@@ -444,25 +444,48 @@ class SubjectAccessRequestRepositoryTest {
       assertThat(actual).isNotNull
       assertThat(actual).isEmpty()
     }
+  }
 
-    private fun subjectAccessRequestSubmittedAt(requestSubmittedAt: LocalDateTime, status: Status) =
-      SubjectAccessRequest(
-        id = UUID.randomUUID(),
-        status = status,
-        dateFrom = dateFrom,
-        dateTo = dateTo,
-        sarCaseReferenceNumber = "666xzy",
-        services = "{1,2,4}",
-        nomisId = "",
-        ndeliusCaseReferenceId = "hansGruber99",
-        requestedBy = "Hans Gruber",
-        requestDateTime = requestSubmittedAt,
-        claimAttempts = 0,
-        claimDateTime = null,
-      )
+  @Nested
+  inner class CountSubjectAccessRequestsByStatus {
 
-    private fun insertSubjectAccessRequests(vararg subjectAccessRequests: SubjectAccessRequest) {
-      subjectAccessRequestRepository.saveAll(listOf(*subjectAccessRequests))
+    @Test
+    fun `should return 0 when no records exist`() {
+      assertThat(subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Pending)).isEqualTo(0)
+      assertThat(subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Completed)).isEqualTo(0)
+    }
+
+    @Test
+    fun `should return the expected number of requests with status pending`() {
+      val pendingOne = subjectAccessRequestSubmittedAt(LocalDateTime.now(), Status.Pending)
+      val pendingTwo = subjectAccessRequestSubmittedAt(LocalDateTime.now(), Status.Pending)
+      val pendingThree = subjectAccessRequestSubmittedAt(LocalDateTime.now(), Status.Pending)
+      val completeOne = subjectAccessRequestSubmittedAt(LocalDateTime.now(), Status.Completed)
+
+      insertSubjectAccessRequests(pendingOne, pendingTwo, pendingThree, completeOne)
+
+      assertThat(subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Pending)).isEqualTo(3)
+      assertThat(subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Completed)).isEqualTo(1)
     }
   }
+
+  private fun insertSubjectAccessRequests(vararg subjectAccessRequests: SubjectAccessRequest) {
+    subjectAccessRequestRepository.saveAll(listOf(*subjectAccessRequests))
+  }
+
+  private fun subjectAccessRequestSubmittedAt(requestSubmittedAt: LocalDateTime, status: Status) =
+    SubjectAccessRequest(
+      id = UUID.randomUUID(),
+      status = status,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
+      sarCaseReferenceNumber = "666xzy",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "hansGruber99",
+      requestedBy = "Hans Gruber",
+      requestDateTime = requestSubmittedAt,
+      claimAttempts = 0,
+      claimDateTime = null,
+    )
 }
