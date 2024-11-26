@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -25,9 +24,13 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.BacklogSummary
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueReportSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.time.LocalDateTime
@@ -37,7 +40,11 @@ import java.util.UUID
 @Transactional
 @PreAuthorize("hasAnyRole('ROLE_SAR_USER_ACCESS', 'ROLE_SAR_DATA_ACCESS')")
 @RequestMapping("/api")
-class SubjectAccessRequestController(@Autowired val subjectAccessRequestService: SubjectAccessRequestService, val telemetryClient: TelemetryClient) {
+class SubjectAccessRequestController(
+  val subjectAccessRequestService: SubjectAccessRequestService,
+  val telemetryClient: TelemetryClient,
+  val alertsConfiguration: AlertsConfiguration,
+) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
   @PostMapping("/subjectAccessRequest")
@@ -430,7 +437,48 @@ class SubjectAccessRequestController(@Autowired val subjectAccessRequestService:
       ),
     ],
   )
-  fun listOverdueReports(): ReportsOverdueSummary {
-    return subjectAccessRequestService.getOverdueSubjectAccessRequests()
-  }
+  fun listOverdueReports(): ReportsOverdueSummary = subjectAccessRequestService.getOverdueSubjectAccessRequestsSummary()
+
+  @GetMapping("/subjectAccessRequests/summary")
+  @PreAuthorize("hasRole('ROLE_SAR_SUPPORT')")
+  @Operation(
+    summary = "(Dev Support) Get service status summary",
+    description = "Returns service status summary to aid support and monitoring",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Request successful returns service summary",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ServiceSummary::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  fun getServiceSummary(): ServiceSummary = ServiceSummary(
+    BacklogSummary(
+      count = subjectAccessRequestService.countPendingSubjectAccessRequests(),
+      alertThreshold = alertsConfiguration.backlogThreshold,
+      alertFrequency = alertsConfiguration.backlogThresholdAlertFrequency(),
+    ),
+    OverdueReportSummary(
+      count = subjectAccessRequestService.getOverdueSubjectAccessRequestsSummary().total,
+      alertThreshold = "status == pending && requestDateTime < (time.now - ${alertsConfiguration.overdueThresholdAsString()})",
+      alertFrequency = alertsConfiguration.overdueThresholdAlertFrequency(),
+    ),
+  )
 }

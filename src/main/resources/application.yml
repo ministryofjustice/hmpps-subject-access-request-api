@@ -80,9 +80,12 @@ application:
     frequency: 3600000
   alerts:
     reports-overdue:
-      frequency-minutes: 720
+      alert-frequency: 720
       threshold: 12
       threshold-unit: HOURS
+    backlog-threshold:
+      alert-frequency: 720
+      threshold: 100
 
 management:
   endpoints:
