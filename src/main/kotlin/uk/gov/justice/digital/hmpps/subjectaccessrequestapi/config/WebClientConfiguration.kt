@@ -13,6 +13,7 @@ import java.time.Duration
 class WebClientConfiguration(
   @Value("\${document-storage.url}") val documentStorageApiBaseUri: String,
   @Value("\${hmpps-auth.url}") val hmppsAuthBaseUri: String,
+  @Value("\${external-users-api.url}") val externalUserApiBaseUri: String,
   @Value("\${prison-register.url}") val prisonRegisterBaseUri: String,
   @Value("\${sar-and-delius-api.url}") val sarAndDeliusApiBaseUri: String,
   @Value("\${nomis-user-roles-api.url}") val nomisUserRolesApiBaseUri: String,
@@ -34,6 +35,13 @@ class WebClientConfiguration(
 
   @Bean
   fun prisonRegisterWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(prisonRegisterBaseUri, healthTimeout)
+
+  @Bean
+  fun externalUserApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(externalUserApiBaseUri, healthTimeout)
+
+  @Bean
+  fun externalUserApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient =
+    builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = externalUserApiBaseUri, longTimeout)
 
   @Bean
   fun nomisUserRolesApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(nomisUserRolesApiBaseUri, healthTimeout)

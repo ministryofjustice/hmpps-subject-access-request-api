@@ -11,6 +11,9 @@ class HmppsAuthHealthPing(@Qualifier("hmppsAuthHealthWebClient") webClient: WebC
 @Component("prisonRegister")
 class PrisonRegisterHealthPing(@Qualifier("prisonRegisterWebClient") webClient: WebClient) : HealthPingCheck(webClient)
 
+@Component("externalUserApi")
+class ExternalUserHealthPing(@Qualifier("externalUserApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)
+
 @Component("nomisUserRolesApi")
 class NOMISHealthPing(@Qualifier("nomisUserRolesApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)
 
