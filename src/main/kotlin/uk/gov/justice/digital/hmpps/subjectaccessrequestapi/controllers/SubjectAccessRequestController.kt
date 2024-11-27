@@ -8,14 +8,15 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import org.json.JSONObject
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.BacklogSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueReportSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
@@ -102,19 +104,17 @@ class SubjectAccessRequestController(
   @Parameter(name = "sarCaseReferenceNumber", description = "Case reference number of the Subject Access Request.", required = true, example = "exampleCaseReferenceNumber")
   @Parameter(name = "services", description = "List of services from which subject data must be retrieved.", required = true, example = "[\"service1, service1.prison.service.justice.gov.uk\"]")
   fun createSubjectAccessRequest(
-    @RequestBody request: String,
+    @RequestBody request: CreateSubjectAccessRequestEntity,
     authentication: Authentication,
     requestTime: LocalDateTime?,
   ): ResponseEntity<String> {
     log.info("Creating SAR Request")
-    val json = JSONObject(request)
-    val nomisId = json.get("nomisId").toString()
-    val ndeliusId = json.get("ndeliusId").toString()
+
     telemetryClient.trackEvent(
       "createSubjectAccessRequest",
       mapOf(
-        "nomisId" to nomisId,
-        "ndeliusId" to ndeliusId,
+        "nomisId" to (request.nomisId ?: ""),
+        "ndeliusId" to (request.ndeliusId ?: ""),
         "requestTime" to requestTime.toString(),
       ),
     )
@@ -123,11 +123,7 @@ class SubjectAccessRequestController(
       requestedBy = authentication.name,
       requestTime = requestTime,
     )
-    return if (response == "") {
-      ResponseEntity(response, HttpStatus.OK)
-    } else {
-      ResponseEntity(response, HttpStatus.BAD_REQUEST)
-    }
+    return ResponseEntity(response, HttpStatus.CREATED)
   }
 
   @GetMapping("/subjectAccessRequests")

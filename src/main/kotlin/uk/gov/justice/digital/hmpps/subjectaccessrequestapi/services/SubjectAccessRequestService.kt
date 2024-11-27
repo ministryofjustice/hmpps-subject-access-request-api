@@ -1,18 +1,23 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
 import com.microsoft.applicationinsights.TelemetryClient
+import org.apache.commons.lang3.ObjectUtils.isNotEmpty
+import org.apache.commons.lang3.StringUtils
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueSubjectAccessRequests
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
@@ -33,7 +38,7 @@ class SubjectAccessRequestService(
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
-  fun createSubjectAccessRequest(
+  fun createSubjectAccessRequest2(
     request: String,
     requestedBy: String,
     requestTime: LocalDateTime?,
@@ -78,6 +83,47 @@ class SubjectAccessRequestService(
       ),
     )
     return "" // Maybe want to return Report ID?
+  }
+
+  fun createSubjectAccessRequest(
+    request: CreateSubjectAccessRequestEntity,
+    requestedBy: String,
+    requestTime: LocalDateTime?,
+    id: UUID? = null,
+  ): String {
+    if (request.nomisId == null && request.ndeliusId == null) {
+      throw CreateSubjectAccessRequestException(
+        "Neither nomisId or nDeliusId provided - exactly one is required",
+        HttpStatus.BAD_REQUEST
+      )
+    }
+
+    if (isNotEmpty(request.nomisId?.trim()) && isNotEmpty(request.ndeliusId?.trim())) {
+      throw CreateSubjectAccessRequestException(
+        "Both nomisId and nDeliusId are provided - exactly one is required",
+        HttpStatus.BAD_REQUEST
+      )
+    }
+
+    if (request.dateTo == null) {
+      request.dateTo = LocalDate.now()
+    }
+
+    val subjectAccessRequest = SubjectAccessRequest(
+      id = id ?: UUID.randomUUID(),
+      status = Status.Pending,
+      dateFrom = request.dateFrom,
+      dateTo = request.dateTo,
+      sarCaseReferenceNumber = request.sarCaseReferenceNumber!!,
+      services = request.services!!,
+      nomisId = request.nomisId,
+      ndeliusCaseReferenceId = request.ndeliusId,
+      requestedBy = requestedBy,
+      requestDateTime = requestTime ?: LocalDateTime.now(),
+    )
+
+    subjectAccessRequestRepository.save(subjectAccessRequest)
+    return subjectAccessRequest.id.toString()
   }
 
   fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, pageNumber: Int? = null, pageSize: Int? = null): List<SubjectAccessRequest?> {

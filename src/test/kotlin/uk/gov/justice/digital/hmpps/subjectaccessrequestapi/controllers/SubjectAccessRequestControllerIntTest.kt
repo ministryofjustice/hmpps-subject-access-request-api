@@ -1,9 +1,20 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers
 
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
+import java.time.LocalDate
 
 class SubjectAccessRequestControllerIntTest : IntegrationTestBase() {
+
+  private val createSubjectAccessRequest = CreateSubjectAccessRequestEntity(
+    nomisId = "A1111AA",
+    ndeliusId = null,
+    services = "service1, .com",
+    sarCaseReferenceNumber = "mockedCaseReference",
+    dateTo = LocalDate.of(2022, 12, 25),
+    dateFrom = LocalDate.of(2001, 1, 1)
+  )
 
   @Test
   fun `should return unauthorized if no token`() {
@@ -29,7 +40,7 @@ class SubjectAccessRequestControllerIntTest : IntegrationTestBase() {
     webTestClient.post()
       .uri("/api/subjectAccessRequest")
       .headers(setAuthorisation(roles = listOf("ROLE_WRONG")))
-      .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":null}")
+      .bodyValue(createSubjectAccessRequest)
       .exchange()
       .expectStatus()
       .isForbidden
@@ -40,11 +51,12 @@ class SubjectAccessRequestControllerIntTest : IntegrationTestBase() {
     webTestClient.post()
       .uri("/api/subjectAccessRequest")
       .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-      .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":null}")
+      .bodyValue(createSubjectAccessRequest)
       .exchange()
       .expectStatus()
-      .isOk
+      .isCreated
       .expectBody()
+      .returnResult()
   }
 
   @Test
@@ -52,10 +64,10 @@ class SubjectAccessRequestControllerIntTest : IntegrationTestBase() {
     webTestClient.post()
       .uri("/api/subjectAccessRequest")
       .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-      .bodyValue("{\"dateFrom\":\"01/01/2001\",\"dateTo\":\"25/12/2022\",\"sarCaseReferenceNumber\":\"mockedCaseReference\",\"services\":\"service1, .com\",\"nomisId\":\"A1111AA\",\"ndeliusId\":null}")
+      .bodyValue(createSubjectAccessRequest)
       .exchange()
       .expectStatus()
-      .isOk
+      .isCreated
       .expectBody()
   }
 

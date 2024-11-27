@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import org.mockito.Mockito.any
 import org.mockito.Mockito.times
@@ -19,9 +20,12 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.io.ByteArrayInputStream
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -30,26 +34,37 @@ class SubjectAccessRequestControllerTest {
   private val authentication: Authentication = mock()
   private val telemetryClient: TelemetryClient = mock()
   private val alertsConfiguration: AlertsConfiguration = mock()
-  private val subjectAccessRequestController =
-    SubjectAccessRequestController(subjectAccessRequestService, telemetryClient, alertsConfiguration)
+  private val subjectAccessRequestController = SubjectAccessRequestController(
+    subjectAccessRequestService = subjectAccessRequestService,
+    telemetryClient = telemetryClient,
+    alertsConfiguration = alertsConfiguration,
+  )
   private val requestTime = LocalDateTime.now()
-  private val ndeliusRequest = "{ " +
-    "dateFrom: '01/12/2023', " +
-    "dateTo: '03/01/2024', " +
-    "sarCaseReferenceNumber: '1234abc', " +
-    "services: '{1,2,4}', " +
-    "nomisId: null, " +
-    "ndeliusId: '1' " +
-    "}"
+
   private val testUuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
 
   @Nested
   inner class CreateSubjectAccessRequest {
     @Test
     fun `createSubjectAccessRequest post calls service createSubjectAccessRequest with same parameters`() {
+      val ndeliusRequest = CreateSubjectAccessRequestEntity(
+        nomisId = null,
+        ndeliusId = "1",
+        services = "{1,2,4}",
+        sarCaseReferenceNumber = "1234abc",
+        dateFrom = LocalDate.of(2023, 12, 1),
+        dateTo = LocalDate.of(2024, 12, 3),
+      )
+
       whenever(authentication.name).thenReturn("UserName")
-      whenever(subjectAccessRequestService.createSubjectAccessRequest(ndeliusRequest, "UserName", requestTime)).thenReturn("")
-      val expected: ResponseEntity<String> = ResponseEntity("", HttpStatus.OK)
+      whenever(
+        subjectAccessRequestService.createSubjectAccessRequest(
+          ndeliusRequest,
+          "UserName",
+          requestTime,
+        ),
+      ).thenReturn("")
+      val expected: ResponseEntity<String> = ResponseEntity("", HttpStatus.CREATED)
 
       val result = subjectAccessRequestController
         .createSubjectAccessRequest(ndeliusRequest, authentication, requestTime)
@@ -59,49 +74,66 @@ class SubjectAccessRequestControllerTest {
     }
 
     @Test
-    fun `createSubjectAccessRequest post returns http error if both nomis and ndelius ids are provided`() {
+    fun `createSubjectAccessRequest throws expected exception if both nomis and ndelius ids are provided`() {
       whenever(authentication.name).thenReturn("UserName")
-      val ndeliusAndNomisRequest = "{ " +
-        "dateFrom: '01/12/2023', " +
-        "dateTo: '03/01/2024', " +
-        "sarCaseReferenceNumber: '1234abc', " +
-        "services: '{1,2,4}', " +
-        "nomisId: null, " +
-        "ndeliusId: '1' " +
-        "}"
+
+      val ndeliusAndNomisRequest = CreateSubjectAccessRequestEntity(
+        nomisId = "1",
+        ndeliusId = "1",
+        services = "{1,2,4}",
+        sarCaseReferenceNumber = "1234abc",
+        dateFrom = LocalDate.of(2023, 12, 1),
+        dateTo = LocalDate.of(2024, 12, 3),
+      )
+
       whenever(subjectAccessRequestService.createSubjectAccessRequest(ndeliusAndNomisRequest, "UserName", requestTime))
-        .thenReturn("Both nomisId and nDeliusId are provided - exactly one is required")
+        .thenThrow(
+          CreateSubjectAccessRequestException(
+            "Both nomisId and nDeliusId are provided - exactly one is required",
+            HttpStatus.BAD_REQUEST,
+          ),
+        )
 
-      val response = subjectAccessRequestController
-        .createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
+      val exception = assertThrows<CreateSubjectAccessRequestException> {
+        subjectAccessRequestController.createSubjectAccessRequest(ndeliusAndNomisRequest, authentication, requestTime)
+      }
 
-      verify(subjectAccessRequestService, times(1)).createSubjectAccessRequest(ndeliusAndNomisRequest, "UserName", requestTime)
-      val expected: ResponseEntity<String> =
-        ResponseEntity("Both nomisId and nDeliusId are provided - exactly one is required", HttpStatus.BAD_REQUEST)
-      assertThat(response).isEqualTo(expected)
+      assertThat(exception.status).isEqualTo(HttpStatus.BAD_REQUEST)
+      assertThat(exception.message).isEqualTo("Both nomisId and nDeliusId are provided - exactly one is required")
+
+      verify(subjectAccessRequestService, times(1))
+        .createSubjectAccessRequest(ndeliusAndNomisRequest, "UserName", requestTime)
     }
 
     @Test
-    fun `createSubjectAccessRequest post returns http error if neither nomis nor ndelius ids are provided`() {
-      val noIDRequest = "{ " +
-        "dateFrom: '01/12/2023', " +
-        "dateTo: '03/01/2024', " +
-        "sarCaseReferenceNumber: '1234abc', " +
-        "services: '{1,2,4}', " +
-        "nomisId: null, " +
-        "ndeliusId: null " +
-        "}"
+    fun `createSubjectAccessRequest throws expected exception if neither nomis nor ndelius ids are provided`() {
+      val noIDRequest = CreateSubjectAccessRequestEntity(
+        nomisId = null,
+        ndeliusId = null,
+        services = "{1,2,4}",
+        sarCaseReferenceNumber = "1234abc",
+        dateFrom = LocalDate.of(2023, 12, 1),
+        dateTo = LocalDate.of(2024, 12, 3),
+      )
 
       whenever(subjectAccessRequestService.createSubjectAccessRequest(noIDRequest, "UserName", requestTime))
-        .thenReturn("Neither nomisId nor ndeliusId is provided - exactly one is required")
+        .thenThrow(
+          CreateSubjectAccessRequestException(
+            "Neither nomisId nor ndeliusId is provided - exactly one is required",
+            HttpStatus.BAD_REQUEST,
+          ),
+        )
       whenever(authentication.name).thenReturn("UserName")
 
-      val response = subjectAccessRequestController
-        .createSubjectAccessRequest(noIDRequest, authentication, requestTime)
-      verify(subjectAccessRequestService, times(1)).createSubjectAccessRequest(noIDRequest, "UserName", requestTime)
-      val expected: ResponseEntity<String> =
-        ResponseEntity("Neither nomisId nor ndeliusId is provided - exactly one is required", HttpStatus.BAD_REQUEST)
-      assertThat(response).isEqualTo(expected)
+      val exception = assertThrows<CreateSubjectAccessRequestException> {
+        subjectAccessRequestController.createSubjectAccessRequest(noIDRequest, authentication, requestTime)
+      }
+
+      assertThat(exception.status).isEqualTo(HttpStatus.BAD_REQUEST)
+      assertThat(exception.message).isEqualTo("Neither nomisId nor ndeliusId is provided - exactly one is required")
+
+      verify(subjectAccessRequestService, times(1))
+        .createSubjectAccessRequest(noIDRequest, "UserName", requestTime)
     }
   }
 
@@ -199,12 +231,20 @@ class SubjectAccessRequestControllerTest {
     fun `getReport returns 200 if service retrieveSubjectAccessRequestDocument returns a response`() {
       val mockByteArrayInputStream = Mockito.mock(ByteArrayInputStream::class.java)
       val mockStream = Flux.just(InputStreamResource(mockByteArrayInputStream))
-      whenever(subjectAccessRequestService.retrieveSubjectAccessRequestDocument(sarId = eq(testUuid), downloadDateTime = any()))
+      whenever(
+        subjectAccessRequestService.retrieveSubjectAccessRequestDocument(
+          sarId = eq(testUuid),
+          downloadDateTime = any(),
+        ),
+      )
         .thenReturn(ResponseEntity.ok().contentType(MediaType.parseMediaType("application/pdf")).body(mockStream))
 
       val result = subjectAccessRequestController.getReport(testUuid)
 
-      verify(subjectAccessRequestService, times(1)).retrieveSubjectAccessRequestDocument(sarId = eq(testUuid), downloadDateTime = any())
+      verify(subjectAccessRequestService, times(1)).retrieveSubjectAccessRequestDocument(
+        sarId = eq(testUuid),
+        downloadDateTime = any(),
+      )
       assertThat(result).isEqualTo(
         ResponseEntity.ok()
           .contentType(MediaType.parseMediaType("application/pdf"))
@@ -215,12 +255,20 @@ class SubjectAccessRequestControllerTest {
     @Test
     fun `getReport returns 404 if service retrieveSubjectAccessRequestDocument does not return a response`() {
       val errorMessage = "Report Not Found"
-      whenever(subjectAccessRequestService.retrieveSubjectAccessRequestDocument(sarId = eq(testUuid), downloadDateTime = any()))
+      whenever(
+        subjectAccessRequestService.retrieveSubjectAccessRequestDocument(
+          sarId = eq(testUuid),
+          downloadDateTime = any(),
+        ),
+      )
         .thenReturn(null)
 
       val result = subjectAccessRequestController.getReport(testUuid)
 
-      verify(subjectAccessRequestService, times(1)).retrieveSubjectAccessRequestDocument(sarId = eq(testUuid), downloadDateTime = any())
+      verify(subjectAccessRequestService, times(1)).retrieveSubjectAccessRequestDocument(
+        sarId = eq(testUuid),
+        downloadDateTime = any(),
+      )
       assertThat(result).isEqualTo(
         ResponseEntity(errorMessage, HttpStatus.NOT_FOUND),
       )

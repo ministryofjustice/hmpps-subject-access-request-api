@@ -13,6 +13,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestControllerAdvice
@@ -52,6 +53,18 @@ class SubjectAccessRequestApiExceptionHandler {
       ),
     ).also { log.debug("Forbidden (403) returned: {}", e.message) }
     .also { logAndCapture("Forbidden (403) returned:", e) }
+
+  @ExceptionHandler(CreateSubjectAccessRequestException::class)
+  fun handleException(e: CreateSubjectAccessRequestException): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(e.status)
+    .body(
+      ErrorResponse(
+        status = e.status,
+        userMessage = e.message,
+        developerMessage = e.message,
+      ),
+    ).also { log.error("create subject access request exception", e) }
+    .also { logAndCapture("create subject access request exception:", e) }
 
   @ExceptionHandler(Exception::class)
   fun handleException(e: Exception): ResponseEntity<ErrorResponse> = ResponseEntity

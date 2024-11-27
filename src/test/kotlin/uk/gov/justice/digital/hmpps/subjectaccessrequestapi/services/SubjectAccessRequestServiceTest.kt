@@ -2,27 +2,33 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
 import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions.assertThat
-import org.json.JSONObject
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
+import org.mockito.kotlin.capture
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
@@ -30,7 +36,7 @@ import java.io.ByteArrayInputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.UUID
 
 class SubjectAccessRequestServiceTest {
 
@@ -39,6 +45,7 @@ class SubjectAccessRequestServiceTest {
   private val documentStorageClient: DocumentStorageClient = mock()
   private val telemetryClient: TelemetryClient = mock()
   private val overdueAlertConfiguration: AlertsConfiguration = mock()
+
   private val subjectAccessRequestService = SubjectAccessRequestService(
     documentStorageClient,
     subjectAccessRequestRepository,
@@ -54,53 +61,110 @@ class SubjectAccessRequestServiceTest {
     @Test
     fun `createSubjectAccessRequest returns empty string`() {
       whenever(authentication.name).thenReturn("UserName")
-      val expected = ""
 
       val result: String = subjectAccessRequestService
         .createSubjectAccessRequest(nDeliusRequest, "UserName", requestTime, sampleSAR.id)
 
-      assertThat(result).isEqualTo(expected)
+      assertThat(result).isEqualTo(sampleSAR.id.toString())
       verify(subjectAccessRequestRepository, times(1)).save(sampleSAR)
     }
 
     @Test
     fun `createSubjectAccessRequest returns error string if both IDs are supplied`() {
-      val result: String = subjectAccessRequestService
-        .createSubjectAccessRequest(nDeliusAndNomisRequest, "UserName", requestTime, sampleSAR.id)
+      val exception = assertThrows<CreateSubjectAccessRequestException> {
+        subjectAccessRequestService.createSubjectAccessRequest(
+          request = nDeliusAndNomisRequest,
+          requestedBy = "UserName",
+          requestTime = requestTime,
+          id = sampleSAR.id,
+        )
+      }
 
-      assertThat(result).isEqualTo("Both nomisId and nDeliusId are provided - exactly one is required")
-      verify(subjectAccessRequestRepository, times(0)).save(sampleSAR)
+      assertThat(exception.message).isEqualTo("Both nomisId and nDeliusId are provided - exactly one is required")
+      assertThat(exception.status).isEqualTo(HttpStatus.BAD_REQUEST)
+
+      verify(subjectAccessRequestRepository, never()).save(any())
     }
 
     @Test
     fun `createSubjectAccessRequest returns error string if neither subject ID is supplied`() {
-      val result: String = subjectAccessRequestService
-        .createSubjectAccessRequest(noIDRequest, "UserName", requestTime, sampleSAR.id)
+      val exception = assertThrows<CreateSubjectAccessRequestException> {
+        subjectAccessRequestService.createSubjectAccessRequest(
+          request = noIDRequest,
+          requestedBy = "UserName",
+          requestTime = requestTime,
+          id = sampleSAR.id,
+        )
+      }
 
-      assertThat(result).isEqualTo("Neither nomisId nor nDeliusId is provided - exactly one is required")
-      verify(subjectAccessRequestRepository, times(0)).save(sampleSAR)
+      assertThat(exception.message).isEqualTo("Neither nomisId or nDeliusId provided - exactly one is required")
+      assertThat(exception.status).isEqualTo(HttpStatus.BAD_REQUEST)
+
+      verify(subjectAccessRequestRepository, never()).save(any())
     }
 
     @Test
     fun `createSubjectAccessRequest does not error when dateTo is not provided`() {
       whenever(authentication.name).thenReturn("UserName")
 
-      val result: String = subjectAccessRequestService
-        .createSubjectAccessRequest(noDateToRequest, "UserName", requestTime, sampleSAR.id)
+      val actual = subjectAccessRequestService.createSubjectAccessRequest(
+        request = noDateToRequest,
+        requestedBy = "UserName",
+        requestTime = requestTime,
+        id = sampleSAR.id,
+      )
 
-      assertThat(result).isEqualTo("")
-      verify(subjectAccessRequestRepository, times(1)).save(any())
+      val sarCaptor: ArgumentCaptor<SubjectAccessRequest> = ArgumentCaptor.forClass(SubjectAccessRequest::class.java)
+
+      assertThat(actual).isEqualTo(sampleSAR.id.toString())
+      verify(subjectAccessRequestRepository, times(1)).save(capture(sarCaptor))
+
+      assertThat(sarCaptor.allValues.size).isEqualTo(1)
+      assertThat(sarCaptor.allValues[0]).isNotNull
+
+      val savedSar = sarCaptor.allValues[0]
+      assertThat(savedSar.id).isEqualTo(sampleSAR.id)
+      assertThat(savedSar.status).isEqualTo(sampleSAR.status)
+      assertThat(savedSar.dateFrom).isEqualTo(sampleSAR.dateFrom)
+      assertThat(savedSar.dateTo).isEqualTo(LocalDate.now())
+      assertThat(savedSar.sarCaseReferenceNumber).isEqualTo(sampleSAR.sarCaseReferenceNumber)
+      assertThat(savedSar.services).isEqualTo(sampleSAR.services)
+      assertThat(savedSar.nomisId).isEqualTo(sampleSAR.nomisId)
+      assertThat(savedSar.ndeliusCaseReferenceId).isEqualTo(sampleSAR.ndeliusCaseReferenceId)
+      assertThat(savedSar.requestedBy).isEqualTo(sampleSAR.requestedBy)
+      assertThat(savedSar.requestDateTime).isEqualTo(sampleSAR.requestDateTime)
     }
 
     @Test
     fun `createSubjectAccessRequest does not error when dateFrom is not provided`() {
+      val sarCaptor: ArgumentCaptor<SubjectAccessRequest> = ArgumentCaptor.forClass(SubjectAccessRequest::class.java)
+
       whenever(authentication.name).thenReturn("UserName")
 
-      val result: String = subjectAccessRequestService
-        .createSubjectAccessRequest(noDateFromRequest, "UserName", requestTime, sampleSAR.id)
+      val actual = subjectAccessRequestService.createSubjectAccessRequest(
+        request = noDateFromRequest,
+        requestedBy = "UserName",
+        requestTime = requestTime,
+        id = sampleSAR.id,
+      )
 
-      assertThat(result).isEqualTo("")
-      verify(subjectAccessRequestRepository, times(1)).save(any())
+      verify(subjectAccessRequestRepository, times(1)).save(capture(sarCaptor))
+
+      assertThat(actual).isEqualTo(sampleSAR.id.toString())
+      assertThat(sarCaptor.allValues.size).isEqualTo(1)
+      assertThat(sarCaptor.allValues[0]).isNotNull
+
+      val savedSar = sarCaptor.allValues[0]
+      assertThat(savedSar.id).isEqualTo(sampleSAR.id)
+      assertThat(savedSar.status).isEqualTo(sampleSAR.status)
+      assertThat(savedSar.dateFrom).isNull()
+      assertThat(savedSar.dateTo).isEqualTo(savedSar.dateTo)
+      assertThat(savedSar.sarCaseReferenceNumber).isEqualTo(sampleSAR.sarCaseReferenceNumber)
+      assertThat(savedSar.services).isEqualTo(sampleSAR.services)
+      assertThat(savedSar.nomisId).isEqualTo(sampleSAR.nomisId)
+      assertThat(savedSar.ndeliusCaseReferenceId).isEqualTo(sampleSAR.ndeliusCaseReferenceId)
+      assertThat(savedSar.requestedBy).isEqualTo(sampleSAR.requestedBy)
+      assertThat(savedSar.requestDateTime).isEqualTo(sampleSAR.requestDateTime)
     }
   }
 
@@ -292,60 +356,61 @@ class SubjectAccessRequestServiceTest {
     fun `retrieveSubjectAccessRequestDocument calls telemetryClient trackApiEvent method with ReportDocumentDownloadTimeUpdated`() {
       subjectAccessRequestService.retrieveSubjectAccessRequestDocument(uuid, formattedCurrentTime)
 
-      verify(telemetryClient, times(1)).trackApiEvent("ReportDocumentDownloadTimeUpdated", uuid.toString(), "downloadDateTime" to formattedCurrentTime.toString())
+      verify(telemetryClient, times(1)).trackApiEvent(
+        "ReportDocumentDownloadTimeUpdated",
+        uuid.toString(),
+        "downloadDateTime" to formattedCurrentTime.toString(),
+      )
     }
   }
 
-  private val nDeliusRequest = "{ " +
-    "dateFrom: '01/12/2023', " +
-    "dateTo: '03/01/2024', " +
-    "sarCaseReferenceNumber: '1234abc', " +
-    "services: '{1,2,4}', " +
-    "nomisId: null, " +
-    "ndeliusId: '1' " +
-    "}"
+  private val nDeliusRequest = CreateSubjectAccessRequestEntity(
+    nomisId = null,
+    ndeliusId = "1",
+    sarCaseReferenceNumber = "1234abc",
+    services = "{1,2,4}",
+    dateFrom = LocalDate.of(2023, 12, 1),
+    dateTo = LocalDate.of(2024, 1, 3),
+  )
 
-  private val nDeliusAndNomisRequest = "{ " +
-    "dateFrom: '01/12/2023', " +
-    "dateTo: '03/01/2024', " +
-    "sarCaseReferenceNumber: '1234abc', " +
-    "services: '{1,2,4}', " +
-    "nomisId: '1', " +
-    "ndeliusId: '1' " +
-    "}"
+  private val nDeliusAndNomisRequest = CreateSubjectAccessRequestEntity(
+    nomisId = "1",
+    ndeliusId = "1",
+    sarCaseReferenceNumber = "1234abc",
+    services = "{1,2,4}",
+    dateFrom = LocalDate.of(2023, 12, 1),
+    dateTo = LocalDate.of(2024, 1, 3),
+  )
 
-  private val noIDRequest = "{ " +
-    "dateFrom: '01/12/2023', " +
-    "dateTo: '03/01/2024', " +
-    "sarCaseReferenceNumber: '1234abc', " +
-    "services: '{1,2,4}', " +
-    "nomisId: null, " +
-    "ndeliusId: null " +
-    "}"
+  private val noIDRequest = CreateSubjectAccessRequestEntity(
+    nomisId = null,
+    ndeliusId = null,
+    sarCaseReferenceNumber = "1234abc",
+    services = "{1,2,4}",
+    dateFrom = LocalDate.of(2023, 12, 1),
+    dateTo = LocalDate.of(2024, 1, 3),
+  )
 
-  private val noDateToRequest = "{ " +
-    "dateFrom: '01/12/2023', " +
-    "dateTo: '', " +
-    "sarCaseReferenceNumber: '1234abc', " +
-    "services: '{1,2,4}', " +
-    "nomisId: null, " +
-    "ndeliusId: '1' " +
-    "}"
+  private val noDateToRequest = CreateSubjectAccessRequestEntity(
+    nomisId = null,
+    ndeliusId = "1",
+    sarCaseReferenceNumber = "1234abc",
+    services = "{1,2,4}",
+    dateFrom = LocalDate.of(2023, 12, 1),
+    dateTo = null,
+  )
 
-  private val noDateFromRequest = "{ " +
-    "dateFrom: '', " +
-    "dateTo: '03/01/2024', " +
-    "sarCaseReferenceNumber: '1234abc', " +
-    "services: '{1,2,4}', " +
-    "nomisId: null, " +
-    "ndeliusId: '1' " +
-    "}"
+  private val noDateFromRequest = CreateSubjectAccessRequestEntity(
+    nomisId = null,
+    ndeliusId = "1",
+    sarCaseReferenceNumber = "1234abc",
+    services = "{1,2,4}",
+    dateFrom = null,
+    dateTo = LocalDate.of(2024, 1, 3),
+  )
 
-  private val json = JSONObject(nDeliusRequest)
-  private val dateFrom = json.get("dateFrom").toString()
-  private val dateFromFormatted = LocalDate.parse(dateFrom, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-  private val dateTo = json.get("dateTo").toString()
-  private val dateToFormatted = LocalDate.parse(dateTo, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+  private val dateFromFormatted = nDeliusRequest.dateFrom
+  private val dateToFormatted = nDeliusRequest.dateTo
   private val requestTime = LocalDateTime.now()
   private val sampleSAR = SubjectAccessRequest(
     id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
