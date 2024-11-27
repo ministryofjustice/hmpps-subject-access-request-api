@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
 import com.microsoft.applicationinsights.TelemetryClient
 import org.apache.commons.lang3.ObjectUtils.isNotEmpty
-import org.apache.commons.lang3.StringUtils
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
@@ -94,14 +93,14 @@ class SubjectAccessRequestService(
     if (request.nomisId == null && request.ndeliusId == null) {
       throw CreateSubjectAccessRequestException(
         "Neither nomisId or nDeliusId provided - exactly one is required",
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       )
     }
 
     if (isNotEmpty(request.nomisId?.trim()) && isNotEmpty(request.ndeliusId?.trim())) {
       throw CreateSubjectAccessRequestException(
         "Both nomisId and nDeliusId are provided - exactly one is required",
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       )
     }
 
@@ -126,7 +125,12 @@ class SubjectAccessRequestService(
     return subjectAccessRequest.id.toString()
   }
 
-  fun getSubjectAccessRequests(unclaimedOnly: Boolean, search: String, pageNumber: Int? = null, pageSize: Int? = null): List<SubjectAccessRequest?> {
+  fun getSubjectAccessRequests(
+    unclaimedOnly: Boolean,
+    search: String,
+    pageNumber: Int? = null,
+    pageSize: Int? = null,
+  ): List<SubjectAccessRequest?> {
     if (unclaimedOnly) {
       return subjectAccessRequestRepository.findUnclaimed(claimDateTime = LocalDateTime.now().minusMinutes(30))
     }
@@ -136,19 +140,36 @@ class SubjectAccessRequestService(
       pagination = PageRequest.of(pageNumber, pageSize, Sort.by("RequestDateTime").descending())
     }
 
-    return subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(caseReferenceSearch = search, nomisSearch = search, ndeliusSearch = search, pagination = pagination).content
+    return subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(
+      caseReferenceSearch = search,
+      nomisSearch = search,
+      ndeliusSearch = search,
+      pagination = pagination,
+    ).content
   }
 
-  fun claimSubjectAccessRequest(id: UUID) = subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(id, LocalDateTime.now().minusMinutes(30), LocalDateTime.now())
+  fun claimSubjectAccessRequest(id: UUID) =
+    subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
+      id,
+      LocalDateTime.now().minusMinutes(30),
+      LocalDateTime.now(),
+    )
 
   fun completeSubjectAccessRequest(id: UUID) = subjectAccessRequestRepository.updateStatus(id, Status.Completed)
 
-  fun retrieveSubjectAccessRequestDocument(sarId: UUID, downloadDateTime: LocalDateTime? = LocalDateTime.now()): ResponseEntity<Flux<InputStreamResource>>? {
+  fun retrieveSubjectAccessRequestDocument(
+    sarId: UUID,
+    downloadDateTime: LocalDateTime? = LocalDateTime.now(),
+  ): ResponseEntity<Flux<InputStreamResource>>? {
     log.info("Retrieving document in service")
     val document = documentStorageClient.retrieveDocument(sarId)
     log.info("Retrieved document")
     subjectAccessRequestRepository.updateLastDownloaded(sarId, downloadDateTime!!)
-    telemetryClient.trackApiEvent("ReportDocumentDownloadTimeUpdated", sarId.toString(), "downloadDateTime" to downloadDateTime.toString())
+    telemetryClient.trackApiEvent(
+      "ReportDocumentDownloadTimeUpdated",
+      sarId.toString(),
+      "downloadDateTime" to downloadDateTime.toString(),
+    )
     log.info("Updated download time")
     return document
   }

@@ -13,7 +13,7 @@ class SubjectAccessRequestControllerIntTest : IntegrationTestBase() {
     services = "service1, .com",
     sarCaseReferenceNumber = "mockedCaseReference",
     dateTo = LocalDate.of(2022, 12, 25),
-    dateFrom = LocalDate.of(2001, 1, 1)
+    dateFrom = LocalDate.of(2001, 1, 1),
   )
 
   @Test

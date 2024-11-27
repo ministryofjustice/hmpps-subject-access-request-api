@@ -9,14 +9,12 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -97,12 +95,42 @@ class SubjectAccessRequestController(
       ),
     ],
   )
-  @Parameter(name = "nomisId", description = "Subject's NOMIS prisoner number. Either nomisId OR ndeliusId is required.", required = false, example = "A1234BC")
-  @Parameter(name = "ndeliusId", description = "Subject's nDelius case reference number. Either nomisId OR ndeliusId is required.", required = false, example = "A123456")
-  @Parameter(name = "dateFrom", description = "Start date of the period of time the requested SAR report must cover.", required = false, example = "31/12/1999")
-  @Parameter(name = "dateTo", description = "End date of the period of time the requested SAR report must cover.", required = false, example = "31/12/2000")
-  @Parameter(name = "sarCaseReferenceNumber", description = "Case reference number of the Subject Access Request.", required = true, example = "exampleCaseReferenceNumber")
-  @Parameter(name = "services", description = "List of services from which subject data must be retrieved.", required = true, example = "[\"service1, service1.prison.service.justice.gov.uk\"]")
+  @Parameter(
+    name = "nomisId",
+    description = "Subject's NOMIS prisoner number. Either nomisId OR ndeliusId is required.",
+    required = false,
+    example = "A1234BC",
+  )
+  @Parameter(
+    name = "ndeliusId",
+    description = "Subject's nDelius case reference number. Either nomisId OR ndeliusId is required.",
+    required = false,
+    example = "A123456",
+  )
+  @Parameter(
+    name = "dateFrom",
+    description = "Start date of the period of time the requested SAR report must cover.",
+    required = false,
+    example = "31/12/1999",
+  )
+  @Parameter(
+    name = "dateTo",
+    description = "End date of the period of time the requested SAR report must cover.",
+    required = false,
+    example = "31/12/2000",
+  )
+  @Parameter(
+    name = "sarCaseReferenceNumber",
+    description = "Case reference number of the Subject Access Request.",
+    required = true,
+    example = "exampleCaseReferenceNumber",
+  )
+  @Parameter(
+    name = "services",
+    description = "List of services from which subject data must be retrieved.",
+    required = true,
+    example = "[\"service1, service1.prison.service.justice.gov.uk\"]",
+  )
   fun createSubjectAccessRequest(
     @RequestBody request: CreateSubjectAccessRequestEntity,
     authentication: Authentication,
@@ -165,10 +193,25 @@ class SubjectAccessRequestController(
       ),
     ],
   )
-  @Parameter(name = "unclaimed", description = "Return only Subject Access Requests that are unclaimed by a worker for report generation. Defaults to false.", required = false, example = "false")
-  @Parameter(name = "search", description = "If provided, only results containing this string in the case reference number or subject ID will be returned.", required = false, example = "A1234AA")
+  @Parameter(
+    name = "unclaimed",
+    description = "Return only Subject Access Requests that are unclaimed by a worker for report generation. Defaults to false.",
+    required = false,
+    example = "false",
+  )
+  @Parameter(
+    name = "search",
+    description = "If provided, only results containing this string in the case reference number or subject ID will be returned.",
+    required = false,
+    example = "A1234AA",
+  )
   @Parameter(name = "pageNumber", description = "The number of the page requested.", required = false, example = "1")
-  @Parameter(name = "pageSize", description = "The number of results that make up a single page.", required = false, example = "20")
+  @Parameter(
+    name = "pageSize",
+    description = "The number of results that make up a single page.",
+    required = false,
+    example = "20",
+  )
   fun getSubjectAccessRequests(
     @RequestParam(required = false, name = "unclaimed") unclaimed: Boolean = false,
     @RequestParam(required = false, name = "search") search: String = "",
@@ -180,7 +223,10 @@ class SubjectAccessRequestController(
   }
 
   @GetMapping("/totalSubjectAccessRequests")
-  @Operation(summary = "Get total number of Subject Access Requests.", description = "Return the number of Subject Access Requests.")
+  @Operation(
+    summary = "Get total number of Subject Access Requests.",
+    description = "Return the number of Subject Access Requests.",
+  )
   @ApiResponses(
     value = [
       ApiResponse(
@@ -218,7 +264,12 @@ class SubjectAccessRequestController(
       ),
     ],
   )
-  @Parameter(name = "search", description = "If provided, only results containing this string in the case reference number or subject ID will be returned.", required = false, example = "A1234AA")
+  @Parameter(
+    name = "search",
+    description = "If provided, only results containing this string in the case reference number or subject ID will be returned.",
+    required = false,
+    example = "A1234AA",
+  )
   fun getTotalSubjectAccessRequests(
     @RequestParam(required = false, name = "search") search: String = "",
   ): Int {
@@ -268,7 +319,12 @@ class SubjectAccessRequestController(
       ),
     ],
   )
-  @Parameter(name = "id", description = "ID for the Subject Access Request Report to download.", required = true, example = "11111111-2222-3333-4444-555555555555")
+  @Parameter(
+    name = "id",
+    description = "ID for the Subject Access Request Report to download.",
+    required = true,
+    example = "11111111-2222-3333-4444-555555555555",
+  )
   fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<out Any?>? {
     log.info("Retrieving report for ID $id.")
     telemetryClient.trackApiEvent("ReportDownloadStarted", id.toString())
@@ -300,7 +356,10 @@ class SubjectAccessRequestController(
   }
 
   @PatchMapping("/subjectAccessRequests/{id}/claim")
-  @Operation(summary = "Claim Subject Access Request.", description = "Claim a Subject Access Request for a limited time to generate the requested report.")
+  @Operation(
+    summary = "Claim Subject Access Request.",
+    description = "Claim a Subject Access Request for a limited time to generate the requested report.",
+  )
   @ApiResponses(
     value = [
       ApiResponse(
@@ -352,7 +411,10 @@ class SubjectAccessRequestController(
   }
 
   @PatchMapping("/subjectAccessRequests/{id}/complete")
-  @Operation(summary = "Complete Subject Access Request.", description = "Mark a Subject Access Request as complete when the report has been successfully generated.")
+  @Operation(
+    summary = "Complete Subject Access Request.",
+    description = "Mark a Subject Access Request as complete when the report has been successfully generated.",
+  )
   @ApiResponses(
     value = [
       ApiResponse(
