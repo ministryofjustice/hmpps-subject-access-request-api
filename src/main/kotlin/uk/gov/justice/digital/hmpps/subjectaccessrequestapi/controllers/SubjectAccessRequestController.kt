@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -27,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.BacklogSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueReportSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
@@ -69,7 +69,7 @@ class SubjectAccessRequestController(
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = String::class),
+            schema = Schema(implementation = CreateSubjectAccessRequestEntity::class),
           ),
         ],
       ),
@@ -95,26 +95,18 @@ class SubjectAccessRequestController(
       ),
     ],
   )
-  @Parameter(name = "nomisId", description = "Subject's NOMIS prisoner number. Either nomisId OR ndeliusId is required.", required = false, example = "A1234BC")
-  @Parameter(name = "ndeliusId", description = "Subject's nDelius case reference number. Either nomisId OR ndeliusId is required.", required = false, example = "A123456")
-  @Parameter(name = "dateFrom", description = "Start date of the period of time the requested SAR report must cover.", required = false, example = "31/12/1999")
-  @Parameter(name = "dateTo", description = "End date of the period of time the requested SAR report must cover.", required = false, example = "31/12/2000")
-  @Parameter(name = "sarCaseReferenceNumber", description = "Case reference number of the Subject Access Request.", required = true, example = "exampleCaseReferenceNumber")
-  @Parameter(name = "services", description = "List of services from which subject data must be retrieved.", required = true, example = "[\"service1, service1.prison.service.justice.gov.uk\"]")
   fun createSubjectAccessRequest(
-    @RequestBody request: String,
+    @RequestBody request: CreateSubjectAccessRequestEntity,
     authentication: Authentication,
     requestTime: LocalDateTime?,
   ): ResponseEntity<String> {
     log.info("Creating SAR Request")
-    val json = JSONObject(request)
-    val nomisId = json.get("nomisId").toString()
-    val ndeliusId = json.get("ndeliusId").toString()
+
     telemetryClient.trackEvent(
       "createSubjectAccessRequest",
       mapOf(
-        "nomisId" to nomisId,
-        "ndeliusId" to ndeliusId,
+        "nomisId" to (request.nomisId ?: ""),
+        "ndeliusId" to (request.ndeliusId ?: ""),
         "requestTime" to requestTime.toString(),
       ),
     )
@@ -123,11 +115,7 @@ class SubjectAccessRequestController(
       requestedBy = authentication.name,
       requestTime = requestTime,
     )
-    return if (response == "") {
-      ResponseEntity(response, HttpStatus.OK)
-    } else {
-      ResponseEntity(response, HttpStatus.BAD_REQUEST)
-    }
+    return ResponseEntity(response, HttpStatus.CREATED)
   }
 
   @GetMapping("/subjectAccessRequests")
