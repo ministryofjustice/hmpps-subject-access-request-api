@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
 import com.microsoft.applicationinsights.TelemetryClient
 import org.apache.commons.lang3.ObjectUtils.isNotEmpty
-import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
@@ -36,53 +35,6 @@ class SubjectAccessRequestService(
   private val telemetryClient: TelemetryClient,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
-
-  fun createSubjectAccessRequest2(
-    request: String,
-    requestedBy: String,
-    requestTime: LocalDateTime?,
-    id: UUID? = null,
-  ): String {
-    val json = JSONObject(request)
-    val dateFrom = formatDate(json.get("dateFrom").toString())
-    var dateTo = formatDate(json.get("dateTo").toString())
-
-    var nomisId = json.get("nomisId")
-    var ndeliusId = json.get("ndeliusId")
-
-    val nullClassName = "org.json.JSONObject\$Null"
-    if (nomisId.javaClass.name == nullClassName) {
-      nomisId = null
-    }
-    if (ndeliusId.javaClass.name == nullClassName) {
-      ndeliusId = null
-    }
-
-    if (nomisId != null && ndeliusId != null) {
-      return "Both nomisId and nDeliusId are provided - exactly one is required"
-    }
-    if (nomisId == null && ndeliusId == null) {
-      return "Neither nomisId nor nDeliusId is provided - exactly one is required"
-    }
-    if (dateTo == null) {
-      dateTo = LocalDate.now()
-    }
-    subjectAccessRequestRepository.save(
-      SubjectAccessRequest(
-        id = id ?: UUID.randomUUID(),
-        status = Status.Pending,
-        dateFrom = dateFrom,
-        dateTo = dateTo,
-        sarCaseReferenceNumber = json.get("sarCaseReferenceNumber").toString(),
-        services = json.get("services").toString(),
-        nomisId = nomisId?.toString(),
-        ndeliusCaseReferenceId = ndeliusId?.toString(),
-        requestedBy = requestedBy,
-        requestDateTime = requestTime ?: LocalDateTime.now(),
-      ),
-    )
-    return "" // Maybe want to return Report ID?
-  }
 
   fun createSubjectAccessRequest(
     request: CreateSubjectAccessRequestEntity,
