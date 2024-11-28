@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
 import com.microsoft.applicationinsights.TelemetryClient
 import org.apache.commons.lang3.ObjectUtils.isNotEmpty
-import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
