@@ -88,7 +88,7 @@ application:
       threshold: 100
     report-timeout:
       alert-frequency: 720
-      threshold:  1
+      threshold:  48
       threshold-unit: HOURS
 
 management:

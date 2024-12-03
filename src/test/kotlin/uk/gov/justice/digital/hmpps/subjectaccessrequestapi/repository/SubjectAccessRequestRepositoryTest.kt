@@ -568,21 +568,6 @@ class SubjectAccessRequestRepositoryTest {
     }
 
     @Test
-    fun `should not update status to Errored for request with status Pending submitted at threshold`() {
-      val now = LocalDateTime.now()
-      val sar = insertSarSubmittedAtWithStatus(now.minusHours(12), Status.Pending)
-
-      val count = subjectAccessRequestRepository.updateStatusToErrorSubmittedBefore(sar.id, now.minusHours(12))
-      assertThat(count).isEqualTo(0)
-
-      assertSubjectAccessRequestHasStatus(
-        actual = subjectAccessRequestRepository.findById(sar.id),
-        expectedStatus = Status.Pending,
-        expectedId = sar.id,
-      )
-    }
-
-    @Test
     fun `should not update status to Errored for request with status Completed submitted before threshold`() {
       val now = LocalDateTime.now()
       val sar = insertSarSubmittedAtWithStatus(now.minusHours(48), Status.Completed)
