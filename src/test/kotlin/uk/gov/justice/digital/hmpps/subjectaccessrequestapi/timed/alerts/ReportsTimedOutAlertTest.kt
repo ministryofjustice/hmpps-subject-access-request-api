@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed.alerts
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -38,11 +37,6 @@ class ReportsTimedOutAlertTest {
 
   @Captor
   private lateinit var propertiesCaptor: ArgumentCaptor<Map<String, String>>
-
-  @BeforeEach
-  fun setup() {
-
-  }
 
   @Test
   fun `should not raise alert if no requests were expired`() {
@@ -83,7 +77,7 @@ class ReportsTimedOutAlertTest {
 
     verify(alertsService, times(1)).raiseUnexpectedExceptionAlert(
       capture(errorCaptor),
-      capture(propertiesCaptor)
+      capture(propertiesCaptor),
     )
 
     assertThat(errorCaptor.allValues).hasSize(1)
@@ -108,7 +102,7 @@ class ReportsTimedOutAlertTest {
 
     verify(alertsService, times(1)).raiseUnexpectedExceptionAlert(
       capture(errorCaptor),
-      capture(propertiesCaptor)
+      capture(propertiesCaptor),
     )
 
     assertThat(errorCaptor.allValues).hasSize(1)
@@ -138,7 +132,7 @@ class ReportsTimedOutAlertTest {
 
     verify(alertsService, times(1)).raiseUnexpectedExceptionAlert(
       capture(errorCaptor),
-      capture(propertiesCaptor)
+      capture(propertiesCaptor),
     )
 
     assertThat(errorCaptor.allValues).hasSize(1)
@@ -146,5 +140,4 @@ class ReportsTimedOutAlertTest {
     assertThat(errorCaptor.allValues[0].message).isEqualTo("ReportsTimedOutAlert threw unexpected exception")
     assertThat(propertiesCaptor.allValues[0]).isNull()
   }
-
 }

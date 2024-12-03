@@ -181,11 +181,12 @@ class SubjectAccessRequestRepositoryTest {
         claimDateTime = currentDateTime,
       )
 
-      val numberOfDbRecordsUpdated = subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
-        sarWithPendingStatusClaimedEarlier.id,
-        thresholdClaimDateTime,
-        currentDateTime,
-      )
+      val numberOfDbRecordsUpdated =
+        subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
+          sarWithPendingStatusClaimedEarlier.id,
+          thresholdClaimDateTime,
+          currentDateTime,
+        )
 
       assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
       assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
@@ -215,11 +216,12 @@ class SubjectAccessRequestRepositoryTest {
         claimDateTime = claimDateTime,
       )
 
-      val numberOfDbRecordsUpdated = subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
-        claimedSarWithPendingStatus.id,
-        thresholdClaimDateTime,
-        currentDateTime,
-      )
+      val numberOfDbRecordsUpdated =
+        subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
+          claimedSarWithPendingStatus.id,
+          thresholdClaimDateTime,
+          currentDateTime,
+        )
 
       assertThat(numberOfDbRecordsUpdated).isEqualTo(0)
       assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
@@ -251,11 +253,12 @@ class SubjectAccessRequestRepositoryTest {
 
       subjectAccessRequestRepository.save(completedSar)
 
-      val numberOfDbRecordsUpdated = subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
-        completedSar.id,
-        thresholdClaimDateTime,
-        currentDateTime,
-      )
+      val numberOfDbRecordsUpdated =
+        subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
+          completedSar.id,
+          thresholdClaimDateTime,
+          currentDateTime,
+        )
 
       assertThat(numberOfDbRecordsUpdated).isEqualTo(0)
       assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(1)
@@ -308,7 +311,13 @@ class SubjectAccessRequestRepositoryTest {
 
       databaseInsert()
 
-      val result = subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("test", "test", "test", PageRequest.of(1, 1, Sort.by("RequestDateTime").descending()))?.content
+      val result =
+        subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(
+          "test",
+          "test",
+          "test",
+          PageRequest.of(1, 1, Sort.by("RequestDateTime").descending()),
+        )?.content
 
       assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
       assertThat(result).isEqualTo(expectedSearchResult)
@@ -316,11 +325,18 @@ class SubjectAccessRequestRepositoryTest {
 
     @Test
     fun `findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase returns all entries containing given string sorted on request date when unpaged`() {
-      val expectedSearchResult: List<SubjectAccessRequest> = listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
+      val expectedSearchResult: List<SubjectAccessRequest> =
+        listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
 
       databaseInsert()
 
-      val result = subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("test", "test", "test", Pageable.unpaged(Sort.by("RequestDateTime").descending()))?.content
+      val result =
+        subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(
+          "test",
+          "test",
+          "test",
+          Pageable.unpaged(Sort.by("RequestDateTime").descending()),
+        )?.content
 
       assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
       assertThat(result).isEqualTo(expectedSearchResult)
@@ -330,14 +346,15 @@ class SubjectAccessRequestRepositoryTest {
     fun `findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase returns all SAR entries when searching on blank strings`() {
       databaseInsert()
 
-      val result = subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(
-        "",
-        "",
-        "",
-        Pageable.unpaged(
-          Sort.by("RequestDateTime").descending(),
-        ),
-      ).content
+      val result =
+        subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(
+          "",
+          "",
+          "",
+          Pageable.unpaged(
+            Sort.by("RequestDateTime").descending(),
+          ),
+        ).content
 
       assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
       assertThat(result).containsAll(allSars)
@@ -345,11 +362,18 @@ class SubjectAccessRequestRepositoryTest {
 
     @Test
     fun `findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase is case insensitive`() {
-      val expectedSearchResult: List<SubjectAccessRequest> = listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
+      val expectedSearchResult: List<SubjectAccessRequest> =
+        listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
 
       databaseInsert()
 
-      val result = subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase("TEST", "TEST", "TEST", Pageable.unpaged(Sort.by("RequestDateTime").descending()))?.content
+      val result =
+        subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(
+          "TEST",
+          "TEST",
+          "TEST",
+          Pageable.unpaged(Sort.by("RequestDateTime").descending()),
+        )?.content
 
       assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
       assertThat(result).isEqualTo(expectedSearchResult)
@@ -442,7 +466,8 @@ class SubjectAccessRequestRepositoryTest {
 
       insertSubjectAccessRequests(subjectAccessRequestSubmittedAt(dateTime10HoursAgo, Status.Completed))
 
-      val actual = subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(longRunningRequestThreshold)
+      val actual =
+        subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(longRunningRequestThreshold)
       assertThat(actual).isNotNull
       assertThat(actual).isEmpty()
     }
@@ -584,7 +609,7 @@ class SubjectAccessRequestRepositoryTest {
     }
   }
 
-  private fun insertSarSubmittedAtWithStatus(requestSubmittedAt: LocalDateTime, status: Status):SubjectAccessRequest {
+  private fun insertSarSubmittedAtWithStatus(requestSubmittedAt: LocalDateTime, status: Status): SubjectAccessRequest {
     val sar = subjectAccessRequestSubmittedAt(requestSubmittedAt, status)
     return subjectAccessRequestRepository.save(sar)
   }

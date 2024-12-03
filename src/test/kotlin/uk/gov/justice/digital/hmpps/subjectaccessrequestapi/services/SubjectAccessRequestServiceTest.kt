@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.AdditionalMatchers
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito.times
@@ -19,7 +18,6 @@ import org.mockito.kotlin.capture
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
-import org.mockito.kotlin.not
 import org.mockito.kotlin.whenever
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.Page
@@ -398,7 +396,6 @@ class SubjectAccessRequestServiceTest {
         .thenReturn(listOf(timedOutSar1, timedOutSar2, timedOutSar3))
     }
 
-
     @Test
     fun `should set status to Errored for requests submitted before timeout threshold`() {
       whenever(subjectAccessRequestRepository.updateStatusToErrorSubmittedBefore(any(), eq(threshold)))
@@ -407,7 +404,9 @@ class SubjectAccessRequestServiceTest {
       val result = subjectAccessRequestService.expirePendingRequestsSubmittedBeforeThreshold()
 
       assertThat(result).containsExactlyInAnyOrder(
-        timedOutSar1, timedOutSar2, timedOutSar3
+        timedOutSar1,
+        timedOutSar2,
+        timedOutSar3,
       )
 
       verify(subjectAccessRequestRepository, times(3)).updateStatusToErrorSubmittedBefore(
@@ -433,7 +432,8 @@ class SubjectAccessRequestServiceTest {
       val result = subjectAccessRequestService.expirePendingRequestsSubmittedBeforeThreshold()
 
       assertThat(result).containsExactlyInAnyOrder(
-        timedOutSar1, timedOutSar3
+        timedOutSar1,
+        timedOutSar3,
       )
 
       verify(subjectAccessRequestRepository, times(3)).updateStatusToErrorSubmittedBefore(
@@ -463,19 +463,19 @@ class SubjectAccessRequestServiceTest {
     }
 
     private fun subjectAccessRequestSubmittedAt(submittedAt: LocalDateTime, status: Status) = SubjectAccessRequest(
-        id = UUID.randomUUID(),
-        status = status,
-        dateFrom = dateFromFormatted,
-        dateTo = dateToFormatted,
-        sarCaseReferenceNumber = "1234abc",
-        services = "{1,2,4}",
-        nomisId = null,
-        ndeliusCaseReferenceId = "1",
-        requestedBy = "UserName",
-        requestDateTime = submittedAt,
-        claimAttempts = 0,
-      )
-    }
+      id = UUID.randomUUID(),
+      status = status,
+      dateFrom = dateFromFormatted,
+      dateTo = dateToFormatted,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = null,
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "UserName",
+      requestDateTime = submittedAt,
+      claimAttempts = 0,
+    )
+  }
 
   private val nDeliusRequest = CreateSubjectAccessRequestEntity(
     nomisId = null,

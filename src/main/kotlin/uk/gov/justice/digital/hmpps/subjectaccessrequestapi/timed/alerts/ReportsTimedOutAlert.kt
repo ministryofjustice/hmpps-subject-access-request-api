@@ -25,7 +25,8 @@ class ReportsTimedOutAlert(
     } catch (ex: Exception) {
       alertsService.raiseUnexpectedExceptionAlert(
         RuntimeException(
-          "ReportsTimedOutAlert threw unexpected exception", ex,
+          "ReportsTimedOutAlert threw unexpected exception",
+          ex,
         ),
       )
     }
