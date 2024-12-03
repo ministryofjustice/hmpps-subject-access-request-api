@@ -87,7 +87,7 @@ application:
       alert-frequency: 720
       threshold: 100
     report-timeout:
-      alert-frequency: 1
+      alert-frequency: 720
       threshold:  1
       threshold-unit: HOURS
 

@@ -30,4 +30,6 @@ class AlertsConfiguration(
    */
   fun calculateTimeoutThreshold(): LocalDateTime =
     LocalDateTime.now().minus(timeoutThreshold, timeoutThresholdChronoUnit)
+
+  fun timeoutThresholdAsString() = "$timeoutThreshold $timeoutThresholdChronoUnit"
 }

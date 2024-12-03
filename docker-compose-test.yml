@@ -8,7 +8,7 @@ services:
     container_name: sar-db
     restart: always
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_PASSWORD=admin_password
       - POSTGRES_USER=admin

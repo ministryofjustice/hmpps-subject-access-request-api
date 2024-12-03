@@ -128,6 +128,7 @@ class SubjectAccessRequestService(
     return document
   }
 
+  @Transactional
   fun getOverdueSubjectAccessRequestsSummary(): ReportsOverdueSummary {
     val threshold = alertsConfiguration.calculateOverdueThreshold()
     val overdue = subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(threshold)
@@ -150,6 +151,7 @@ class SubjectAccessRequestService(
     )
   }
 
+  @Transactional
   fun countPendingSubjectAccessRequests(): Int {
     return subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Pending)
   }
