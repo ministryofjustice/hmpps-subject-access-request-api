@@ -57,10 +57,6 @@ class SubjectAccessRequestService(
       )
     }
 
-//    if (request.dateTo == null) {
-//      request.dateTo = LocalDate.now()
-//    }
-
     val subjectAccessRequest = SubjectAccessRequest(
       id = id ?: UUID.randomUUID(),
       status = Status.Pending,
