@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
 import com.microsoft.applicationinsights.TelemetryClient
+import jakarta.transaction.Transactional
 import org.apache.commons.lang3.ObjectUtils.isNotEmpty
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
@@ -26,6 +27,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 @Service
 class SubjectAccessRequestService(
@@ -56,15 +58,15 @@ class SubjectAccessRequestService(
       )
     }
 
-    if (request.dateTo == null) {
-      request.dateTo = LocalDate.now()
-    }
+//    if (request.dateTo == null) {
+//      request.dateTo = LocalDate.now()
+//    }
 
     val subjectAccessRequest = SubjectAccessRequest(
       id = id ?: UUID.randomUUID(),
       status = Status.Pending,
       dateFrom = request.dateFrom,
-      dateTo = request.dateTo,
+      dateTo = request.dateTo ?: LocalDate.now(),
       sarCaseReferenceNumber = request.sarCaseReferenceNumber!!,
       services = request.services!!,
       nomisId = request.nomisId,
@@ -128,7 +130,7 @@ class SubjectAccessRequestService(
 
   fun getOverdueSubjectAccessRequestsSummary(): ReportsOverdueSummary {
     val threshold = alertsConfiguration.calculateOverdueThreshold()
-    val overdue = subjectAccessRequestRepository.findOverdueSubjectAccessRequests(threshold)
+    val overdue = subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(threshold)
 
     val overdueRequests = overdue.map {
       it?.let {
@@ -150,6 +152,22 @@ class SubjectAccessRequestService(
 
   fun countPendingSubjectAccessRequests(): Int {
     return subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Pending)
+  }
+
+  @Transactional()
+  fun expirePendingRequestsSubmittedBeforeThreshold(): List<SubjectAccessRequest> {
+    val threshold = alertsConfiguration.calculateTimeoutThreshold()
+    val expiredRequests = mutableListOf<SubjectAccessRequest>()
+
+    subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(threshold).forEach {
+      it?.let { subjectAccessRequest ->
+        subjectAccessRequestRepository.updateStatusToErrorSubmittedBefore(subjectAccessRequest.id, threshold)
+          .takeIf { updated -> updated == 1 }?.let {
+            expiredRequests.add(subjectAccessRequest)
+          }
+      }
+    }
+    return expiredRequests
   }
 }
 

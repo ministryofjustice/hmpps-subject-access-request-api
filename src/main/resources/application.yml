@@ -86,6 +86,10 @@ application:
     backlog-threshold:
       alert-frequency: 720
       threshold: 100
+    report-timeout:
+      alert-frequency: 1
+      threshold:  1
+      threshold-unit: HOURS
 
 management:
   endpoints:

@@ -12,6 +12,8 @@ class AlertsConfiguration(
   @Value("\${application.alerts.reports-overdue.alert-frequency:720}") val overdueAlertFrequencyMinutes: Int,
   @Value("\${application.alerts.backlog-threshold.threshold:100}") val backlogThreshold: Int,
   @Value("\${application.alerts.backlog-threshold.alert-frequency:720}") val backlogThresholdAlertFrequency: Int,
+  @Value("\${application.alerts.report-timeout.threshold:720}") val timeoutThreshold: Long,
+  @Value("\${application.alerts.report-timeout.threshold-unit:HOURS}") val timeoutThresholdChronoUnit: ChronoUnit,
 ) {
 
   fun calculateOverdueThreshold(): LocalDateTime =
@@ -22,4 +24,10 @@ class AlertsConfiguration(
   fun overdueThresholdAlertFrequency() = "$overdueAlertFrequencyMinutes ${ChronoUnit.MINUTES}"
 
   fun backlogThresholdAlertFrequency() = "$backlogThresholdAlertFrequency ${ChronoUnit.MINUTES}"
+
+  /**
+   * Returns LocalDateTime.now() - (timeout threshold)
+   */
+  fun calculateTimeoutThreshold(): LocalDateTime =
+    LocalDateTime.now().minus(timeoutThreshold, timeoutThresholdChronoUnit)
 }

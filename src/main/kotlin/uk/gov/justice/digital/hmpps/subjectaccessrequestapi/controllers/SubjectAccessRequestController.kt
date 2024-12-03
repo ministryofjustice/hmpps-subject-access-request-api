@@ -469,4 +469,11 @@ class SubjectAccessRequestController(
       alertFrequency = alertsConfiguration.overdueThresholdAlertFrequency(),
     ),
   )
+
+  @GetMapping("/subjectAccessRequests/expire")
+  @PreAuthorize("hasRole('ROLE_SAR_SUPPORT')")
+  fun timeoutPendingJobs(): ResponseEntity<List<String>> {
+    val updated = subjectAccessRequestService.expirePendingRequestsSubmittedBeforeThreshold()
+    return ResponseEntity<List<String>>(updated.map { it.id.toString() }, HttpStatus.OK)
+  }
 }
