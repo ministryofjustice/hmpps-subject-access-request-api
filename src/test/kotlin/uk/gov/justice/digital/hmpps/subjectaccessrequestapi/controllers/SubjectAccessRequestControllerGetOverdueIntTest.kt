@@ -5,10 +5,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.OverdueAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
@@ -26,8 +28,9 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
 
-  @MockBean
+  @MockitoBean
   private lateinit var alertConfiguration: AlertsConfiguration
+  private var overdueAlertConfig: OverdueAlertConfiguration = mock()
 
   companion object {
     private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -69,10 +72,11 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    whenever(alertConfiguration.overdueThreshold).thenReturn(1)
-    whenever(alertConfiguration.overdueThresholdChronoUnit).thenReturn(ChronoUnit.HOURS)
-    whenever(alertConfiguration.calculateOverdueThreshold()).thenReturn(dateTimeNow.minusHours(1))
-    whenever(alertConfiguration.overdueThresholdAsString()).thenReturn("1 Hours")
+    whenever(alertConfiguration.overdueAlertConfig).thenReturn(overdueAlertConfig)
+    whenever(overdueAlertConfig.threshold).thenReturn(1)
+    whenever(overdueAlertConfig.thresholdChronoUnit).thenReturn(ChronoUnit.HOURS)
+    whenever(overdueAlertConfig.thresholdAsString()).thenReturn("1 Hours")
+    whenever(overdueAlertConfig.calculateOverdueThreshold()).thenReturn(dateTimeNow.minusHours(1))
 
     subjectAccessRequestRepository.deleteAll()
   }

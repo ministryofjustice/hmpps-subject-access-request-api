@@ -8,7 +8,9 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfigu
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestBacklogThresholdException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestProcessingOverdueException
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestTimeoutException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueSubjectAccessRequests
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -17,15 +19,19 @@ class AlertsService(
   val telemetryClient: TelemetryClient,
   val alertConfig: AlertsConfiguration,
 ) {
+
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val dataTimeFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     private const val OVERDUE_REPORTS_MESSAGE =
-      "Warning: %d reports with status 'Pending' have exceeded the processing overdue threshold: '%s'"
+      "Warning: %d 'Pending' requests have exceeded the processing overdue threshold: '%s'"
 
     private const val BACKLOG_THRESHOLD_EXCEEDED_MESSAGE =
       "Warning: Pending reports backlog threshold exceeded - timestamp: %s, threshold: %d, backlog: %d "
+
+    private const val REQUESTS_TIMED_OUT_MESSAGE =
+      "Warning: %d requests updated to status 'Errored' after not completing within the processing threshold: '%s'"
   }
 
   fun raiseUnexpectedExceptionAlert(exception: Exception, properties: Map<String, String>? = null) {
@@ -41,7 +47,7 @@ class AlertsService(
   }
 
   fun raiseOverdueReportAlert(overdueReports: List<OverdueSubjectAccessRequests?>) {
-    val msg = OVERDUE_REPORTS_MESSAGE.format(overdueReports.size, alertConfig.overdueThresholdAsString())
+    val msg = OVERDUE_REPORTS_MESSAGE.format(overdueReports.size, alertConfig.overdueAlertConfig.thresholdAsString())
 
     log.warn(msg)
 
@@ -50,7 +56,7 @@ class AlertsService(
       mapOf(
         "count" to overdueReports.size.toString(),
         "timestamp" to LocalDateTime.now().format(dataTimeFmt),
-        "overdueThreshold" to alertConfig.overdueThresholdAsString(),
+        "overdueThreshold" to alertConfig.overdueAlertConfig.thresholdAsString(),
       ),
     )
 
@@ -60,8 +66,8 @@ class AlertsService(
   fun raiseReportBacklogThresholdAlert(backlogSize: Int) {
     val msg = BACKLOG_THRESHOLD_EXCEEDED_MESSAGE.format(
       dataTimeFmt.format(LocalDateTime.now()),
+      alertConfig.backlogAlertConfig.threshold,
       backlogSize,
-      alertConfig.backlogThreshold,
     )
 
     log.warn(msg)
@@ -70,10 +76,28 @@ class AlertsService(
       "PendingRequestsBacklogThresholdAlert",
       mapOf(
         "backlog" to backlogSize.toString(),
-        "threshold" to alertConfig.backlogThreshold.toString(),
+        "threshold" to alertConfig.backlogAlertConfig.threshold.toString(),
         "timestamp" to LocalDateTime.now().format(dataTimeFmt),
       ),
     )
     Sentry.captureException(SubjectAccessRequestBacklogThresholdException(msg))
+  }
+
+  fun raiseReportsTimedOutAlert(timedOutRequests: List<SubjectAccessRequest?>) {
+    val msg = REQUESTS_TIMED_OUT_MESSAGE.format(
+      timedOutRequests.size,
+      alertConfig.requestTimeoutAlertConfig.thresholdAsString(),
+    )
+    log.warn(msg)
+
+    telemetryClient.trackEvent(
+      "RequestsTimeoutAlert",
+      mapOf(
+        "backlog" to timedOutRequests.toString(),
+        "threshold" to alertConfig.requestTimeoutAlertConfig.thresholdAsString(),
+        "timestamp" to LocalDateTime.now().format(dataTimeFmt),
+      ),
+    )
+    Sentry.captureException(SubjectAccessRequestTimeoutException(msg, timedOutRequests.map { it?.id.toString() }))
   }
 }

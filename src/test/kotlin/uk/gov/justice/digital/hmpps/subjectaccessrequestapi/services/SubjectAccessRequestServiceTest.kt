@@ -2,12 +2,16 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
 import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
+import org.mockito.Captor
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.capture
@@ -26,6 +30,7 @@ import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.RequestTimeoutAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
@@ -38,18 +43,23 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+@ExtendWith(MockitoExtension::class)
 class SubjectAccessRequestServiceTest {
 
   private val subjectAccessRequestRepository: SubjectAccessRequestRepository = mock()
   private val authentication: Authentication = mock()
   private val documentStorageClient: DocumentStorageClient = mock()
   private val telemetryClient: TelemetryClient = mock()
-  private val overdueAlertConfiguration: AlertsConfiguration = mock()
+  private val alertConfiguration: AlertsConfiguration = mock()
+  private val requestTimeoutAlertConfig: RequestTimeoutAlertConfiguration = mock()
+
+  @Captor
+  private lateinit var sarIdCaptor: ArgumentCaptor<UUID>
 
   private val subjectAccessRequestService = SubjectAccessRequestService(
     documentStorageClient,
     subjectAccessRequestRepository,
-    overdueAlertConfiguration,
+    alertConfiguration,
     telemetryClient,
   )
 
@@ -362,6 +372,113 @@ class SubjectAccessRequestServiceTest {
         "downloadDateTime" to formattedCurrentTime.toString(),
       )
     }
+  }
+
+  @Nested
+  inner class FailTimedOutRequests {
+
+    private lateinit var now: LocalDateTime
+    private lateinit var threshold: LocalDateTime
+
+    private lateinit var timedOutSar1: SubjectAccessRequest
+    private lateinit var timedOutSar2: SubjectAccessRequest
+    private lateinit var timedOutSar3: SubjectAccessRequest
+
+    @BeforeEach
+    fun setup() {
+      now = LocalDateTime.now()
+      threshold = now.minusHours(12)
+      timedOutSar1 = subjectAccessRequestSubmittedAt(now.minusHours(13), Status.Pending)
+      timedOutSar2 = subjectAccessRequestSubmittedAt(now.minusHours(14), Status.Pending)
+      timedOutSar3 = subjectAccessRequestSubmittedAt(now.minusHours(21), Status.Pending)
+
+      whenever(alertConfiguration.requestTimeoutAlertConfig).thenReturn(requestTimeoutAlertConfig)
+
+      whenever(requestTimeoutAlertConfig.calculateTimeoutThreshold()).thenReturn(threshold)
+
+      whenever(subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(threshold))
+        .thenReturn(listOf(timedOutSar1, timedOutSar2, timedOutSar3))
+    }
+
+    @Test
+    fun `should set status to Errored for requests submitted before timeout threshold`() {
+      whenever(subjectAccessRequestRepository.updateStatusToErrorSubmittedBefore(any(), eq(threshold)))
+        .thenReturn(1)
+
+      val result = subjectAccessRequestService.expirePendingRequestsSubmittedBeforeThreshold()
+
+      assertThat(result).containsExactlyInAnyOrder(
+        timedOutSar1,
+        timedOutSar2,
+        timedOutSar3,
+      )
+
+      verify(subjectAccessRequestRepository, times(3)).updateStatusToErrorSubmittedBefore(
+        capture(sarIdCaptor),
+        eq(threshold),
+      )
+
+      assertThat(sarIdCaptor.allValues).hasSize(3)
+      assertThat(sarIdCaptor.allValues[0]).isEqualTo(timedOutSar1.id)
+      assertThat(sarIdCaptor.allValues[1]).isEqualTo(timedOutSar2.id)
+      assertThat(sarIdCaptor.allValues[2]).isEqualTo(timedOutSar3.id)
+    }
+
+    @Test
+    fun `should not return subject access requests that were not updated successfully`() {
+      whenever(subjectAccessRequestRepository.updateStatusToErrorSubmittedBefore(eq(timedOutSar1.id), eq(threshold)))
+        .thenReturn(1)
+      whenever(subjectAccessRequestRepository.updateStatusToErrorSubmittedBefore(eq(timedOutSar2.id), eq(threshold)))
+        .thenReturn(0)
+      whenever(subjectAccessRequestRepository.updateStatusToErrorSubmittedBefore(eq(timedOutSar3.id), eq(threshold)))
+        .thenReturn(1)
+
+      val result = subjectAccessRequestService.expirePendingRequestsSubmittedBeforeThreshold()
+
+      assertThat(result).containsExactlyInAnyOrder(
+        timedOutSar1,
+        timedOutSar3,
+      )
+
+      verify(subjectAccessRequestRepository, times(3)).updateStatusToErrorSubmittedBefore(
+        capture(sarIdCaptor),
+        eq(threshold),
+      )
+
+      assertThat(sarIdCaptor.allValues).hasSize(3)
+      assertThat(sarIdCaptor.allValues[0]).isEqualTo(timedOutSar1.id)
+      assertThat(sarIdCaptor.allValues[1]).isEqualTo(timedOutSar2.id)
+      assertThat(sarIdCaptor.allValues[2]).isEqualTo(timedOutSar3.id)
+    }
+
+    @Test
+    fun `should not update if no timed out subject access requests found`() {
+      whenever(subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(threshold))
+        .thenReturn(emptyList())
+
+      val result = subjectAccessRequestService.expirePendingRequestsSubmittedBeforeThreshold()
+
+      assertThat(result).isEmpty()
+
+      verify(subjectAccessRequestRepository, never()).updateStatusToErrorSubmittedBefore(
+        any(),
+        any(),
+      )
+    }
+
+    private fun subjectAccessRequestSubmittedAt(submittedAt: LocalDateTime, status: Status) = SubjectAccessRequest(
+      id = UUID.randomUUID(),
+      status = status,
+      dateFrom = dateFromFormatted,
+      dateTo = dateToFormatted,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = null,
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "UserName",
+      requestDateTime = submittedAt,
+      claimAttempts = 0,
+    )
   }
 
   private val nDeliusRequest = CreateSubjectAccessRequestEntity(

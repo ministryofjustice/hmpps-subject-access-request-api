@@ -2,38 +2,36 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed.alerts
 
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.AlertsService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.util.concurrent.TimeUnit
 
 @Component
-class ReportsOverdueAlert(
+class ReportsTimedOutAlert(
   val subjectAccessRequestService: SubjectAccessRequestService,
   val alertsService: AlertsService,
 ) {
 
   /**
-   * Scheduled task to raise alerts if there are subject access requests with status
-   * [uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status.Pending] submitted before Time.now - threshold.
+   * Scheduled task to fail any requests with status == 'Pending' submitted before the configured threshold
+   * (default is 48 hours). Requests matching the criteria are considered to have failed. Identified requests are updated
+   * with status 'Errored' and alert notification is raise to prompt the team to investigate.
    */
   @Scheduled(
-    fixedDelayString = "\${application.alerts.reports-overdue.alert-interval-minutes:720}",
+    fixedDelayString = "\${application.alerts.report-timeout.alert-interval-minutes:2880}",
     timeUnit = TimeUnit.MINUTES,
     initialDelay = 60000,
   )
   fun execute() {
-    Status.Pending
     try {
-      val overdueReports = subjectAccessRequestService.getOverdueSubjectAccessRequestsSummary()
-
-      overdueReports.takeIf { it.requests.isNotEmpty() }?.let {
-        alertsService.raiseOverdueReportAlert(overdueReports.requests)
+      val expiredReports = subjectAccessRequestService.expirePendingRequestsSubmittedBeforeThreshold()
+      expiredReports.takeIf { it.isNotEmpty() }?.let {
+        alertsService.raiseReportsTimedOutAlert(it)
       }
     } catch (ex: Exception) {
       alertsService.raiseUnexpectedExceptionAlert(
         RuntimeException(
-          "ReportsOverdueAlert threw unexpected exception",
+          "ReportsTimedOutAlert threw unexpected exception",
           ex,
         ),
       )

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
@@ -56,15 +57,11 @@ class SubjectAccessRequestService(
       )
     }
 
-    if (request.dateTo == null) {
-      request.dateTo = LocalDate.now()
-    }
-
     val subjectAccessRequest = SubjectAccessRequest(
       id = id ?: UUID.randomUUID(),
       status = Status.Pending,
       dateFrom = request.dateFrom,
-      dateTo = request.dateTo,
+      dateTo = request.dateTo ?: LocalDate.now(),
       sarCaseReferenceNumber = request.sarCaseReferenceNumber!!,
       services = request.services!!,
       nomisId = request.nomisId,
@@ -126,9 +123,10 @@ class SubjectAccessRequestService(
     return document
   }
 
+  @Transactional
   fun getOverdueSubjectAccessRequestsSummary(): ReportsOverdueSummary {
-    val threshold = alertsConfiguration.calculateOverdueThreshold()
-    val overdue = subjectAccessRequestRepository.findOverdueSubjectAccessRequests(threshold)
+    val threshold = alertsConfiguration.overdueAlertConfig.calculateOverdueThreshold()
+    val overdue = subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(threshold)
 
     val overdueRequests = overdue.map {
       it?.let {
@@ -143,13 +141,30 @@ class SubjectAccessRequestService(
       }
     }
     return ReportsOverdueSummary(
-      alertsConfiguration.overdueThresholdAsString(),
+      alertsConfiguration.overdueAlertConfig.thresholdAsString(),
       overdueRequests,
     )
   }
 
+  @Transactional
   fun countPendingSubjectAccessRequests(): Int {
     return subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Pending)
+  }
+
+  @Transactional()
+  fun expirePendingRequestsSubmittedBeforeThreshold(): List<SubjectAccessRequest> {
+    val threshold = alertsConfiguration.requestTimeoutAlertConfig.calculateTimeoutThreshold()
+    val expiredRequests = mutableListOf<SubjectAccessRequest>()
+
+    subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(threshold).forEach {
+      it?.let { subjectAccessRequest ->
+        subjectAccessRequestRepository.updateStatusToErrorSubmittedBefore(subjectAccessRequest.id, threshold)
+          .takeIf { updated -> updated == 1 }?.let {
+            expiredRequests.add(subjectAccessRequest)
+          }
+      }
+    }
+    return expiredRequests
   }
 }
 

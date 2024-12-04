@@ -14,6 +14,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.BacklogAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.AlertsService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 
@@ -23,6 +24,7 @@ class BacklogThresholdAlertTest {
   private val subjectAccessRequestService: SubjectAccessRequestService = mock()
   private val alertsService: AlertsService = mock()
   private val alertsConfiguration: AlertsConfiguration = mock()
+  private val backlogAlertConfig: BacklogAlertConfiguration = mock()
 
   @Captor
   private lateinit var exceptionCaptor: ArgumentCaptor<Exception>
@@ -37,8 +39,8 @@ class BacklogThresholdAlertTest {
 
   @BeforeEach
   fun setup() {
-    whenever(alertsConfiguration.backlogThreshold)
-      .thenReturn(100)
+    whenever(alertsConfiguration.backlogAlertConfig).thenReturn(backlogAlertConfig)
+    whenever(backlogAlertConfig.threshold).thenReturn(100)
 
     backlogThresholdAlert = BacklogThresholdAlert(
       subjectAccessRequestService,
