@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
 import com.microsoft.applicationinsights.TelemetryClient
-import jakarta.transaction.Transactional
 import org.apache.commons.lang3.ObjectUtils.isNotEmpty
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
@@ -11,6 +10,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration

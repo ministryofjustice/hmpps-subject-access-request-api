@@ -20,6 +20,7 @@ class ReportsOverdueAlert(
   @Scheduled(
     fixedDelayString = "\${application.alerts.reports-overdue.alert-interval-minutes:720}",
     timeUnit = TimeUnit.MINUTES,
+    initialDelay = 60000,
   )
   fun execute() {
     Status.Pending

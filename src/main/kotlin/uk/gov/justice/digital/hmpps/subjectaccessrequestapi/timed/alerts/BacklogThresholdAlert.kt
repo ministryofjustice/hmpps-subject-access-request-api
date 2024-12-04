@@ -20,6 +20,7 @@ class BacklogThresholdAlert(
   @Scheduled(
     fixedDelayString = "\${application.alerts.backlog-threshold.alert-interval-minutes:720}",
     timeUnit = TimeUnit.MINUTES,
+    initialDelay = 60000,
   )
   fun execute() {
     try {

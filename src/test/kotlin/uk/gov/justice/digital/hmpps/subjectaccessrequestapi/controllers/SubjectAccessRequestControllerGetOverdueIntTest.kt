@@ -75,8 +75,8 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
     whenever(alertConfiguration.overdueAlertConfig).thenReturn(overdueAlertConfig)
     whenever(overdueAlertConfig.threshold).thenReturn(1)
     whenever(overdueAlertConfig.thresholdChronoUnit).thenReturn(ChronoUnit.HOURS)
-    whenever(overdueAlertConfig.calculateOverdueThreshold()).thenReturn(dateTimeNow.minusHours(1))
     whenever(overdueAlertConfig.thresholdAsString()).thenReturn("1 Hours")
+    whenever(overdueAlertConfig.calculateOverdueThreshold()).thenReturn(dateTimeNow.minusHours(1))
 
     subjectAccessRequestRepository.deleteAll()
   }
