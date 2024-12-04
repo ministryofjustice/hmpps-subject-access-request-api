@@ -125,7 +125,7 @@ class SubjectAccessRequestService(
 
   @Transactional
   fun getOverdueSubjectAccessRequestsSummary(): ReportsOverdueSummary {
-    val threshold = alertsConfiguration.calculateOverdueThreshold()
+    val threshold = alertsConfiguration.overdueAlertConfig.calculateOverdueThreshold()
     val overdue = subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(threshold)
 
     val overdueRequests = overdue.map {
@@ -141,7 +141,7 @@ class SubjectAccessRequestService(
       }
     }
     return ReportsOverdueSummary(
-      alertsConfiguration.overdueThresholdAsString(),
+      alertsConfiguration.overdueAlertConfig.thresholdAsString(),
       overdueRequests,
     )
   }
@@ -153,7 +153,7 @@ class SubjectAccessRequestService(
 
   @Transactional()
   fun expirePendingRequestsSubmittedBeforeThreshold(): List<SubjectAccessRequest> {
-    val threshold = alertsConfiguration.calculateTimeoutThreshold()
+    val threshold = alertsConfiguration.requestTimeoutAlertConfig.calculateTimeoutThreshold()
     val expiredRequests = mutableListOf<SubjectAccessRequest>()
 
     subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(threshold).forEach {

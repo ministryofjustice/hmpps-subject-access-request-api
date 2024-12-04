@@ -16,6 +16,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.OverdueAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueSubjectAccessRequests
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.AlertsService
@@ -27,6 +28,7 @@ class ReportsOverdueAlertTest {
 
   private val subjectAccessRequestService: SubjectAccessRequestService = mock()
   private val alertConfiguration: AlertsConfiguration = mock()
+  private val overdueAlertConfig: OverdueAlertConfiguration = mock()
   private val alertsService: AlertsService = mock()
   private val dateTimeNowMinus1Hour = LocalDateTime.now().minusHours(1)
   private val overdueOne: OverdueSubjectAccessRequests = mock()
@@ -43,7 +45,10 @@ class ReportsOverdueAlertTest {
 
   @BeforeEach
   fun setup() {
-    whenever(alertConfiguration.calculateOverdueThreshold())
+    whenever(alertConfiguration.overdueAlertConfig)
+      .thenReturn(overdueAlertConfig)
+
+    whenever(overdueAlertConfig.calculateOverdueThreshold())
       .thenReturn(dateTimeNowMinus1Hour)
   }
 

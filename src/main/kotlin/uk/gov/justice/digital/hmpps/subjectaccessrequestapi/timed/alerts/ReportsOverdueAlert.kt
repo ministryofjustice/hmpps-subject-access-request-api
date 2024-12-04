@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed.alerts
 
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.AlertsService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.util.concurrent.TimeUnit
@@ -13,15 +14,15 @@ class ReportsOverdueAlert(
 ) {
 
   /**
-   * Scheduled task to raise alerts for subject access requests that have exceeded the processing overdue threshold
-   * (see: [uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration]) Default is
-   * 12 hours
+   * Scheduled task to raise alerts if there are subject access requests with status
+   * [uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status.Pending] submitted before Time.now - threshold.
    */
   @Scheduled(
-    fixedDelayString = "\${application.alerts.reports-overdue.alert-frequency:720}",
+    fixedDelayString = "\${application.alerts.reports-overdue.alert-interval-minutes:720}",
     timeUnit = TimeUnit.MINUTES,
   )
   fun execute() {
+    Status.Pending
     try {
       val overdueReports = subjectAccessRequestService.getOverdueSubjectAccessRequestsSummary()
 

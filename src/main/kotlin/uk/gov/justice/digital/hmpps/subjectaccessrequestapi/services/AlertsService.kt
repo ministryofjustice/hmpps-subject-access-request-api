@@ -19,6 +19,7 @@ class AlertsService(
   val telemetryClient: TelemetryClient,
   val alertConfig: AlertsConfiguration,
 ) {
+
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val dataTimeFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -46,7 +47,7 @@ class AlertsService(
   }
 
   fun raiseOverdueReportAlert(overdueReports: List<OverdueSubjectAccessRequests?>) {
-    val msg = OVERDUE_REPORTS_MESSAGE.format(overdueReports.size, alertConfig.overdueThresholdAsString())
+    val msg = OVERDUE_REPORTS_MESSAGE.format(overdueReports.size, alertConfig.overdueAlertConfig.thresholdAsString())
 
     log.warn(msg)
 
@@ -55,7 +56,7 @@ class AlertsService(
       mapOf(
         "count" to overdueReports.size.toString(),
         "timestamp" to LocalDateTime.now().format(dataTimeFmt),
-        "overdueThreshold" to alertConfig.overdueThresholdAsString(),
+        "overdueThreshold" to alertConfig.overdueAlertConfig.thresholdAsString(),
       ),
     )
 
@@ -65,8 +66,8 @@ class AlertsService(
   fun raiseReportBacklogThresholdAlert(backlogSize: Int) {
     val msg = BACKLOG_THRESHOLD_EXCEEDED_MESSAGE.format(
       dataTimeFmt.format(LocalDateTime.now()),
+      alertConfig.backlogAlertConfig.threshold,
       backlogSize,
-      alertConfig.backlogThreshold,
     )
 
     log.warn(msg)
@@ -75,7 +76,7 @@ class AlertsService(
       "PendingRequestsBacklogThresholdAlert",
       mapOf(
         "backlog" to backlogSize.toString(),
-        "threshold" to alertConfig.backlogThreshold.toString(),
+        "threshold" to alertConfig.backlogAlertConfig.threshold.toString(),
         "timestamp" to LocalDateTime.now().format(dataTimeFmt),
       ),
     )
@@ -85,7 +86,7 @@ class AlertsService(
   fun raiseReportsTimedOutAlert(timedOutRequests: List<SubjectAccessRequest?>) {
     val msg = REQUESTS_TIMED_OUT_MESSAGE.format(
       timedOutRequests.size,
-      alertConfig.timeoutThresholdAsString(),
+      alertConfig.requestTimeoutAlertConfig.thresholdAsString(),
     )
     log.warn(msg)
 
@@ -93,7 +94,7 @@ class AlertsService(
       "RequestsTimeoutAlert",
       mapOf(
         "backlog" to timedOutRequests.toString(),
-        "threshold" to alertConfig.timeoutThreshold.toString(),
+        "threshold" to alertConfig.requestTimeoutAlertConfig.thresholdAsString(),
         "timestamp" to LocalDateTime.now().format(dataTimeFmt),
       ),
     )

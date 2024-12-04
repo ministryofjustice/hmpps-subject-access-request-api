@@ -12,8 +12,13 @@ class ReportsTimedOutAlert(
   val alertsService: AlertsService,
 ) {
 
+  /**
+   * Scheduled task to fail any requests with status == 'Pending' submitted before the configured threshold
+   * (default is 48 hours). Requests matching the criteria are considered to have failed. Identified requests are updated
+   * with status 'Errored' and alert notification is raise to prompt the team to investigate.
+   */
   @Scheduled(
-    fixedDelayString = "\${application.alerts.report-timeout.alert-frequency}",
+    fixedDelayString = "\${application.alerts.report-timeout.alert-interval-minutes:2880}",
     timeUnit = TimeUnit.MINUTES,
   )
   fun execute() {

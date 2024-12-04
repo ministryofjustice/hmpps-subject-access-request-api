@@ -46,6 +46,8 @@ class SubjectAccessRequestController(
   val alertsConfiguration: AlertsConfiguration,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
+  private val overdueAlertConfig = alertsConfiguration.overdueAlertConfig
+  private val backlogAlertConfig = alertsConfiguration.backlogAlertConfig
 
   @PostMapping("/subjectAccessRequest")
   @Operation(
@@ -460,13 +462,13 @@ class SubjectAccessRequestController(
   fun getServiceSummary(): ServiceSummary = ServiceSummary(
     BacklogSummary(
       count = subjectAccessRequestService.countPendingSubjectAccessRequests(),
-      alertThreshold = alertsConfiguration.backlogThreshold,
-      alertFrequency = alertsConfiguration.backlogThresholdAlertFrequency(),
+      alertThreshold = backlogAlertConfig.threshold,
+      alertFrequency = backlogAlertConfig.thresholdAlertFrequency(),
     ),
     OverdueReportSummary(
       count = subjectAccessRequestService.getOverdueSubjectAccessRequestsSummary().total,
-      alertThreshold = "status == pending && requestDateTime < (time.now - ${alertsConfiguration.overdueThresholdAsString()})",
-      alertFrequency = alertsConfiguration.overdueThresholdAlertFrequency(),
+      alertThreshold = "status == pending && requestDateTime < (time.now - ${overdueAlertConfig.thresholdAsString()})",
+      alertFrequency = overdueAlertConfig.thresholdAlertFrequency(),
     ),
   )
 }

@@ -30,6 +30,7 @@ import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.RequestTimeoutAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
@@ -50,6 +51,7 @@ class SubjectAccessRequestServiceTest {
   private val documentStorageClient: DocumentStorageClient = mock()
   private val telemetryClient: TelemetryClient = mock()
   private val alertConfiguration: AlertsConfiguration = mock()
+  private val requestTimeoutAlertConfig: RequestTimeoutAlertConfiguration = mock()
 
   @Captor
   private lateinit var sarIdCaptor: ArgumentCaptor<UUID>
@@ -390,7 +392,9 @@ class SubjectAccessRequestServiceTest {
       timedOutSar2 = subjectAccessRequestSubmittedAt(now.minusHours(14), Status.Pending)
       timedOutSar3 = subjectAccessRequestSubmittedAt(now.minusHours(21), Status.Pending)
 
-      whenever(alertConfiguration.calculateTimeoutThreshold()).thenReturn(threshold)
+      whenever(alertConfiguration.requestTimeoutAlertConfig).thenReturn(requestTimeoutAlertConfig)
+
+      whenever(requestTimeoutAlertConfig.calculateTimeoutThreshold()).thenReturn(threshold)
 
       whenever(subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(threshold))
         .thenReturn(listOf(timedOutSar1, timedOutSar2, timedOutSar3))
