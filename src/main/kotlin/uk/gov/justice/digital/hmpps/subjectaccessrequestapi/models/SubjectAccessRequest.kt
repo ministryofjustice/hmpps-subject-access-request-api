@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -27,6 +28,7 @@ data class SubjectAccessRequest(
   val nomisId: String? = null,
   val ndeliusCaseReferenceId: String? = null,
   val requestedBy: String = "",
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
   val requestDateTime: LocalDateTime = LocalDateTime.now(),
   val claimDateTime: LocalDateTime? = null,
   val claimAttempts: Int = 0,
