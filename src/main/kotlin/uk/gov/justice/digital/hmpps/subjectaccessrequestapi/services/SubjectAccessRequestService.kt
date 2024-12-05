@@ -113,7 +113,7 @@ class SubjectAccessRequestService(
 
       when (subjectAccessRequest.status) {
         Status.Pending -> {
-          log.warn("updating subject access request $id to status '${Status.Completed}'")
+          log.info("updating subject access request $id to status '${Status.Completed}'")
           return subjectAccessRequestRepository.updateStatus(id, Status.Completed)
         }
 
