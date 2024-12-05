@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremoc
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.delete
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.junit.jupiter.api.extension.AfterAllCallback
@@ -54,7 +55,34 @@ class DocumentServiceApiMockServer : WireMockServer(4040) {
         ),
     )
   }
+
+  fun deleteDocumentSuccess(id: UUID) {
+    stubFor(
+      delete(urlEqualTo("/documents/$id")).willReturn(aResponse().withStatus(204)),
+    )
+  }
+
+  fun deleteDocumentError(id: UUID, status: Int) {
+    stubFor(
+      delete(urlEqualTo("/documents/$id")).willReturn(
+        aResponse()
+          .withStatus(status)
+          .withBody(
+            """
+          {
+            "status": $status,
+            "errorCode": 666,
+            "userMessage": "Error!!!!",
+            "developerMessage": "SCARY ERROR!!!",
+            "moreInfo": "SUPER SCARY UBER ERROR"
+          }
+            """.trimIndent(),
+          ),
+      ),
+    )
+  }
 }
+
 class DocumentServiceApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
   companion object {
     @JvmField

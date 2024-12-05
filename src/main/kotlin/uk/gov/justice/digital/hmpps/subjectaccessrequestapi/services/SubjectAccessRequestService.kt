@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.oauth2.client.ClientAuthorizationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfigu
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueSubjectAccessRequests
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
@@ -104,7 +106,49 @@ class SubjectAccessRequestService(
       LocalDateTime.now(),
     )
 
-  fun completeSubjectAccessRequest(id: UUID) = subjectAccessRequestRepository.updateStatus(id, Status.Completed)
+  @Transactional
+  fun completeSubjectAccessRequest(id: UUID): Int {
+    return subjectAccessRequestRepository.findById(id).takeIf { it.isPresent }?.let { optional ->
+      val subjectAccessRequest = optional.get()
+
+      when (subjectAccessRequest.status) {
+        Status.Pending -> {
+          log.warn("updating subject access request $id to status '${Status.Completed}'")
+          return subjectAccessRequestRepository.updateStatus(id, Status.Completed)
+        }
+
+        Status.Completed -> {
+          telemetryClient.trackApiEvent("DuplicateCompleteRequest", subjectAccessRequest.id.toString())
+          return 0
+        }
+
+        Status.Errored -> {
+          deleteFromDocumentStoreIfExists(subjectAccessRequest)
+          throw SubjectAccessRequestApiException(
+            message = "complete request for id=$id unsuccessful existing status is '${Status.Errored}'",
+            status = HttpStatus.BAD_REQUEST,
+          )
+        }
+      }
+    } ?: throw SubjectAccessRequestApiException(
+      message = "complete subject access request: $id unsuccessful request not found",
+      status = HttpStatus.NOT_FOUND,
+    )
+  }
+
+  /**
+   * Attempt to delete the document from the document store intentionally swallows any non auth exceptions.
+   */
+  private fun deleteFromDocumentStoreIfExists(subjectAccessRequest: SubjectAccessRequest) {
+    try {
+      documentStorageClient.deleteDocument(subjectAccessRequest.id)
+    } catch (ex: ClientAuthorizationException) {
+      log.error("failed to obtain auth token for document API", ex)
+      throw ex
+    } catch (ex: Exception) {
+      log.error("error while attempt to delete document from document store", ex)
+    }
+  }
 
   fun retrieveSubjectAccessRequestDocument(
     sarId: UUID,
