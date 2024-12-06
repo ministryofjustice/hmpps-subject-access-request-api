@@ -6,6 +6,7 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.UUID
 
 enum class Status {
@@ -27,7 +28,7 @@ data class SubjectAccessRequest(
   val nomisId: String? = null,
   val ndeliusCaseReferenceId: String? = null,
   val requestedBy: String = "",
-  val requestDateTime: LocalDateTime = LocalDateTime.now(),
+  val requestDateTime: LocalDateTime = LocalDateTime.now(ZoneId.systemDefault()),
   val claimDateTime: LocalDateTime? = null,
   val claimAttempts: Int = 0,
   val objectUrl: String? = null,
