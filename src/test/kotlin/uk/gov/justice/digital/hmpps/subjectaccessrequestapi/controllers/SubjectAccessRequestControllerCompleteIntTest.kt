@@ -24,8 +24,8 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccess
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
@@ -109,7 +109,7 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
 
       val expected = subjectAccessRequestRepository.findById(sar.id)
       assertThat(expected.isPresent).isTrue()
-      assertThat(sar).isEqualTo(expected.get())
+      assertThat(expected.get()).isEqualTo(sar)
 
       webTestClient.patch()
         .uri("/api/subjectAccessRequests/${sar.id}/complete")
@@ -176,7 +176,7 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
     nomisId = "",
     ndeliusCaseReferenceId = "hansGruber99",
     requestedBy = "Hans Gruber",
-    requestDateTime = LocalDateTime.now(ZoneId.systemDefault()),
+    requestDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.NANOS),
     claimAttempts = 0,
     claimDateTime = null,
   )
