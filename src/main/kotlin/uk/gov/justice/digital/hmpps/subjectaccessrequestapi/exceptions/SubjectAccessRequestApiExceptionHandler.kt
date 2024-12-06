@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config
+package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions
 
 import io.sentry.Sentry
 import jakarta.validation.ValidationException
@@ -13,7 +13,6 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestControllerAdvice
@@ -54,8 +53,8 @@ class SubjectAccessRequestApiExceptionHandler {
     ).also { log.debug("Forbidden (403) returned: {}", e.message) }
     .also { logAndCapture("Forbidden (403) returned:", e) }
 
-  @ExceptionHandler(CreateSubjectAccessRequestException::class)
-  fun handleException(e: CreateSubjectAccessRequestException): ResponseEntity<ErrorResponse> = ResponseEntity
+  @ExceptionHandler(SubjectAccessRequestApiException::class)
+  fun handleException(e: SubjectAccessRequestApiException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(e.status)
     .body(
       ErrorResponse(
@@ -63,8 +62,8 @@ class SubjectAccessRequestApiExceptionHandler {
         userMessage = e.message,
         developerMessage = e.message,
       ),
-    ).also { log.error("create subject access request exception", e) }
-    .also { logAndCapture("create subject access request exception:", e) }
+    ).also { log.error("subject access request API exception", e) }
+    .also { logAndCapture("subject access request API exception:", e) }
 
   @ExceptionHandler(Exception::class)
   fun handleException(e: Exception): ResponseEntity<ErrorResponse> = ResponseEntity

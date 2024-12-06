@@ -41,6 +41,7 @@ import java.io.ByteArrayInputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Optional
 import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
@@ -321,8 +322,14 @@ class SubjectAccessRequestServiceTest {
     @Test
     fun `completeSubjectAccessRequest calls repository with update status`() {
       val uuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
-      subjectAccessRequestService
-        .completeSubjectAccessRequest(uuid)
+      val sar: SubjectAccessRequest = mock()
+
+      whenever(sar.status).thenReturn(Status.Pending)
+
+      whenever(subjectAccessRequestRepository.findById(uuid))
+        .thenReturn(Optional.of(sar))
+
+      subjectAccessRequestService.completeSubjectAccessRequest(uuid)
       verify(subjectAccessRequestRepository, times(1)).updateStatus(uuid, Status.Completed)
     }
   }

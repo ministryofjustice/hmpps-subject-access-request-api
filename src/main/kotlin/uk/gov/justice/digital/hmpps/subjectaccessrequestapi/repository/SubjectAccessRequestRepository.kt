@@ -14,12 +14,17 @@ import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDateTime
+import java.util.Optional
 import java.util.UUID
 
 const val LOCK_TIMEOUT = "3000"
 
 @Repository
 interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, UUID> {
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @QueryHints(value = [QueryHint(name = "javax.persistence.lock.timeout", value = LOCK_TIMEOUT)])
+  override fun findById(id: UUID): Optional<SubjectAccessRequest>
 
   @Lock(LockModeType.PESSIMISTIC_READ)
   @QueryHints(value = [QueryHint(name = "javax.persistence.lock.timeout", value = LOCK_TIMEOUT)])

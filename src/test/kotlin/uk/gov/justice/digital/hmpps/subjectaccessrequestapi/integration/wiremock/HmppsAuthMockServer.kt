@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import com.github.tomakehurst.wiremock.http.HttpHeaders
@@ -55,6 +56,10 @@ class HmppsAuthMockServer : WireMockServer(WIREMOCK_PORT) {
             ),
         ),
     )
+  }
+
+  fun stubGrantTokenError() {
+    stubFor(post(urlEqualTo("/auth/oauth/token")).willReturn(serverError()))
   }
 
   fun stubHealthPing(status: Int) {
