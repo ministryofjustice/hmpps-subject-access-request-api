@@ -5,6 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
+import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -28,7 +29,7 @@ data class SubjectAccessRequest(
   val nomisId: String? = null,
   val ndeliusCaseReferenceId: String? = null,
   val requestedBy: String = "",
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+  @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
   val requestDateTime: LocalDateTime = LocalDateTime.now(),
   val claimDateTime: LocalDateTime? = null,
   val claimAttempts: Int = 0,
