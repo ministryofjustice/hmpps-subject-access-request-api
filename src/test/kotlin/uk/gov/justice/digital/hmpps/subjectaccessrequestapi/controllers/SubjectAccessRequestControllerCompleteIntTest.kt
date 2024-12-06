@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccess
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -175,7 +176,7 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
     nomisId = "",
     ndeliusCaseReferenceId = "hansGruber99",
     requestedBy = "Hans Gruber",
-    requestDateTime = LocalDateTime.now(),
+    requestDateTime = LocalDateTime.now(ZoneId.systemDefault()),
     claimAttempts = 0,
     claimDateTime = null,
   )
