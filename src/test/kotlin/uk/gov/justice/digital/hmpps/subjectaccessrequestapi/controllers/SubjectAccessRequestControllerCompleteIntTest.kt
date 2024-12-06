@@ -176,7 +176,7 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
     nomisId = "",
     ndeliusCaseReferenceId = "hansGruber99",
     requestedBy = "Hans Gruber",
-    requestDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.NANOS),
+    requestDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
     claimAttempts = 0,
     claimDateTime = null,
   )
