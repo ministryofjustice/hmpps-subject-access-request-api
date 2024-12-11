@@ -18,9 +18,9 @@ class BacklogThresholdAlert(
    * Scheduled task to raise alert notifications if the backlog of Pending requests exceeds the configured threshold.
    */
   @Scheduled(
-    fixedDelayString = "\${application.alerts.backlog-threshold.alert-interval-minutes:720}",
+    fixedDelayString = "\${application.alerts.backlog-threshold.alert-interval-minutes:180}",
     timeUnit = TimeUnit.MINUTES,
-    initialDelay = 60000,
+    initialDelay = 1,
   )
   fun execute() {
     try {

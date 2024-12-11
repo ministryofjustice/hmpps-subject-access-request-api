@@ -18,9 +18,9 @@ class ReportsOverdueAlert(
    * [uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status.Pending] submitted before Time.now - threshold.
    */
   @Scheduled(
-    fixedDelayString = "\${application.alerts.reports-overdue.alert-interval-minutes:720}",
+    fixedDelayString = "\${application.alerts.reports-overdue.alert-interval-minutes:180}",
     timeUnit = TimeUnit.MINUTES,
-    initialDelay = 60000,
+    initialDelay = 1,
   )
   fun execute() {
     Status.Pending

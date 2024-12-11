@@ -20,7 +20,7 @@ class ReportsTimedOutAlert(
   @Scheduled(
     fixedDelayString = "\${application.alerts.report-timeout.alert-interval-minutes:2880}",
     timeUnit = TimeUnit.MINUTES,
-    initialDelay = 60000,
+    initialDelay = 1,
   )
   fun execute() {
     try {
