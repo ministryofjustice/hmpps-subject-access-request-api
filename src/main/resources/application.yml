@@ -80,14 +80,14 @@ application:
     frequency: 3600000
   alerts:
     reports-overdue:
-      alert-interval-minutes: 720
+      alert-interval-minutes: 180
       threshold: 12
       threshold-unit: HOURS
     backlog-threshold:
-      alert-interval-minutes: 720
+      alert-interval-minutes: 180
       threshold: 100
     report-timeout:
-      alert-interval-minutes: 720
+      alert-interval-minutes: 180
       threshold:  48
       threshold-unit: HOURS
 
