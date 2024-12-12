@@ -61,6 +61,7 @@ class SubjectAccessRequestApiExceptionHandler {
         status = e.status,
         userMessage = e.message,
         developerMessage = e.message,
+        moreInfo = "SubjectAccessRequestId: ${e.subjectAccessRequestId}",
       ),
     ).also { log.error("subject access request API exception", e) }
     .also { logAndCapture("subject access request API exception:", e) }
