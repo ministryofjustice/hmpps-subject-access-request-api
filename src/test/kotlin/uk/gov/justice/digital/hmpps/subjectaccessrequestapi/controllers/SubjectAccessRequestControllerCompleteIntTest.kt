@@ -62,8 +62,9 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
       .exchange()
       .expectStatus().isNotFound
       .expectBody()
-      .jsonPath("$.userMessage").isEqualTo("complete subject access request: $id unsuccessful request not found")
+      .jsonPath("$.userMessage").isEqualTo("complete subject access request unsuccessful request ID not found")
       .jsonPath("status").isEqualTo("404")
+      .jsonPath("moreInfo").isEqualTo("SubjectAccessRequestId: $id")
   }
 
   @Test
@@ -118,8 +119,9 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
         .expectStatus().isBadRequest
         .expectBody()
         .jsonPath("$.userMessage")
-        .isEqualTo("complete request for id=${sar.id} unsuccessful existing status is 'Errored'")
+        .isEqualTo("complete request unsuccessful existing status is 'Errored'")
         .jsonPath("status").isEqualTo("400")
+        .jsonPath("moreInfo").isEqualTo("SubjectAccessRequestId: ${sar.id}")
 
       hmppsAuth.verify(1, postRequestedFor(urlPathEqualTo("/auth/oauth/token")))
       documentServiceApi.verify(1, deleteRequestedFor(urlPathEqualTo("/documents/${sar.id}")))
@@ -155,8 +157,9 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
         .expectStatus().isBadRequest
         .expectBody()
         .jsonPath("$.userMessage")
-        .isEqualTo("complete request for id=${sar.id} unsuccessful existing status is 'Errored'")
+        .isEqualTo("complete request unsuccessful existing status is 'Errored'")
         .jsonPath("status").isEqualTo("400")
+        .jsonPath("moreInfo").isEqualTo("SubjectAccessRequestId: ${sar.id}")
 
       hmppsAuth.verify(1, postRequestedFor(urlPathEqualTo("/auth/oauth/token")))
       documentServiceApi.verify(1, deleteRequestedFor(urlPathEqualTo("/documents/${sar.id}")))

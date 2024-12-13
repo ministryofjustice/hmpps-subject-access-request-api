@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.client.ClientAuthorizationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStora
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.DuplicateRequestResponseEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueSubjectAccessRequests
@@ -27,7 +29,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAc
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.util.Optional
 import java.util.UUID
 
 @Service
@@ -47,15 +49,17 @@ class SubjectAccessRequestService(
   ): String {
     if (request.nomisId == null && request.ndeliusId == null) {
       throw CreateSubjectAccessRequestException(
-        "Neither nomisId or nDeliusId provided - exactly one is required",
-        HttpStatus.BAD_REQUEST,
+        message = "Neither nomisId or nDeliusId provided - exactly one is required",
+        status = HttpStatus.BAD_REQUEST,
+        subjectAccessRequestId = id.toString(),
       )
     }
 
     if (isNotEmpty(request.nomisId?.trim()) && isNotEmpty(request.ndeliusId?.trim())) {
       throw CreateSubjectAccessRequestException(
-        "Both nomisId and nDeliusId are provided - exactly one is required",
-        HttpStatus.BAD_REQUEST,
+        message = "Both nomisId and nDeliusId are provided - exactly one is required",
+        status = HttpStatus.BAD_REQUEST,
+        subjectAccessRequestId = id.toString(),
       )
     }
 
@@ -125,14 +129,16 @@ class SubjectAccessRequestService(
         Status.Errored -> {
           deleteFromDocumentStoreIfExists(subjectAccessRequest)
           throw SubjectAccessRequestApiException(
-            message = "complete request for id=$id unsuccessful existing status is '${Status.Errored}'",
+            message = "complete request unsuccessful existing status is '${Status.Errored}'",
             status = HttpStatus.BAD_REQUEST,
+            subjectAccessRequestId = id.toString(),
           )
         }
       }
     } ?: throw SubjectAccessRequestApiException(
-      message = "complete subject access request: $id unsuccessful request not found",
+      message = "complete subject access request unsuccessful request ID not found",
       status = HttpStatus.NOT_FOUND,
+      subjectAccessRequestId = id.toString(),
     )
   }
 
@@ -210,13 +216,68 @@ class SubjectAccessRequestService(
     }
     return expiredRequests
   }
-}
 
-private fun formatDate(date: String): LocalDate? {
-  val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-  return if (date != "") {
-    LocalDate.parse(date, formatter)
-  } else {
-    null
+  /**
+   * Create a new subject access request in state pending with details copied from original request. New request will
+   * have zero claims attempts/null claim date and will be requestedBy the auth principal.
+   */
+  @Transactional
+  fun duplicateSubjectAccessRequest(id: UUID): DuplicateRequestResponseEntity {
+    return findSubjectAccessRequest(id).takeIf { it.isPresent }?.let {
+      val originalRequest = it.get()
+
+      val resubmittedRequestId = copyAndSaveSubjectAccessRequest(originalRequest, getAuthenticationPrincipalName())
+
+      telemetryClient.trackEvent(
+        "subjectAccessRequestDuplicated",
+        mapOf(
+          "originalId" to originalRequest.id.toString(),
+          "duplicatedRequestId" to resubmittedRequestId.toString(),
+          "sarCaseReferenceNumber" to originalRequest.sarCaseReferenceNumber,
+        ),
+        null,
+      )
+
+      DuplicateRequestResponseEntity(
+        id = resubmittedRequestId.toString(),
+        originalId = originalRequest.id.toString(),
+        sarCaseReferenceNumber = originalRequest.sarCaseReferenceNumber,
+      )
+    } ?: throw SubjectAccessRequestApiException(
+      message = "duplicate subject access request unsuccessful: request ID not found",
+      status = HttpStatus.NOT_FOUND,
+      subjectAccessRequestId = id.toString(),
+    )
   }
+
+  private fun findSubjectAccessRequest(id: UUID): Optional<SubjectAccessRequest> {
+    try {
+      return subjectAccessRequestRepository.findById(id)
+    } catch (ex: Exception) {
+      throw SubjectAccessRequestApiException(
+        message = "unexpected error occurred while attempting to find request by id",
+        status = HttpStatus.INTERNAL_SERVER_ERROR,
+        subjectAccessRequestId = id.toString(),
+      )
+    }
+  }
+
+  private fun copyAndSaveSubjectAccessRequest(source: SubjectAccessRequest, requestedBy: String): UUID {
+    try {
+      return UUID.fromString(
+        createSubjectAccessRequest(
+          request = CreateSubjectAccessRequestEntity.from(source),
+          requestedBy = requestedBy,
+          requestTime = LocalDateTime.now(),
+        ),
+      )
+    } catch (ex: Exception) {
+      throw SubjectAccessRequestApiException(
+        message = "unexpected error occurred while attempting to save subject access request",
+        status = HttpStatus.INTERNAL_SERVER_ERROR,
+      )
+    }
+  }
+
+  internal fun getAuthenticationPrincipalName() = SecurityContextHolder.getContext().authentication.name
 }

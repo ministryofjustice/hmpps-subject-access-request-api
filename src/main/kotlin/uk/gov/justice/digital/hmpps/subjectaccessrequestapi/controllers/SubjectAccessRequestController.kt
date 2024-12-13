@@ -27,12 +27,14 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfigu
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.DuplicateRequestResponseEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.BacklogSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueReportSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -471,4 +473,70 @@ class SubjectAccessRequestController(
       alertFrequency = overdueAlertConfig.thresholdAlertFrequency(),
     ),
   )
+
+  @Operation(
+    summary = "(Dev Support) duplicates a subject access request",
+    description = "Create a new subject access request copying fields 'dateFrom', 'dateTo', 'sarCaseReferenceNumber', " +
+      "'services', 'nomisId', 'ndeliusCaseReferenceId' from the original request. The new request will have status = " +
+      "'Pending', claimAttempts = 0, claimDateTime = null and be requested by the principal name of the API caller.",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "201",
+        description = "Successful duplicated the request",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateRequestResponseEntity::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthenticated",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Unauthorized to execute request",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Original request not found",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Problem attempting to duplicate the request",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @PostMapping("/subjectAccessRequests/{id}/duplicate")
+  @PreAuthorize("hasRole('ROLE_SAR_SUPPORT')")
+  fun resubmitRequest(@PathVariable("id") id: UUID): ResponseEntity<DuplicateRequestResponseEntity> {
+    return ResponseEntity(subjectAccessRequestService.duplicateSubjectAccessRequest(id), HttpStatus.CREATED)
+  }
 }

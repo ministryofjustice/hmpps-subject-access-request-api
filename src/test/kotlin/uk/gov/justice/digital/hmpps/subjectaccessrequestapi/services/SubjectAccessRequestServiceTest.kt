@@ -16,6 +16,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.firstValue
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
@@ -27,6 +28,8 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContext
+import org.springframework.security.core.context.SecurityContextHolder
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
@@ -34,6 +37,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.RequestTimeou
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
@@ -485,6 +489,138 @@ class SubjectAccessRequestServiceTest {
       requestedBy = "UserName",
       requestDateTime = submittedAt,
       claimAttempts = 0,
+    )
+  }
+
+  @Nested
+  inner class DuplicateSubjectAccessRequest {
+    private val securityContext: SecurityContext = mock()
+    private val authentication: Authentication = mock()
+    private val authPrincipalName = "Homer Simpson"
+
+    @BeforeEach
+    internal fun setup() {
+      whenever(authentication.name)
+        .thenReturn(authPrincipalName)
+
+      whenever(securityContext.authentication)
+        .thenReturn(authentication)
+
+      SecurityContextHolder.setContext(securityContext)
+    }
+
+    @Test
+    fun `should throw exception if original request is not found`() {
+      val originalId = UUID.randomUUID()
+
+      whenever(subjectAccessRequestRepository.findById(originalId))
+        .thenReturn(Optional.empty())
+
+      val exception = assertThrows<SubjectAccessRequestApiException> {
+        subjectAccessRequestService.duplicateSubjectAccessRequest(originalId)
+      }
+
+      assertThat(exception.message).isEqualTo("duplicate subject access request unsuccessful: request ID not found")
+      assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+      assertThat(exception.subjectAccessRequestId).isEqualTo(originalId.toString())
+
+      verify(subjectAccessRequestRepository, times(1)).findById(eq(originalId))
+      verify(subjectAccessRequestRepository, never()).save(any())
+    }
+
+    @Test
+    fun `should throw expected exception if findById throws exception`() {
+      val originalId = UUID.randomUUID()
+
+      whenever(subjectAccessRequestRepository.findById(originalId))
+        .thenThrow(RuntimeException("BIG SCARY FIREBALL!!!"))
+
+      val exception = assertThrows<SubjectAccessRequestApiException> {
+        subjectAccessRequestService.duplicateSubjectAccessRequest(originalId)
+      }
+
+      assertThat(exception.message).isEqualTo("unexpected error occurred while attempting to find request by id")
+      assertThat(exception.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+      assertThat(exception.subjectAccessRequestId).isEqualTo(originalId.toString())
+
+      verify(subjectAccessRequestRepository, times(1)).findById(eq(originalId))
+      verify(subjectAccessRequestRepository, never()).save(any())
+    }
+
+    @Test
+    fun `should throw expected exception if save throws exception`() {
+      val originalRequest = newSubjectAccessRequest()
+      whenever(subjectAccessRequestRepository.findById(originalRequest.id))
+        .thenReturn(Optional.of(originalRequest))
+
+      whenever(subjectAccessRequestRepository.save(any()))
+        .thenThrow(RuntimeException("BIG SCARY FIREBALL!!!"))
+
+      val exception = assertThrows<SubjectAccessRequestApiException> {
+        subjectAccessRequestService.duplicateSubjectAccessRequest(originalRequest.id)
+      }
+
+      assertThat(exception.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+      assertThat(exception.message).isEqualTo("unexpected error occurred while attempting to save subject access request")
+      assertThat(exception.subjectAccessRequestId).isNull()
+
+      verify(subjectAccessRequestRepository, times(1)).findById(originalRequest.id)
+      verify(subjectAccessRequestRepository, times(1)).save(any())
+    }
+
+    @Test
+    fun `should successfully resubmit request copying expected fields from original request`() {
+      val originalRequest = newSubjectAccessRequest()
+      whenever(subjectAccessRequestRepository.findById(originalRequest.id))
+        .thenReturn(Optional.of(originalRequest))
+
+      val saveSubjectAccessRequestCaptor: ArgumentCaptor<SubjectAccessRequest> =
+        ArgumentCaptor.forClass(SubjectAccessRequest::class.java)
+
+      val actual = subjectAccessRequestService.duplicateSubjectAccessRequest(originalRequest.id)
+
+      assertThat(actual).isNotNull
+      assertThat(actual.id).isNotNull()
+      assertThat(actual.id).isNotEmpty()
+      assertThat(actual.id).isNotEqualTo(originalRequest.id.toString())
+      assertThat(actual.originalId).isEqualTo(originalRequest.id.toString())
+      assertThat(actual.sarCaseReferenceNumber).isEqualTo(originalRequest.sarCaseReferenceNumber)
+
+      verify(subjectAccessRequestRepository, times(1))
+        .findById(originalRequest.id)
+
+      verify(subjectAccessRequestRepository, times(1))
+        .save(capture(saveSubjectAccessRequestCaptor))
+
+      assertThat(saveSubjectAccessRequestCaptor.allValues).hasSize(1)
+      val savedRequest = saveSubjectAccessRequestCaptor.firstValue
+
+      assertThat(savedRequest).isNotNull
+      assertThat(savedRequest.id).isNotEqualTo(originalRequest.id)
+      assertThat(savedRequest.id).isEqualTo(UUID.fromString(actual.id))
+      assertThat(savedRequest.status).isEqualTo(Status.Pending)
+      assertThat(savedRequest.dateFrom).isEqualTo(originalRequest.dateFrom)
+      assertThat(savedRequest.dateTo).isEqualTo(originalRequest.dateTo)
+      assertThat(savedRequest.sarCaseReferenceNumber).isEqualTo(originalRequest.sarCaseReferenceNumber)
+      assertThat(savedRequest.services).isEqualTo(originalRequest.services)
+      assertThat(savedRequest.nomisId).isEqualTo(originalRequest.nomisId)
+      assertThat(savedRequest.ndeliusCaseReferenceId).isEqualTo(originalRequest.ndeliusCaseReferenceId)
+      assertThat(savedRequest.requestedBy).isEqualTo(authPrincipalName)
+      assertThat(savedRequest.requestDateTime).isAfter(originalRequest.requestDateTime)
+      assertThat(savedRequest.claimAttempts).isEqualTo(0)
+      assertThat(savedRequest.claimDateTime).isNull()
+      assertThat(savedRequest.objectUrl).isNull()
+      assertThat(savedRequest.lastDownloaded).isNull()
+    }
+
+    private fun newSubjectAccessRequest() = SubjectAccessRequest(
+      dateFrom = LocalDate.now().minusYears(1),
+      dateTo = LocalDate.now(),
+      sarCaseReferenceNumber = "1234567890",
+      services = "service1",
+      nomisId = "1",
+      ndeliusCaseReferenceId = null,
+      requestedBy = "Bob",
     )
   }
 

@@ -10,9 +10,11 @@ open class SubjectAccessRequestException(message: String) : RuntimeException(mes
 open class SubjectAccessRequestApiException(
   message: String,
   val status: HttpStatus,
+  val subjectAccessRequestId: String? = null,
 ) : SubjectAccessRequestException(message)
 
 class CreateSubjectAccessRequestException(
   message: String,
   status: HttpStatus,
-) : SubjectAccessRequestApiException(message, status)
+  subjectAccessRequestId: String? = null,
+) : SubjectAccessRequestApiException(message, status, subjectAccessRequestId)
