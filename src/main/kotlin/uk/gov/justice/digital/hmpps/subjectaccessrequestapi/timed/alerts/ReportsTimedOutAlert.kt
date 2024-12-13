@@ -18,7 +18,7 @@ class ReportsTimedOutAlert(
    * with status 'Errored' and alert notification is raise to prompt the team to investigate.
    */
   @Scheduled(
-    fixedDelayString = "\${application.alerts.report-timeout.alert-interval-minutes:2880}",
+    fixedDelayString = "\${application.alerts.report-timeout.alert-interval-minutes:30}",
     timeUnit = TimeUnit.MINUTES,
     initialDelay = 1,
   )

@@ -82,10 +82,10 @@ class SubjectAccessRequestControllerGetServiceSummaryIntTest : IntegrationTestBa
       .expectBody()
       .jsonPath("$.backlog.count").isEqualTo(1)
       .jsonPath("$.backlog.alertThreshold").isEqualTo(100)
-      .jsonPath("$.backlog.alertFrequency").isEqualTo("180 Minutes")
+      .jsonPath("$.backlog.alertFrequency").isEqualTo("120 Minutes")
       .jsonPath("$.overdueReports.count").isEqualTo(1)
       .jsonPath("$.overdueReports.alertThreshold")
       .isEqualTo("status == pending && requestDateTime < (time.now - 12 Hours)")
-      .jsonPath("$.overdueReports.alertFrequency").isEqualTo("180 Minutes")
+      .jsonPath("$.overdueReports.alertFrequency").isEqualTo("120 Minutes")
   }
 }
