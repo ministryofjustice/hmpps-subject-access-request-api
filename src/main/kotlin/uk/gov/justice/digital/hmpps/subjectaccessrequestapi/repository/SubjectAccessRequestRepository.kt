@@ -23,11 +23,11 @@ const val LOCK_TIMEOUT = "3000"
 interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, UUID> {
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @QueryHints(value = [QueryHint(name = "javax.persistence.lock.timeout", value = LOCK_TIMEOUT)])
+  @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
   override fun findById(id: UUID): Optional<SubjectAccessRequest>
 
   @Lock(LockModeType.PESSIMISTIC_READ)
-  @QueryHints(value = [QueryHint(name = "javax.persistence.lock.timeout", value = LOCK_TIMEOUT)])
+  @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
   @Query(
     "SELECT report FROM SubjectAccessRequest report " +
       "WHERE (report.status = 'Pending' " +
