@@ -69,7 +69,7 @@
         "exclude": {
           "matchType": "regexp",
           "metricNames": [
-            "(cache|executor|disk|http|logback|spring_).*",
+            "(cache|executor|disk|http|logback|spring_).*"
           ]
         }
       }
