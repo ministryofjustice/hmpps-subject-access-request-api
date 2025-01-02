@@ -77,7 +77,7 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
   fun findByRequestDateTimeBefore(thresholdTime: LocalDateTime): List<SubjectAccessRequest?>
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @QueryHints(value = [QueryHint(name = "javax.persistence.lock.timeout", value = LOCK_TIMEOUT)])
+  @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
   @Query(
     "SELECT s FROM SubjectAccessRequest s " +
       "WHERE :threshold > s.requestDateTime " +
@@ -87,7 +87,7 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
   fun findAllPendingSubjectAccessRequestsSubmittedBefore(@Param("threshold") threshold: LocalDateTime): List<SubjectAccessRequest?>
 
   @Lock(LockModeType.PESSIMISTIC_READ)
-  @QueryHints(value = [QueryHint(name = "javax.persistence.lock.timeout", value = LOCK_TIMEOUT)])
+  @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
   @Query("SELECT COUNT(1) FROM SubjectAccessRequest s WHERE s.status = :status")
   fun countSubjectAccessRequestsByStatus(@Param("status") status: Status): Int
 
