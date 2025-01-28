@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity
 import com.fasterxml.jackson.annotation.JsonFormat
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDate
+import java.util.UUID
 
 /**
  * Duplicate subject access request API response entity
@@ -45,3 +46,11 @@ data class CreateSubjectAccessRequestEntity(
     }
   }
 }
+
+data class ServiceInfo(
+  val id: UUID,
+  val name: String,
+  val label: String,
+  val url: String,
+  val order: Int,
+)
