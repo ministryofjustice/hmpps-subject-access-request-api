@@ -53,21 +53,20 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
     private fun subjectAccessRequestSubmittedAt(
       requestSubmittedAt: LocalDateTime,
       status: Status,
-    ): SubjectAccessRequest =
-      SubjectAccessRequest(
-        id = UUID.randomUUID(),
-        status = status,
-        dateFrom = dateFrom,
-        dateTo = dateTo,
-        sarCaseReferenceNumber = "666xzy",
-        services = "{1,2,4}",
-        nomisId = "",
-        ndeliusCaseReferenceId = "hansGruber99",
-        requestedBy = "Hans Gruber",
-        requestDateTime = requestSubmittedAt,
-        claimAttempts = 0,
-        claimDateTime = null,
-      )
+    ): SubjectAccessRequest = SubjectAccessRequest(
+      id = UUID.randomUUID(),
+      status = status,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
+      sarCaseReferenceNumber = "666xzy",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "hansGruber99",
+      requestedBy = "Hans Gruber",
+      requestDateTime = requestSubmittedAt,
+      claimAttempts = 0,
+      claimDateTime = null,
+    )
   }
 
   @BeforeEach
@@ -131,16 +130,12 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
   /**
    * Format the dateTime to "yyyy-MM-dd HH:mm"
    */
-  fun LocalDateTime.formatted(): String? {
-    return dateTimeFormat.format(this)
-  }
+  fun LocalDateTime.formatted(): String? = dateTimeFormat.format(this)
 
   data class TestCase(
     val request: SubjectAccessRequest?,
     val description: String,
   ) {
-    override fun toString(): String {
-      return description
-    }
+    override fun toString(): String = description
   }
 }

@@ -50,7 +50,10 @@ class SarAndDeliusMockServer : WireMockServer(8083) {
   }
 }
 
-class SarAndDeliusApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
+class SarAndDeliusApiExtension :
+  BeforeAllCallback,
+  AfterAllCallback,
+  BeforeEachCallback {
   companion object {
     @JvmField
     val sarAndDeliusApi = SarAndDeliusMockServer()

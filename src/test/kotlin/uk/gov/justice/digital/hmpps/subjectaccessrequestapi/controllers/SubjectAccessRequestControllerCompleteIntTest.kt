@@ -166,8 +166,7 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
     }
   }
 
-  fun saveSubjectAccessRequest(status: Status): SubjectAccessRequest =
-    subjectAccessRequestRepository.save(createSubjectAccessRequest(status))
+  fun saveSubjectAccessRequest(status: Status): SubjectAccessRequest = subjectAccessRequestRepository.save(createSubjectAccessRequest(status))
 
   fun createSubjectAccessRequest(status: Status) = SubjectAccessRequest(
     id = UUID.randomUUID(),

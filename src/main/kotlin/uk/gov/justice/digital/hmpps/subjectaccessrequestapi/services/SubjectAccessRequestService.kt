@@ -103,12 +103,11 @@ class SubjectAccessRequestService(
     ).content
   }
 
-  fun claimSubjectAccessRequest(id: UUID) =
-    subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
-      id,
-      LocalDateTime.now().minusMinutes(30),
-      LocalDateTime.now(),
-    )
+  fun claimSubjectAccessRequest(id: UUID) = subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
+    id,
+    LocalDateTime.now().minusMinutes(30),
+    LocalDateTime.now(),
+  )
 
   @Transactional
   fun completeSubjectAccessRequest(id: UUID): Int {
@@ -197,9 +196,7 @@ class SubjectAccessRequestService(
   }
 
   @Transactional
-  fun countPendingSubjectAccessRequests(): Int {
-    return subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Pending)
-  }
+  fun countPendingSubjectAccessRequests(): Int = subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Pending)
 
   @Transactional()
   fun expirePendingRequestsSubmittedBeforeThreshold(): List<SubjectAccessRequest> {
@@ -222,33 +219,31 @@ class SubjectAccessRequestService(
    * have zero claims attempts/null claim date and will be requestedBy the auth principal.
    */
   @Transactional
-  fun duplicateSubjectAccessRequest(id: UUID): DuplicateRequestResponseEntity {
-    return findSubjectAccessRequest(id).takeIf { it.isPresent }?.let {
-      val originalRequest = it.get()
+  fun duplicateSubjectAccessRequest(id: UUID): DuplicateRequestResponseEntity = findSubjectAccessRequest(id).takeIf { it.isPresent }?.let {
+    val originalRequest = it.get()
 
-      val resubmittedRequestId = copyAndSaveSubjectAccessRequest(originalRequest, getAuthenticationPrincipalName())
+    val resubmittedRequestId = copyAndSaveSubjectAccessRequest(originalRequest, getAuthenticationPrincipalName())
 
-      telemetryClient.trackEvent(
-        "subjectAccessRequestDuplicated",
-        mapOf(
-          "originalId" to originalRequest.id.toString(),
-          "duplicatedRequestId" to resubmittedRequestId.toString(),
-          "sarCaseReferenceNumber" to originalRequest.sarCaseReferenceNumber,
-        ),
-        null,
-      )
-
-      DuplicateRequestResponseEntity(
-        id = resubmittedRequestId.toString(),
-        originalId = originalRequest.id.toString(),
-        sarCaseReferenceNumber = originalRequest.sarCaseReferenceNumber,
-      )
-    } ?: throw SubjectAccessRequestApiException(
-      message = "duplicate subject access request unsuccessful: request ID not found",
-      status = HttpStatus.NOT_FOUND,
-      subjectAccessRequestId = id.toString(),
+    telemetryClient.trackEvent(
+      "subjectAccessRequestDuplicated",
+      mapOf(
+        "originalId" to originalRequest.id.toString(),
+        "duplicatedRequestId" to resubmittedRequestId.toString(),
+        "sarCaseReferenceNumber" to originalRequest.sarCaseReferenceNumber,
+      ),
+      null,
     )
-  }
+
+    DuplicateRequestResponseEntity(
+      id = resubmittedRequestId.toString(),
+      originalId = originalRequest.id.toString(),
+      sarCaseReferenceNumber = originalRequest.sarCaseReferenceNumber,
+    )
+  } ?: throw SubjectAccessRequestApiException(
+    message = "duplicate subject access request unsuccessful: request ID not found",
+    status = HttpStatus.NOT_FOUND,
+    subjectAccessRequestId = id.toString(),
+  )
 
   private fun findSubjectAccessRequest(id: UUID): Optional<SubjectAccessRequest> {
     try {

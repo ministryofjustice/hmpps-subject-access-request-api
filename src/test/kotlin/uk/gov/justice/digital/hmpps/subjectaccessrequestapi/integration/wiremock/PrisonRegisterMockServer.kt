@@ -50,7 +50,10 @@ class PrisonRegisterMockServer : WireMockServer(9099) {
   }
 }
 
-class PrisonRegisterApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
+class PrisonRegisterApiExtension :
+  BeforeAllCallback,
+  AfterAllCallback,
+  BeforeEachCallback {
   companion object {
     @JvmField
     val prisonRegisterApi = PrisonRegisterMockServer()

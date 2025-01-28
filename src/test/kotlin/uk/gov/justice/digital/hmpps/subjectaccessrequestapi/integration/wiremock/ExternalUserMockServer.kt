@@ -50,7 +50,10 @@ class ExternalUserMockServer : WireMockServer(8084) {
   }
 }
 
-class ExternalUserApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
+class ExternalUserApiExtension :
+  BeforeAllCallback,
+  AfterAllCallback,
+  BeforeEachCallback {
   companion object {
     @JvmField
     val externalUserApi = ExternalUserMockServer()

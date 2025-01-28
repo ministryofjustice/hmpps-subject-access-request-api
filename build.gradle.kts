@@ -1,8 +1,8 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.1.2"
-  id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
-  kotlin("plugin.spring") version "2.0.21"
-  kotlin("plugin.jpa") version "2.0.21"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "7.0.0-beta"
+  id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
+  kotlin("plugin.spring") version "2.1.10"
+  kotlin("plugin.jpa") version "2.1.10"
 }
 
 configurations {
@@ -17,15 +17,15 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.1.1")
-  implementation("org.json:json:20240303")
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:7.19.1")
-  implementation("io.sentry:sentry-logback:7.19.1")
+  implementation("org.json:json:20250107")
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.0.0")
+  implementation("io.sentry:sentry-logback:8.0.0")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.3.232")
-  runtimeOnly("org.postgresql:postgresql:42.7.4")
+  runtimeOnly("org.postgresql:postgresql:42.7.5")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.1.1")

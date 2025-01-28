@@ -10,12 +10,11 @@ class PrisonRegisterClient(
   private val prisonRegisterWebClient: WebClient,
 ) {
 
-  fun getPrisonDetails(): List<PrisonDetails> =
-    prisonRegisterWebClient.get()
-      .uri("/prisons/names")
-      .retrieve()
-      .bodyToMono(object : ParameterizedTypeReference<List<PrisonDetails>>() {})
-      .block()!!
+  fun getPrisonDetails(): List<PrisonDetails> = prisonRegisterWebClient.get()
+    .uri("/prisons/names")
+    .retrieve()
+    .bodyToMono(object : ParameterizedTypeReference<List<PrisonDetails>>() {})
+    .block()!!
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)

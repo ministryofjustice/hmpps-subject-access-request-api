@@ -12,26 +12,23 @@ class UserDetailsClient(
   private val sarAndDeliusApiWebClient: WebClient,
 ) {
 
-  fun getExternalUserDetails(): List<UserDetails> =
-    externalUserApiWebClient.get()
-      .uri("/users/lastnames")
-      .retrieve()
-      .bodyToMono(object : ParameterizedTypeReference<List<UserDetails>>() {})
-      .block()!!
+  fun getExternalUserDetails(): List<UserDetails> = externalUserApiWebClient.get()
+    .uri("/users/lastnames")
+    .retrieve()
+    .bodyToMono(object : ParameterizedTypeReference<List<UserDetails>>() {})
+    .block()!!
 
-  fun getNomisUserDetails(): List<UserDetails> =
-    nomisUserRolesApiWebClient.get()
-      .uri("/users/lastnames")
-      .retrieve()
-      .bodyToMono(object : ParameterizedTypeReference<List<UserDetails>>() {})
-      .block()!!
+  fun getNomisUserDetails(): List<UserDetails> = nomisUserRolesApiWebClient.get()
+    .uri("/users/lastnames")
+    .retrieve()
+    .bodyToMono(object : ParameterizedTypeReference<List<UserDetails>>() {})
+    .block()!!
 
-  fun getProbationUserDetails(): List<UserDetails> =
-    sarAndDeliusApiWebClient.get()
-      .uri("/user")
-      .retrieve()
-      .bodyToMono(object : ParameterizedTypeReference<List<UserDetails>>() {})
-      .block()!!
+  fun getProbationUserDetails(): List<UserDetails> = sarAndDeliusApiWebClient.get()
+    .uri("/user")
+    .retrieve()
+    .bodyToMono(object : ParameterizedTypeReference<List<UserDetails>>() {})
+    .block()!!
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)

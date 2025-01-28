@@ -33,15 +33,13 @@ data class CreateSubjectAccessRequestEntity(
 ) {
 
   companion object {
-    fun from(subjectAccessRequest: SubjectAccessRequest): CreateSubjectAccessRequestEntity {
-      return CreateSubjectAccessRequestEntity(
-        nomisId = subjectAccessRequest.nomisId,
-        ndeliusId = subjectAccessRequest.ndeliusCaseReferenceId,
-        dateFrom = subjectAccessRequest.dateFrom,
-        dateTo = subjectAccessRequest.dateTo,
-        sarCaseReferenceNumber = subjectAccessRequest.sarCaseReferenceNumber,
-        services = subjectAccessRequest.services,
-      )
-    }
+    fun from(subjectAccessRequest: SubjectAccessRequest): CreateSubjectAccessRequestEntity = CreateSubjectAccessRequestEntity(
+      nomisId = subjectAccessRequest.nomisId,
+      ndeliusId = subjectAccessRequest.ndeliusCaseReferenceId,
+      dateFrom = subjectAccessRequest.dateFrom,
+      dateTo = subjectAccessRequest.dateTo,
+      sarCaseReferenceNumber = subjectAccessRequest.sarCaseReferenceNumber,
+      services = subjectAccessRequest.services,
+    )
   }
 }
