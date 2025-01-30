@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "7.0.0-beta"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "7.0.0"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
   kotlin("plugin.spring") version "2.1.10"
   kotlin("plugin.jpa") version "2.1.10"
