@@ -536,7 +536,5 @@ class SubjectAccessRequestController(
   )
   @PostMapping("/subjectAccessRequests/{id}/duplicate")
   @PreAuthorize("hasRole('ROLE_SAR_SUPPORT')")
-  fun resubmitRequest(@PathVariable("id") id: UUID): ResponseEntity<DuplicateRequestResponseEntity> {
-    return ResponseEntity(subjectAccessRequestService.duplicateSubjectAccessRequest(id), HttpStatus.CREATED)
-  }
+  fun resubmitRequest(@PathVariable("id") id: UUID): ResponseEntity<DuplicateRequestResponseEntity> = ResponseEntity(subjectAccessRequestService.duplicateSubjectAccessRequest(id), HttpStatus.CREATED)
 }

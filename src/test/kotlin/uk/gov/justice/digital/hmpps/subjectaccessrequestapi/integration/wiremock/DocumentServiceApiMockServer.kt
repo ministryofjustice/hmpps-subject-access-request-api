@@ -83,7 +83,10 @@ class DocumentServiceApiMockServer : WireMockServer(4040) {
   }
 }
 
-class DocumentServiceApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
+class DocumentServiceApiExtension :
+  BeforeAllCallback,
+  AfterAllCallback,
+  BeforeEachCallback {
   companion object {
     @JvmField
     val documentServiceApi = DocumentServiceApiMockServer()

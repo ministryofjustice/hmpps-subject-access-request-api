@@ -50,7 +50,10 @@ class NomisUserRolesMockServer : WireMockServer(8082) {
   }
 }
 
-class NomisUserRolesApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
+class NomisUserRolesApiExtension :
+  BeforeAllCallback,
+  AfterAllCallback,
+  BeforeEachCallback {
   companion object {
     @JvmField
     val nomisUserRolesApi = NomisUserRolesMockServer()

@@ -603,19 +603,18 @@ class SubjectAccessRequestRepositoryTest {
     subjectAccessRequestRepository.saveAll(listOf(*subjectAccessRequests))
   }
 
-  private fun subjectAccessRequestSubmittedAt(requestSubmittedAt: LocalDateTime, status: Status) =
-    SubjectAccessRequest(
-      id = UUID.randomUUID(),
-      status = status,
-      dateFrom = dateFrom,
-      dateTo = dateTo,
-      sarCaseReferenceNumber = "666xzy",
-      services = "{1,2,4}",
-      nomisId = "",
-      ndeliusCaseReferenceId = "hansGruber99",
-      requestedBy = "Hans Gruber",
-      requestDateTime = requestSubmittedAt,
-      claimAttempts = 0,
-      claimDateTime = null,
-    )
+  private fun subjectAccessRequestSubmittedAt(requestSubmittedAt: LocalDateTime, status: Status) = SubjectAccessRequest(
+    id = UUID.randomUUID(),
+    status = status,
+    dateFrom = dateFrom,
+    dateTo = dateTo,
+    sarCaseReferenceNumber = "666xzy",
+    services = "{1,2,4}",
+    nomisId = "",
+    ndeliusCaseReferenceId = "hansGruber99",
+    requestedBy = "Hans Gruber",
+    requestDateTime = requestSubmittedAt,
+    claimAttempts = 0,
+    claimDateTime = null,
+  )
 }
