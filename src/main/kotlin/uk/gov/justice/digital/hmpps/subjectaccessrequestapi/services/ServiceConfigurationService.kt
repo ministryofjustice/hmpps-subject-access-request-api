@@ -6,6 +6,5 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceCo
 
 @Service
 class ServiceConfigurationService(private val serviceConfigurationRepository: ServiceConfigurationRepository) {
-  fun getServiceConfigurationSanitised(): List<ServiceConfiguration>? =
-    serviceConfigurationRepository.findByOrderByOrderAsc()
+  fun getServiceConfigurationSanitised(): List<ServiceConfiguration>? = serviceConfigurationRepository.findByOrderByOrderAsc()
 }
