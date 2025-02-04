@@ -22,7 +22,7 @@ VALUES ('keyworker-api', 'Keyworker', 'https://keyworker-api-dev.prison.service.
     ('hmpps-resettlement-passport-api', 'Prepare Someone for Release', 'https://resettlement-passport-api-dev.hmpps.service.justice.gov.uk', 20),
     ('hmpps-approved-premises-api', 'Approved Premises', 'https://approved-premises-api-dev.hmpps.service.justice.gov.uk', 21),
     ('hmpps-education-employment-api', 'Education Employment', 'https://education-employment-api-dev.hmpps.service.justice.gov.uk', 22),
-    ('launchpad-auth', 'Launchpad', 'https://launchpad-auth-dev.hmpps.service.justice.gov.uk', 24),
-    ('G1', 'G1', 'G1', 25),
-    ('G2', 'G2', 'G2', 26),
-    ('G3', 'G3', 'G3', 27);
+    ('launchpad-auth', 'Launchpad', 'https://launchpad-auth-dev.hmpps.service.justice.gov.uk', 23),
+    ('G1', 'G1', 'G1', 24),
+    ('G2', 'G2', 'G2', 25),
+    ('G3', 'G3', 'G3', 26);

@@ -34,7 +34,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
       .expectStatus().isOk
       .expectBody()
       .jsonPath("$").isArray
-      .jsonPath("$.length()").isEqualTo(5)
+      .jsonPath("$.length()").isEqualTo(26)
       .jsonPath("$[0].id").isNotEmpty
       .jsonPath("$[0].name").isEqualTo("keyworker-api")
       .jsonPath("$[0].label").isEqualTo("Keyworker")
@@ -45,21 +45,16 @@ class ServicesControllerIntTest : IntegrationTestBase() {
       .jsonPath("$[1].label").isEqualTo("Sensitive Case Notes")
       .jsonPath("$[1].url").isEqualTo("https://dev.offender-case-notes.service.justice.gov.uk")
       .jsonPath("$[1].order").isEqualTo(2)
-      .jsonPath("$[2].id").isNotEmpty
-      .jsonPath("$[2].name").isEqualTo("G1")
-      .jsonPath("$[2].label").isEqualTo("G1")
-      .jsonPath("$[2].url").isEqualTo("G1")
-      .jsonPath("$[2].order").isEqualTo(3)
-      .jsonPath("$[3].id").isNotEmpty
-      .jsonPath("$[3].name").isEqualTo("G2")
-      .jsonPath("$[3].label").isEqualTo("G2")
-      .jsonPath("$[3].url").isEqualTo("G2")
-      .jsonPath("$[3].order").isEqualTo(4)
-      .jsonPath("$[4].id").isNotEmpty
-      .jsonPath("$[4].name").isEqualTo("G3")
-      .jsonPath("$[4].label").isEqualTo("G3")
-      .jsonPath("$[4].url").isEqualTo("G3")
-      .jsonPath("$[4].order").isEqualTo(5)
+      .jsonPath("$[13].id").isNotEmpty
+      .jsonPath("$[13].name").isEqualTo("make-recall-decision-api")
+      .jsonPath("$[13].label").isEqualTo("Consider a Recall")
+      .jsonPath("$[13].url").isEqualTo("https://make-recall-decision-api-dev.hmpps.service.justice.gov.uk")
+      .jsonPath("$[13].order").isEqualTo(14)
+      .jsonPath("$[25].id").isNotEmpty
+      .jsonPath("$[25].name").isEqualTo("G3")
+      .jsonPath("$[25].label").isEqualTo("G3")
+      .jsonPath("$[25].url").isEqualTo("G3")
+      .jsonPath("$[25].order").isEqualTo(26)
   }
 
   companion object {

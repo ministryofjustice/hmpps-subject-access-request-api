@@ -51,4 +51,5 @@ data class ServiceInfo(
   val label: String,
   val url: String,
   val order: Int,
+  val enabled: Boolean,
 )
