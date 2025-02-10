@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "7.0.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "7.1.0"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
   kotlin("plugin.spring") version "2.1.10"
   kotlin("plugin.jpa") version "2.1.10"
@@ -20,8 +20,8 @@ dependencies {
   implementation("org.json:json:20250107")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.0.0")
-  implementation("io.sentry:sentry-logback:8.0.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.1.0")
+  implementation("io.sentry:sentry-logback:8.1.0")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.3.232")
@@ -34,7 +34,7 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
-  testImplementation("org.wiremock:wiremock-standalone:3.10.0")
+  testImplementation("org.wiremock:wiremock-standalone:3.11.0")
 }
 
 kotlin {
