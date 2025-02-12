@@ -10,30 +10,6 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfig
 @DataJpaTest
 class ServiceConfigurationRepositoryTest {
 
-  private val s1 = ServiceConfiguration(
-    serviceName = "service1",
-    label = "Service One",
-    url = "s1.com",
-    order = 1,
-    enabled = true,
-  )
-
-  private val s2 = ServiceConfiguration(
-    serviceName = "service2",
-    label = "Service Two",
-    url = "s2.com",
-    order = 2,
-    enabled = true,
-  )
-
-  private val s3 = ServiceConfiguration(
-    serviceName = "service3",
-    label = "Service Three",
-    url = "s3.com",
-    order = 3,
-    enabled = true,
-  )
-
   @Autowired
   private lateinit var repository: ServiceConfigurationRepository
 
@@ -54,5 +30,32 @@ class ServiceConfigurationRepositoryTest {
     assertThat(actual!![0]).isEqualTo(s1)
     assertThat(actual[1]).isEqualTo(s2)
     assertThat(actual[2]).isEqualTo(s3)
+  }
+
+  companion object {
+
+    private val s1 = ServiceConfiguration(
+      serviceName = "service1",
+      label = "Service One",
+      url = "s1.com",
+      order = 1,
+      enabled = true,
+    )
+
+    private val s2 = ServiceConfiguration(
+      serviceName = "service2",
+      label = "Service Two",
+      url = "s2.com",
+      order = 2,
+      enabled = true,
+    )
+
+    private val s3 = ServiceConfiguration(
+      serviceName = "service3",
+      label = "Service Three",
+      url = "s3.com",
+      order = 3,
+      enabled = true,
+    )
   }
 }
