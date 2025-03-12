@@ -34,19 +34,22 @@ class LocationsMockServer : WireMockServer(8085) {
                   "content": [
                     {
                       "id": "00000be5-081c-4374-8214-18af310d3d4a",
-                      "localName": "PROPERTY BOX 27"
+                      "localName": "PROPERTY BOX 27",
+                      "pathHierarchy": "PROP_BOXES-PB027"
                     },
                     {
                       "id": "000047c0-38e1-482e-8bbc-07d4b5f57e23",
-                      "localName": "B WING"
+                      "localName": "B WING",
+                      "pathHierarchy": "RES-HB3-BWING"
                     },
                     {
                       "id": "00041fb1-4710-476f-ada8-3ea7e8f2ae50",
-                      "localName": "MARLBOROUGH EXERCISE"
+                      "pathHierarchy": "B-2-008"
                     },
                     {
                       "id": "0004bd05-edb2-473b-bc39-f94c6ebe3b0b",
-                      "localName": "VALUABLES"
+                      "localName": "VALUABLES",
+                      "pathHierarchy": "PROP_VALS"
                     }
                   ]
                 }"""

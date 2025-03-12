@@ -28,5 +28,6 @@ data class LocationResults(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class LocationDetails(
   val id: String,
-  val localName: String,
+  val localName: String?,
+  val pathHierarchy: String,
 )
