@@ -13,6 +13,10 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.ExternalUserApiExtension.Companion.externalUserApi
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthApiExtension.Companion.hmppsAuth
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.LocationsApiExtension
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.LocationsApiExtension.Companion.locationsApi
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.NomisMappingsApiExtension
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.NomisMappingsApiExtension.Companion.nomisMappingsApi
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.NomisUserRolesApiExtension
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.NomisUserRolesApiExtension.Companion.nomisUserRolesApi
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.PrisonRegisterApiExtension
@@ -21,7 +25,16 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.SarAndDeliusApiExtension.Companion.sarAndDeliusApi
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
-@ExtendWith(HmppsAuthApiExtension::class, DocumentServiceApiExtension::class, PrisonRegisterApiExtension::class, ExternalUserApiExtension::class, NomisUserRolesApiExtension::class, SarAndDeliusApiExtension::class)
+@ExtendWith(
+  HmppsAuthApiExtension::class,
+  DocumentServiceApiExtension::class,
+  PrisonRegisterApiExtension::class,
+  ExternalUserApiExtension::class,
+  NomisUserRolesApiExtension::class,
+  SarAndDeliusApiExtension::class,
+  LocationsApiExtension::class,
+  NomisMappingsApiExtension::class,
+)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 abstract class IntegrationTestBase {
@@ -45,5 +58,7 @@ abstract class IntegrationTestBase {
     externalUserApi.stubHealthPing(status)
     nomisUserRolesApi.stubHealthPing(status)
     sarAndDeliusApi.stubHealthPing(status)
+    locationsApi.stubHealthPing(status)
+    nomisMappingsApi.stubHealthPing(status)
   }
 }

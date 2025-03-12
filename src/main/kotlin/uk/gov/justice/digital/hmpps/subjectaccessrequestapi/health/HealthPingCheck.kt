@@ -19,3 +19,9 @@ class NOMISHealthPing(@Qualifier("nomisUserRolesApiHealthWebClient") webClient: 
 
 @Component("sarAndDeliusApi")
 class SarAndDeliusHealthPing(@Qualifier("sarAndDeliusApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)
+
+@Component("locationsApi")
+class LocationsApiHealthPing(@Qualifier("locationsApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)
+
+@Component("nomisMappingsApi")
+class NomisMappingsApiHealthPing(@Qualifier("nomisMappingsApiHealthWebClient") webClient: WebClient) : HealthPingCheck(webClient)

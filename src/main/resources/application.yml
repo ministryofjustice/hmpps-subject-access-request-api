@@ -78,6 +78,8 @@ application:
     frequency: 86400000
   prison-refresh:
     frequency: 86400000
+  location-refresh:
+    frequency: 604800000 # 1 week
   remove-reports:
     age: 7
     frequency: 3600000
@@ -124,6 +126,10 @@ sar-and-delius-api:
   url: http://localhost:8083
 external-users-api:
   url: http://localhost:8084
+locations-api:
+  url: http://localhost:8085
+nomis-mappings-api:
+  url: http://localhost:8086
 
 sentry:
   traces-sample-rate: "0.05"

@@ -17,6 +17,8 @@ class WebClientConfiguration(
   @Value("\${prison-register.url}") val prisonRegisterBaseUri: String,
   @Value("\${sar-and-delius-api.url}") val sarAndDeliusApiBaseUri: String,
   @Value("\${nomis-user-roles-api.url}") val nomisUserRolesApiBaseUri: String,
+  @Value("\${locations-api.url}") val locationsApiBaseUri: String,
+  @Value("\${nomis-mappings-api.url}") val nomisMappingsApiBaseUri: String,
   @Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @Value("\${api.timeout:20s}") val timeout: Duration,
   @Value("\${api.timeout:300s}") val longTimeout: Duration,
@@ -52,4 +54,16 @@ class WebClientConfiguration(
 
   @Bean
   fun sarAndDeliusApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = sarAndDeliusApiBaseUri, longTimeout)
+
+  @Bean
+  fun locationsApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", locationsApiBaseUri, healthTimeout)
+
+  @Bean
+  fun locationsApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(locationsApiBaseUri, healthTimeout)
+
+  @Bean
+  fun nomisMappingsApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", nomisMappingsApiBaseUri, healthTimeout)
+
+  @Bean
+  fun nomisMappingsApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(nomisMappingsApiBaseUri, healthTimeout)
 }
