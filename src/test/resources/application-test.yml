@@ -45,3 +45,7 @@ sar-and-delius-api:
   url: "http://localhost:8083"
 external-users-api:
   url: "http://localhost:8084"
+locations-api:
+  url: "http://localhost:8085"
+nomis-mappings-api:
+  url: "http://localhost:8086"
