@@ -34,10 +34,10 @@ class UpdateLocationNameDataTest {
   private val updateLocationNameDataService = UpdateLocationNameDataService(locationDetailsRepository, locationsClient, nomisMappingsClient)
 
   private val locationClientResults = listOf(
-    LocationDetails(id = DPS_ID_ONE, localName = "PROPERTY BOX 27"),
-    LocationDetails(id = DPS_ID_TWO, localName = "B WING"),
-    LocationDetails(id = DPS_ID_THREE, localName = "MARLBOROUGH EXERCISE"),
-    LocationDetails(id = DPS_ID_FOUR, localName = "VALUABLES"),
+    LocationDetails(id = DPS_ID_ONE, localName = "PROPERTY BOX 27", pathHierarchy = "PROP_BOXES-PB027"),
+    LocationDetails(id = DPS_ID_TWO, localName = "B WING", pathHierarchy = "RES-HB3-BWING"),
+    LocationDetails(id = DPS_ID_THREE, localName = null, pathHierarchy = "B-2-008"),
+    LocationDetails(id = DPS_ID_FOUR, localName = "VALUABLES", pathHierarchy = "PROP_VALS"),
   )
 
   private val nomislocationMappings = listOf(
@@ -65,7 +65,7 @@ class UpdateLocationNameDataTest {
     verify(nomisMappingsClient).getNomisLocationMappings(listOf(DPS_ID_ONE, DPS_ID_TWO, DPS_ID_THREE, DPS_ID_FOUR))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_ONE, NOMIS_ID_ONE, "PROPERTY BOX 27"))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_TWO, NOMID_ID_TWO, "B WING"))
-    verify(locationDetailsRepository).save(LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "MARLBOROUGH EXERCISE"))
+    verify(locationDetailsRepository).save(LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "B-2-008"))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_FOUR, NOMID_ID_FOUR, "VALUABLES"))
   }
 
@@ -87,7 +87,7 @@ class UpdateLocationNameDataTest {
     verify(locationDetailsRepository).findAllByDpsIdIn(listOf(DPS_ID_ONE, DPS_ID_TWO, DPS_ID_THREE, DPS_ID_FOUR))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_ONE, NOMIS_ID_ONE, "PROPERTY BOX 27"))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_TWO, NOMID_ID_TWO, "B WING"))
-    verify(locationDetailsRepository).save(LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "MARLBOROUGH EXERCISE"))
+    verify(locationDetailsRepository).save(LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "B-2-008"))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_FOUR, NOMID_ID_FOUR, "VALUABLES"))
   }
 
@@ -97,7 +97,7 @@ class UpdateLocationNameDataTest {
     whenever(locationDetailsRepository.findAllByDpsIdIn(any())).thenReturn(
       listOf(
         LocationDetail(DPS_ID_ONE, NOMIS_ID_ONE, "EXISTING VALUE"),
-        LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "MARLBOROUGH EXERCISE"),
+        LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "B-2-008"),
       ),
     )
     whenever(nomisMappingsClient.getNomisLocationMappings(any())).thenReturn(listOf(nomislocationMappings[1], nomislocationMappings[3]))
@@ -109,7 +109,7 @@ class UpdateLocationNameDataTest {
     verify(nomisMappingsClient).getNomisLocationMappings(listOf(DPS_ID_TWO, DPS_ID_FOUR))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_ONE, NOMIS_ID_ONE, "PROPERTY BOX 27"))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_TWO, NOMID_ID_TWO, "B WING"))
-    verify(locationDetailsRepository).save(LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "MARLBOROUGH EXERCISE"))
+    verify(locationDetailsRepository).save(LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "B-2-008"))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_FOUR, NOMID_ID_FOUR, "VALUABLES"))
   }
 
@@ -131,7 +131,7 @@ class UpdateLocationNameDataTest {
     verify(nomisMappingsClient).getNomisLocationMappings(listOf(DPS_ID_TWO, DPS_ID_FOUR))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_ONE, NOMIS_ID_ONE, "PROPERTY BOX 27"))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_TWO, NOMID_ID_TWO, "B WING"))
-    verify(locationDetailsRepository).save(LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "MARLBOROUGH EXERCISE"))
+    verify(locationDetailsRepository).save(LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "B-2-008"))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_FOUR, null, "VALUABLES"))
   }
 
@@ -158,7 +158,7 @@ class UpdateLocationNameDataTest {
     verify(locationDetailsRepository).findAllByDpsIdIn(listOf(DPS_ID_FOUR))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_ONE, NOMIS_ID_ONE, "PROPERTY BOX 27"))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_TWO, NOMID_ID_TWO, "B WING"))
-    verify(locationDetailsRepository).save(LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "MARLBOROUGH EXERCISE"))
+    verify(locationDetailsRepository).save(LocationDetail(DPS_ID_THREE, NOMIS_ID_THREE, "B-2-008"))
     verify(locationDetailsRepository).save(LocationDetail(DPS_ID_FOUR, NOMID_ID_FOUR, "VALUABLES"))
   }
 }

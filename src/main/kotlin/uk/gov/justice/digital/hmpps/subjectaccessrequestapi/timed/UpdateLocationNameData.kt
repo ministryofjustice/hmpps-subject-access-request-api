@@ -64,7 +64,7 @@ class UpdateLocationNameDataService(
 
       dpsLocations.forEach {
         val nomisId = storedLocationsMap[it.id]?.nomisId ?: missingNomisLocationMap[it.id]
-        locationDetailsRepository.save(LocationDetail(dpsId = it.id, nomisId = nomisId, name = it.localName))
+        locationDetailsRepository.save(LocationDetail(dpsId = it.id, nomisId = nomisId, name = it.localName ?: it.pathHierarchy))
       }
 
       pageNumber++
