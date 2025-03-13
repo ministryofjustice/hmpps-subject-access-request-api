@@ -80,6 +80,8 @@ application:
     frequency: 86400000
   location-refresh:
     frequency: 604800000 # 1 week
+  locations-request:
+    page-size: 50 # maximum is 200
   remove-reports:
     age: 7
     frequency: 3600000
