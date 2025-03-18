@@ -4,6 +4,9 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.serviceUnavailable
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -52,6 +55,14 @@ class NomisMappingsMockServer : WireMockServer(8086) {
             ),
         ),
     )
+  }
+
+  fun stubLocationMappingsFailure() {
+    stubFor(post("/api/locations/dps").willReturn(serviceUnavailable()))
+  }
+
+  fun verifyGetLocationMappingsCalled() {
+    verify(postRequestedFor(urlPathEqualTo("/api/locations/dps")))
   }
 }
 

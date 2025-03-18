@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.LocationDetails
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.LocationsClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.NomisMappingsClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.LocationDetail
@@ -38,7 +39,7 @@ class UpdateLocationNameData(private val service: UpdateLocationNameDataService)
 
 @Service
 class UpdateLocationNameDataService(
-  private val locationDetailsRepository: LocationDetailsRepository,
+  private val locationDetailsRepositoryProxy: LocationDetailsRepositoryProxy,
   private val locationsClient: LocationsClient,
   private val nomisMappingsClient: NomisMappingsClient,
 ) {
@@ -46,30 +47,59 @@ class UpdateLocationNameDataService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @Transactional
   fun updateLocationData() {
     log.info("updating location details in database")
 
     var pageNumber = 0
+    var totalPages = 1
     do {
-      val (last, dpsLocations) = locationsClient.getLocationDetails(pageNumber)
-      val storedLocationsMap = locationDetailsRepository.findAllByDpsIdIn(dpsLocations.map { it.id }).map { it.dpsId to it }.toMap()
-      val missingDpsLocations = dpsLocations.filter { it.id !in storedLocationsMap.keys }
-      val missingNomisLocationMap =
-        if (missingDpsLocations.isEmpty()) {
-          emptyMap<String, Int>()
-        } else {
-          nomisMappingsClient.getNomisLocationMappings(missingDpsLocations.map { it.id }).map { it.dpsLocationId to it.nomisLocationId }.toMap()
-        }
-
-      dpsLocations.forEach {
-        val nomisId = storedLocationsMap[it.id]?.nomisId ?: missingNomisLocationMap[it.id]
-        locationDetailsRepository.save(LocationDetail(dpsId = it.id, nomisId = nomisId, name = it.localName ?: it.pathHierarchy))
+      log.info("updating location details for page {}", pageNumber)
+      locationsClient.getLocationDetails(pageNumber)?.let { locationResults ->
+        totalPages = locationResults.totalPages
+        val dpsLocations = locationResults.content
+        val dpsLocationIds = dpsLocations.map { it.id }
+        val storedLocationsMap = locationDetailsRepositoryProxy.getLocationDetails(dpsLocationIds).map { it.dpsId to it }.toMap()
+        val missingNomisLocationMap = getMissingNomisMappings(dpsLocationIds, storedLocationsMap)
+        val locationDetailsToSave = getLocationDetailsToSave(dpsLocations, storedLocationsMap, missingNomisLocationMap)
+        locationDetailsRepositoryProxy.updateLocationData(locationDetailsToSave)
       }
-
       pageNumber++
-    } while (!last)
+    } while (pageNumber < totalPages)
 
-    log.info("location details updated in database")
+    log.info("finished updating location details in database")
   }
+
+  private fun getLocationDetailsToSave(
+    dpsLocations: List<LocationDetails>,
+    storedLocationsMap: Map<String, LocationDetail>,
+    missingNomisLocationMap: Map<String, Int>,
+  ): List<LocationDetail> = dpsLocations.map {
+    val nomisId = storedLocationsMap[it.id]?.nomisId ?: missingNomisLocationMap[it.id]
+    LocationDetail(dpsId = it.id, nomisId = nomisId, name = it.localName ?: it.pathHierarchy)
+  }
+
+  private fun getMissingNomisMappings(
+    dpsLocationIds: List<String>,
+    storedLocationsMap: Map<String, LocationDetail>,
+  ): Map<String, Int> = dpsLocationIds.filter { it !in storedLocationsMap.keys }.let { missingDpsLocationIds ->
+    if (missingDpsLocationIds.isEmpty()) {
+      emptyMap<String, Int>()
+    } else {
+      nomisMappingsClient.getNomisLocationMappings(missingDpsLocationIds)
+        .map { it.dpsLocationId to it.nomisLocationId }.toMap()
+    }
+  }
+}
+
+@Service
+class LocationDetailsRepositoryProxy(
+  private val locationDetailsRepository: LocationDetailsRepository,
+) {
+
+  @Transactional
+  fun updateLocationData(locations: List<LocationDetail>) {
+    locations.forEach { locationDetailsRepository.save(it) }
+  }
+
+  fun getLocationDetails(dpsIds: List<String>): List<LocationDetail> = locationDetailsRepository.findAllByDpsIdIn(dpsIds)
 }
