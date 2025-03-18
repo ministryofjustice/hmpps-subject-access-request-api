@@ -2,7 +2,11 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremoc
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.serviceUnavailable
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -21,16 +25,18 @@ class LocationsMockServer : WireMockServer(8085) {
     )
   }
 
-  fun stubGetLocationDetails() {
+  fun stubGetLocationDetails(page: Int, totalPages: Int = 1) {
     stubFor(
-      get("/locations")
+      get(urlPathEqualTo("/locations"))
+        .withQueryParam("page", equalTo(page.toString()))
+        .withQueryParam("size", equalTo("50"))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
             .withBody(
               """{
-                  "last": true,
+                  "totalPages": $totalPages,
                   "content": [
                     {
                       "id": "00000be5-081c-4374-8214-18af310d3d4a",
@@ -56,6 +62,23 @@ class LocationsMockServer : WireMockServer(8085) {
                 .trimIndent(),
             ),
         ),
+    )
+  }
+
+  fun stubGetLocationDetailsFailure(page: Int) {
+    stubFor(
+      get(urlPathEqualTo("/locations"))
+        .withQueryParam("page", equalTo(page.toString()))
+        .withQueryParam("size", equalTo("50"))
+        .willReturn(serviceUnavailable()),
+    )
+  }
+
+  fun verifyGetLocationDetailsCalledForPage(page: Int) {
+    verify(
+      getRequestedFor(urlPathEqualTo("/locations"))
+        .withQueryParam("page", equalTo(page.toString()))
+        .withQueryParam("size", equalTo("50")),
     )
   }
 }
