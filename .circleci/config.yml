@@ -16,7 +16,7 @@ jobs:
     executor:
       name: hmpps/java_postgres
       jdk_tag: "21.0"
-      postgres_tag: "16"
+      postgres_tag: "17"
       postgres_db: "sar-db"
       postgres_username: "admin"
       postgres_password: "admin_password"
