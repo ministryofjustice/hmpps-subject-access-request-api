@@ -13,6 +13,7 @@ generic-service:
     SAR_AND_DELIUS_API_URL: "https://subject-access-requests-and-delius.hmpps.service.justice.gov.uk"
     LOCATIONS_API_URL: "https://locations-inside-prison.hmpps.service.justice.gov.uk"
     NOMIS_MAPPINGS_API_URL: "https://nomis-sync-prisoner-mapping.hmpps.service.justice.gov.uk"
+    APPLICATION_HEALTH_DEV_PORTAL_URL: "https://developer-portal.hmpps.service.justice.gov.uk/components/%s/environment/prod"
     SENTRY_ENV: prod
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack

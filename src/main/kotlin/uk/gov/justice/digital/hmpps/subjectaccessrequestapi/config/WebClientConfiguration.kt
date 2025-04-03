@@ -27,7 +27,7 @@ class WebClientConfiguration(
   fun hmppsAuthHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(hmppsAuthBaseUri, healthTimeout)
 
   @Bean
-  fun documentStoreApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(documentStorageApiBaseUri, healthTimeout)
+  fun documentStoreApiHealthWebClientWrapper(builder: WebClient.Builder): WebClientWrapper = builder.wrappedHealthWebClient(documentStorageApiBaseUri, healthTimeout)
 
   @Bean
   fun documentStorageWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder
@@ -35,22 +35,22 @@ class WebClientConfiguration(
     .authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = documentStorageApiBaseUri, longTimeout)
 
   @Bean
-  fun prisonRegisterWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(prisonRegisterBaseUri, healthTimeout)
+  fun prisonRegisterWebClientWrapper(builder: WebClient.Builder): WebClientWrapper = builder.wrappedHealthWebClient(prisonRegisterBaseUri, healthTimeout)
 
   @Bean
-  fun externalUserApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(externalUserApiBaseUri, healthTimeout)
+  fun externalUserApiHealthWebClientWrapper(builder: WebClient.Builder): WebClientWrapper = builder.wrappedHealthWebClient(externalUserApiBaseUri, healthTimeout)
 
   @Bean
   fun externalUserApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = externalUserApiBaseUri, longTimeout)
 
   @Bean
-  fun nomisUserRolesApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(nomisUserRolesApiBaseUri, healthTimeout)
+  fun nomisUserRolesApiHealthWebClientWrapper(builder: WebClient.Builder): WebClientWrapper = builder.wrappedHealthWebClient(nomisUserRolesApiBaseUri, healthTimeout)
 
   @Bean
   fun nomisUserRolesApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = nomisUserRolesApiBaseUri, longTimeout)
 
   @Bean
-  fun sarAndDeliusApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(sarAndDeliusApiBaseUri, healthTimeout)
+  fun sarAndDeliusApiHealthWebClientWrapper(builder: WebClient.Builder): WebClientWrapper = builder.wrappedHealthWebClient(sarAndDeliusApiBaseUri, healthTimeout)
 
   @Bean
   fun sarAndDeliusApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = sarAndDeliusApiBaseUri, longTimeout)
@@ -59,11 +59,18 @@ class WebClientConfiguration(
   fun locationsApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", locationsApiBaseUri, longTimeout)
 
   @Bean
-  fun locationsApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(locationsApiBaseUri, healthTimeout)
+  fun locationsApiHealthWebClientWrapper(builder: WebClient.Builder): WebClientWrapper = builder.wrappedHealthWebClient(locationsApiBaseUri, healthTimeout)
 
   @Bean
   fun nomisMappingsApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", nomisMappingsApiBaseUri, longTimeout)
 
   @Bean
-  fun nomisMappingsApiHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(nomisMappingsApiBaseUri, healthTimeout)
+  fun nomisMappingsApiHealthWebClientWrapper(builder: WebClient.Builder): WebClientWrapper = builder.wrappedHealthWebClient(nomisMappingsApiBaseUri, healthTimeout)
+
+  @Bean
+  fun dynamicHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient("", healthTimeout)
 }
+
+data class WebClientWrapper(val baseUrl: String, val webClient: WebClient)
+
+fun WebClient.Builder.wrappedHealthWebClient(url: String, healthTimeout: Duration): WebClientWrapper = WebClientWrapper(url, this.healthWebClient(url, healthTimeout))

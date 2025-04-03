@@ -34,7 +34,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
       .expectStatus().isOk
       .expectBody()
       .jsonPath("$").isArray
-      .jsonPath("$.length()").isEqualTo(26)
+      .jsonPath("$.length()").isEqualTo(28)
       .jsonPath("$[0].id").isNotEmpty
       .jsonPath("$[0].name").isEqualTo("G1")
       .jsonPath("$[0].label").isEqualTo("G1")
