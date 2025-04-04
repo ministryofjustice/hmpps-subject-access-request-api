@@ -3,14 +3,14 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.WebClientWrapper
 
 @Component
 class PrisonRegisterClient(
-  private val prisonRegisterWebClient: WebClient,
+  private val prisonRegisterWebClientWrapper: WebClientWrapper,
 ) {
 
-  fun getPrisonDetails(): List<PrisonDetails> = prisonRegisterWebClient.get()
+  fun getPrisonDetails(): List<PrisonDetails> = prisonRegisterWebClientWrapper.webClient.get()
     .uri("/prisons/names")
     .retrieve()
     .bodyToMono(object : ParameterizedTypeReference<List<PrisonDetails>>() {})

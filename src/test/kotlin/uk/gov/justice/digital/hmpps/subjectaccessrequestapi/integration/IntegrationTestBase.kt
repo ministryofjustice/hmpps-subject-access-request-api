@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration
 
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.http.HttpHeaders
@@ -9,6 +10,10 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DocumentServiceApiExtension
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DocumentServiceApiExtension.Companion.documentServiceApi
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DynamicServiceAltHealthExtension
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DynamicServiceAltHealthExtension.Companion.dynamicServiceAlt
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DynamicServiceExtension
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DynamicServiceExtension.Companion.dynamicService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.ExternalUserApiExtension
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.ExternalUserApiExtension.Companion.externalUserApi
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthApiExtension
@@ -34,9 +39,12 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
   SarAndDeliusApiExtension::class,
   LocationsApiExtension::class,
   NomisMappingsApiExtension::class,
+  DynamicServiceExtension::class,
+  DynamicServiceAltHealthExtension::class,
 )
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
+@AutoConfigureWebTestClient(timeout = "10000")
 abstract class IntegrationTestBase {
 
   @Autowired
@@ -60,5 +68,7 @@ abstract class IntegrationTestBase {
     sarAndDeliusApi.stubHealthPing(status)
     locationsApi.stubHealthPing(status)
     nomisMappingsApi.stubHealthPing(status)
+    dynamicService.stubHealthPing(status)
+    dynamicServiceAlt.stubAltHealth(status)
   }
 }

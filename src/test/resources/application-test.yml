@@ -6,7 +6,7 @@ spring:
 
   flyway:
     enabled: true
-    locations: classpath:db/migration,db/migration_{vendor},db/data/dev
+    locations: classpath:db/migration,db/migration_{vendor},db/data/dev,db/data/test
     baseline-on-migrate: true
 
   jpa:
@@ -28,6 +28,10 @@ application:
       alert-interval-minutes: 30
       threshold:  48
       threshold-unit: HOURS
+  health:
+    dev-portal:
+      url: https://developer-portal.hmpps.service.justice.gov.uk/components/%s/environment/dev
+    alt-services: hmpps-book-secure-move-api,my-alt-dynamic-service
 
 management.endpoint:
   health.cache.time-to-live: 0
@@ -49,3 +53,9 @@ locations-api:
   url: "http://localhost:8085"
 nomis-mappings-api:
   url: "http://localhost:8086"
+G1-api:
+  url: "http://localhost:9001"
+G2-api:
+  url: "http://localhost:9002"
+G3-api:
+  url: "http://localhost:9003"

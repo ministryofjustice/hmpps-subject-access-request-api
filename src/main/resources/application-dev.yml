@@ -1,9 +1,20 @@
 
 hmpps-auth:
     url: http://localhost:9090/auth
+G1-api:
+  url: http://localhost:9001
+G2-api:
+  url: http://localhost:9002
+G3-api:
+  url: http://localhost:9003
 
 #document-storage:
 #    url: https://document-api-dev.hmpps.service.justice.gov.uk/
+
+application:
+  health:
+    dev-portal:
+      url: https://developer-portal.hmpps.service.justice.gov.uk/components/%s/environment/dev
 
 spring:
   datasource:

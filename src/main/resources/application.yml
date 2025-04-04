@@ -97,6 +97,8 @@ application:
       alert-interval-minutes: 30
       threshold:  48
       threshold-unit: HOURS
+  health:
+    alt-services: hmpps-book-secure-move-api
 
 management:
   endpoints:
@@ -132,6 +134,12 @@ locations-api:
   url: http://localhost:8085
 nomis-mappings-api:
   url: http://localhost:8086
+G1-api:
+  url: ${G1_API_URL)
+G2-api:
+  url: ${G2_API_URL}
+G3-api:
+  url: ${G3_API_URL}
 
 sentry:
   traces-sample-rate: "0.05"
