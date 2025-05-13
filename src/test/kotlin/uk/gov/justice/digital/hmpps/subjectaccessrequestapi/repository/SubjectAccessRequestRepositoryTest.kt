@@ -4,6 +4,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.Arguments.arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.data.domain.PageRequest
@@ -17,106 +21,184 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Optional
 import java.util.UUID
+import java.util.stream.Stream
 
 @DataJpaTest
 class SubjectAccessRequestRepositoryTest {
   @Autowired
   lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
-  private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-  private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-  private val dateFrom = LocalDate.parse("30/12/2023", dateFormatter)
-  private val dateTo = LocalDate.parse("30/01/2024", dateFormatter)
-  private val requestTime = LocalDateTime.parse("30/01/2024 00:00", dateTimeFormatter)
-  private val requestTimeLater = LocalDateTime.parse("30/03/2024 00:00", dateTimeFormatter)
-  private val claimDateTime = LocalDateTime.parse("30/01/2024 00:00", dateTimeFormatter)
-  private val claimDateTimeEarlier = LocalDateTime.parse("30/01/2023 00:00", dateTimeFormatter)
-  private val downloadDateTime = LocalDateTime.parse("01/06/2024 00:00", dateTimeFormatter)
+
   private val dateTimeNow = LocalDateTime.now(ZoneId.of("UTC")).withNano(0)
 
-  final val unclaimedSar = SubjectAccessRequest(
-    id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
-    status = Status.Pending,
-    dateFrom = dateFrom,
-    dateTo = dateTo,
-    sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
-    nomisId = "",
-    ndeliusCaseReferenceId = "1",
-    requestedBy = "Test",
-    requestDateTime = requestTime,
-    claimAttempts = 0,
-  )
-  final val claimedSarWithPendingStatus = SubjectAccessRequest(
-    id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
-    status = Status.Pending,
-    dateFrom = dateFrom,
-    dateTo = dateTo,
-    sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
-    nomisId = "",
-    ndeliusCaseReferenceId = "1",
-    requestedBy = "Test",
-    requestDateTime = requestTime,
-    claimAttempts = 1,
-    claimDateTime = claimDateTime,
-  )
-  final val completedSar = SubjectAccessRequest(
-    id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
-    status = Status.Completed,
-    dateFrom = dateFrom,
-    dateTo = dateTo,
-    sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
-    nomisId = "",
-    ndeliusCaseReferenceId = "1",
-    requestedBy = "Test",
-    requestDateTime = requestTime,
-    claimAttempts = 1,
-    claimDateTime = claimDateTime,
-    lastDownloaded = downloadDateTime,
-  )
-  final val sarWithPendingStatusClaimedEarlier = SubjectAccessRequest(
-    id = UUID.fromString("44444444-4444-4444-4444-444444444444"),
-    status = Status.Pending,
-    dateFrom = dateFrom,
-    dateTo = dateTo,
-    sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
-    nomisId = "",
-    ndeliusCaseReferenceId = "1",
-    requestedBy = "Test",
-    requestDateTime = requestTime,
-    claimAttempts = 1,
-    claimDateTime = claimDateTimeEarlier,
-  )
-  final val sarWithSearchableCaseReference = SubjectAccessRequest(
-    id = UUID.fromString("55555555-5555-5555-5555-555555555555"),
-    status = Status.Completed,
-    dateFrom = dateFrom,
-    dateTo = dateTo,
-    sarCaseReferenceNumber = "testForSearch",
-    services = "{1,2,4}",
-    nomisId = "",
-    ndeliusCaseReferenceId = "1",
-    requestedBy = "Test",
-    requestDateTime = requestTime,
-    claimAttempts = 1,
-    claimDateTime = claimDateTimeEarlier,
-  )
-  final val sarWithSearchableNdeliusId = SubjectAccessRequest(
-    id = UUID.fromString("66666666-6666-6666-6666-666666666666"),
-    status = Status.Completed,
-    dateFrom = dateFrom,
-    dateTo = dateTo,
-    sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
-    nomisId = "",
-    ndeliusCaseReferenceId = "testForSearch",
-    requestedBy = "Test",
-    requestDateTime = requestTimeLater,
-    claimAttempts = 1,
-    claimDateTime = claimDateTimeEarlier,
-  )
+  companion object {
+    private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+    private val dateFrom = LocalDate.parse("30/12/2023", dateFormatter)
+    private val dateTo = LocalDate.parse("30/01/2024", dateFormatter)
+    private val requestTime = LocalDateTime.parse("30/01/2024 00:00", dateTimeFormatter)
+    private val requestTimeLater = LocalDateTime.parse("30/03/2024 00:00", dateTimeFormatter)
+    private val claimDateTime = LocalDateTime.parse("30/01/2024 00:00", dateTimeFormatter)
+    private val claimDateTimeEarlier = LocalDateTime.parse("30/01/2023 00:00", dateTimeFormatter)
+    private val downloadDateTime = LocalDateTime.parse("01/06/2024 00:00", dateTimeFormatter)
+
+    val unclaimedSar = SubjectAccessRequest(
+      id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
+      status = Status.Pending,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = requestTime,
+      claimAttempts = 0,
+    )
+    val claimedSarWithPendingStatus = SubjectAccessRequest(
+      id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
+      status = Status.Pending,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = requestTime,
+      claimAttempts = 1,
+      claimDateTime = claimDateTime,
+    )
+    val completedSar = SubjectAccessRequest(
+      id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
+      status = Status.Completed,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = requestTime,
+      claimAttempts = 1,
+      claimDateTime = claimDateTime,
+      lastDownloaded = downloadDateTime,
+    )
+    val sarWithPendingStatusClaimedEarlier = SubjectAccessRequest(
+      id = UUID.fromString("44444444-4444-4444-4444-444444444444"),
+      status = Status.Pending,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = requestTime,
+      claimAttempts = 1,
+      claimDateTime = claimDateTimeEarlier,
+    )
+    val sarWithSearchableCaseReference = SubjectAccessRequest(
+      id = UUID.fromString("55555555-5555-5555-5555-555555555555"),
+      status = Status.Completed,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
+      sarCaseReferenceNumber = "test1ForSearch",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "1",
+      requestedBy = "Test",
+      requestDateTime = requestTime,
+      claimAttempts = 1,
+      claimDateTime = claimDateTimeEarlier,
+    )
+    val sarWithSearchableNdeliusId = SubjectAccessRequest(
+      id = UUID.fromString("66666666-6666-6666-6666-666666666666"),
+      status = Status.Completed,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "test1ForSearch",
+      requestedBy = "Test",
+      requestDateTime = requestTimeLater,
+      claimAttempts = 1,
+      claimDateTime = claimDateTimeEarlier,
+    )
+    val sarWithSearchableNdeliusIdErrored = SubjectAccessRequest(
+      id = UUID.fromString("77777777-7777-7777-7777-777777777777"),
+      status = Status.Errored,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "testForSearch",
+      requestedBy = "Test",
+      requestDateTime = requestTimeLater,
+      claimAttempts = 1,
+      claimDateTime = claimDateTimeEarlier,
+    )
+    val sarWithSearchableNdeliusIdPending = SubjectAccessRequest(
+      id = UUID.fromString("88888888-8888-8888-8888-888888888888"),
+      status = Status.Pending,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
+      sarCaseReferenceNumber = "1234abc",
+      services = "{1,2,4}",
+      nomisId = "",
+      ndeliusCaseReferenceId = "testForSearch",
+      requestedBy = "Test",
+      requestDateTime = requestTimeLater,
+      claimAttempts = 1,
+      claimDateTime = claimDateTime,
+    )
+
+    @JvmStatic
+    fun filterByStatusValues(): Stream<Arguments> = Stream.of(
+      arguments(emptySet<Status>(), emptyList<SubjectAccessRequest>()),
+      arguments(setOf(Status.Completed), listOf(sarWithSearchableNdeliusId, completedSar, sarWithSearchableCaseReference)),
+      arguments(setOf(Status.Pending), listOf(sarWithSearchableNdeliusIdPending, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Errored), listOf(sarWithSearchableNdeliusIdErrored)),
+      arguments(setOf(Status.Completed, Status.Pending), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdPending, completedSar, sarWithSearchableCaseReference, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Completed, Status.Errored), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, completedSar, sarWithSearchableCaseReference)),
+      arguments(setOf(Status.Pending, Status.Errored), listOf(sarWithSearchableNdeliusIdErrored, sarWithSearchableNdeliusIdPending, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+    )
+
+    @JvmStatic
+    fun filterByStatusAndExcludeNotOverThresholdValues(): Stream<Arguments> = Stream.of(
+      arguments(emptySet<Status>(), LocalDateTime.parse("2024-03-30T00:00:00"), emptyList<SubjectAccessRequest>()),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-03-30T00:00:01"), listOf(sarWithSearchableNdeliusIdPending, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-03-30T00:00:00"), listOf(unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-03-29T23:59:59"), listOf(unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-01-30T00:00:01"), listOf(unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-01-30T00:00:00"), emptyList<SubjectAccessRequest>()),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-01-29T23:59:59"), emptyList<SubjectAccessRequest>()),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-03-30T00:00:01"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, sarWithSearchableNdeliusIdPending, completedSar, sarWithSearchableCaseReference, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-03-30T00:00:00"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, completedSar, sarWithSearchableCaseReference, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-03-29T23:59:59"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, completedSar, sarWithSearchableCaseReference, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-01-30T00:00:01"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, completedSar, sarWithSearchableCaseReference, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-01-30T00:00:00"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, completedSar, sarWithSearchableCaseReference)),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-01-29T23:59:59"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, completedSar, sarWithSearchableCaseReference)),
+    )
+
+    @JvmStatic
+    fun filterByStatusAndExcludeOverThresholdValues(): Stream<Arguments> = Stream.of(
+      arguments(emptySet<Status>(), LocalDateTime.parse("2024-03-30T00:00:00"), emptyList<SubjectAccessRequest>()),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-03-30T00:00:01"), emptyList<SubjectAccessRequest>()),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-03-30T00:00:00"), listOf(sarWithSearchableNdeliusIdPending)),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-03-29T23:59:59"), listOf(sarWithSearchableNdeliusIdPending)),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-01-30T00:00:01"), listOf(sarWithSearchableNdeliusIdPending)),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-01-30T00:00:00"), listOf(sarWithSearchableNdeliusIdPending, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Pending), LocalDateTime.parse("2024-01-29T23:59:59"), listOf(sarWithSearchableNdeliusIdPending, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-03-30T00:00:01"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, completedSar, sarWithSearchableCaseReference)),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-03-30T00:00:00"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, sarWithSearchableNdeliusIdPending, completedSar, sarWithSearchableCaseReference)),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-03-29T23:59:59"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, sarWithSearchableNdeliusIdPending, completedSar, sarWithSearchableCaseReference)),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-01-30T00:00:01"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, sarWithSearchableNdeliusIdPending, completedSar, sarWithSearchableCaseReference)),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-01-30T00:00:00"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, sarWithSearchableNdeliusIdPending, completedSar, sarWithSearchableCaseReference, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+      arguments(setOf(Status.Completed, Status.Pending, Status.Errored), LocalDateTime.parse("2024-01-29T23:59:59"), listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, sarWithSearchableNdeliusIdPending, completedSar, sarWithSearchableCaseReference, unclaimedSar, claimedSarWithPendingStatus, sarWithPendingStatusClaimedEarlier)),
+    )
+  }
 
   fun databaseInsert() {
     subjectAccessRequestRepository.save(unclaimedSar)
@@ -125,6 +207,8 @@ class SubjectAccessRequestRepositoryTest {
     subjectAccessRequestRepository.save(sarWithPendingStatusClaimedEarlier)
     subjectAccessRequestRepository.save(sarWithSearchableCaseReference)
     subjectAccessRequestRepository.save(sarWithSearchableNdeliusId)
+    subjectAccessRequestRepository.save(sarWithSearchableNdeliusIdErrored)
+    subjectAccessRequestRepository.save(sarWithSearchableNdeliusIdPending)
   }
 
   @BeforeEach
@@ -139,6 +223,8 @@ class SubjectAccessRequestRepositoryTest {
     sarWithPendingStatusClaimedEarlier,
     sarWithSearchableCaseReference,
     sarWithSearchableNdeliusId,
+    sarWithSearchableNdeliusIdErrored,
+    sarWithSearchableNdeliusIdPending,
   )
 
   @Nested
@@ -148,7 +234,7 @@ class SubjectAccessRequestRepositoryTest {
       val expectedUnclaimed: List<SubjectAccessRequest> = listOf(unclaimedSar, sarWithPendingStatusClaimedEarlier)
       databaseInsert()
 
-      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
+      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(8)
       assertThat(
         subjectAccessRequestRepository.findUnclaimed(
           claimDateTime,
@@ -189,7 +275,7 @@ class SubjectAccessRequestRepositoryTest {
         )
 
       assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
-      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
+      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(8)
       assertThat(subjectAccessRequestRepository.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
         .isEqualTo(expectedUpdatedRecord)
     }
@@ -224,7 +310,7 @@ class SubjectAccessRequestRepositoryTest {
         )
 
       assertThat(numberOfDbRecordsUpdated).isEqualTo(0)
-      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
+      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(8)
       assertThat(subjectAccessRequestRepository.getReferenceById(claimedSarWithPendingStatus.id))
         .isEqualTo(expectedUpdatedRecord)
     }
@@ -297,7 +383,7 @@ class SubjectAccessRequestRepositoryTest {
       )
 
       assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
-      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
+      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(8)
       assertThat(subjectAccessRequestRepository.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
         .isEqualTo(expectedUpdatedRecord)
     }
@@ -313,11 +399,11 @@ class SubjectAccessRequestRepositoryTest {
 
       val result =
         subjectAccessRequestRepository.findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase(
-          "test",
-          "test",
-          "test",
+          "test1",
+          "test1",
+          "test1",
           PageRequest.of(1, 1, Sort.by("RequestDateTime").descending()),
-        )?.content
+        ).content
 
       assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
       assertThat(result).isEqualTo(expectedSearchResult)
@@ -326,7 +412,7 @@ class SubjectAccessRequestRepositoryTest {
     @Test
     fun `findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase returns all entries containing given string sorted on request date when unpaged`() {
       val expectedSearchResult: List<SubjectAccessRequest> =
-        listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
+        listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, sarWithSearchableNdeliusIdPending, sarWithSearchableCaseReference)
 
       databaseInsert()
 
@@ -336,7 +422,7 @@ class SubjectAccessRequestRepositoryTest {
           "test",
           "test",
           Pageable.unpaged(Sort.by("RequestDateTime").descending()),
-        )?.content
+        ).content
 
       assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
       assertThat(result).isEqualTo(expectedSearchResult)
@@ -363,7 +449,7 @@ class SubjectAccessRequestRepositoryTest {
     @Test
     fun `findBySarCaseReferenceNumberContainingIgnoreCaseOrNomisIdContainingIgnoreCaseOrNdeliusCaseReferenceIdContainingIgnoreCase is case insensitive`() {
       val expectedSearchResult: List<SubjectAccessRequest> =
-        listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
+        listOf(sarWithSearchableNdeliusId, sarWithSearchableNdeliusIdErrored, sarWithSearchableNdeliusIdPending, sarWithSearchableCaseReference)
 
       databaseInsert()
 
@@ -373,7 +459,282 @@ class SubjectAccessRequestRepositoryTest {
           "TEST",
           "TEST",
           Pageable.unpaged(Sort.by("RequestDateTime").descending()),
-        )?.content
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+  }
+
+  @Nested
+  inner class FindBySearchTermAndStatus {
+    @Test
+    fun `findBySearchTermAndStatus returns only SAR entries where the given string is contained within the entry and paginates`() {
+      val expectedSearchResult: List<SubjectAccessRequest> = listOf(sarWithSearchableCaseReference)
+
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatus(
+          "test",
+          setOf(Status.Completed),
+          PageRequest.of(1, 1, Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+
+    @Test
+    fun `findBySearchTermAndStatus returns all entries containing given string sorted on request date when unpaged`() {
+      val expectedSearchResult: List<SubjectAccessRequest> =
+        listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
+
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatus(
+          "test",
+          setOf(Status.Completed),
+          Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+
+    @Test
+    fun `findBySearchTermAndStatus returns all SAR entries when searching on blank strings`() {
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatus(
+          "",
+          setOf(Status.Completed, Status.Errored, Status.Pending),
+          Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).containsAll(allSars)
+    }
+
+    @Test
+    fun `findBySearchTermAndStatus is case insensitive`() {
+      val expectedSearchResult: List<SubjectAccessRequest> =
+        listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
+
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatus(
+          "TEST",
+          setOf(Status.Completed),
+          Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+
+    @ParameterizedTest
+    @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepositoryTest#filterByStatusValues")
+    fun `findBySearchTermAndStatus returns SAR entries filtered by status`(statuses: Set<Status>, expectedSearchResult: List<SubjectAccessRequest>) {
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatus(
+          "",
+          statuses,
+          Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+  }
+
+  @Nested
+  inner class FindBySearchTermAndStatusAndExcludePendingNotOverThreshold {
+    @Test
+    fun `findBySearchTermAndStatusAndExcludePendingNotOverThreshold returns only SAR entries where the given string is contained within the entry and paginates`() {
+      val expectedSearchResult: List<SubjectAccessRequest> = listOf(sarWithSearchableCaseReference)
+
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingNotOverThreshold(
+          "test",
+          setOf(Status.Completed),
+          LocalDateTime.parse("2020-01-01T00:00:00"),
+          PageRequest.of(1, 1, Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+
+    @Test
+    fun `findBySearchTermAndStatusAndExcludePendingNotOverThreshold returns all entries containing given string sorted on request date when unpaged`() {
+      val expectedSearchResult: List<SubjectAccessRequest> =
+        listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
+
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingNotOverThreshold(
+          "test",
+          setOf(Status.Completed),
+          LocalDateTime.parse("2020-01-01T00:00:00"),
+          Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+
+    @Test
+    fun `findBySearchTermAndStatusAndExcludePendingNotOverThreshold returns all SAR entries when searching on blank strings`() {
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingNotOverThreshold(
+          "",
+          setOf(Status.Completed, Status.Errored, Status.Pending),
+          LocalDateTime.parse("2025-01-01T00:00:00"),
+          Pageable.unpaged(
+            Sort.by("requestDateTime").descending(),
+          ),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).containsAll(allSars)
+    }
+
+    @Test
+    fun `findBySearchTermAndStatusAndExcludePendingNotOverThreshold is case insensitive`() {
+      val expectedSearchResult: List<SubjectAccessRequest> =
+        listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
+
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingNotOverThreshold(
+          "TEST",
+          setOf(Status.Completed),
+          LocalDateTime.parse("2020-01-01T00:00:00"),
+          Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+
+    @ParameterizedTest
+    @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepositoryTest#filterByStatusAndExcludeNotOverThresholdValues")
+    fun `findBySearchTermAndStatusAndExcludePendingNotOverThreshold returns SAR entries filtered by status and exclude not older than threshold`(statuses: Set<Status>, pendingThreshold: LocalDateTime, expectedSearchResult: List<SubjectAccessRequest>) {
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingNotOverThreshold(
+          "",
+          statuses,
+          pendingThreshold,
+          Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+  }
+
+  @Nested
+  inner class FindBySearchTermAndStatusAndExcludePendingOverThreshold {
+    @Test
+    fun `findBySearchTermAndStatusAndExcludePendingOverThreshold returns only SAR entries where the given string is contained within the entry and paginates`() {
+      val expectedSearchResult: List<SubjectAccessRequest> = listOf(sarWithSearchableCaseReference)
+
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingOverThreshold(
+          "test",
+          setOf(Status.Completed),
+          LocalDateTime.parse("2020-01-01T00:00:00"),
+          PageRequest.of(1, 1, Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+
+    @Test
+    fun `findBySearchTermAndStatusAndExcludePendingOverThreshold returns all entries containing given string sorted on request date when unpaged`() {
+      val expectedSearchResult: List<SubjectAccessRequest> =
+        listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
+
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingOverThreshold(
+          "test",
+          setOf(Status.Completed),
+          LocalDateTime.parse("2020-01-01T00:00:00"),
+          Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+
+    @Test
+    fun `findBySearchTermAndStatusAndExcludePendingOverThreshold returns all SAR entries when searching on blank strings`() {
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingOverThreshold(
+          "",
+          setOf(Status.Completed, Status.Errored, Status.Pending),
+          LocalDateTime.parse("2020-01-01T00:00:00"),
+          Pageable.unpaged(
+            Sort.by("requestDateTime").descending(),
+          ),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).containsAll(allSars)
+    }
+
+    @Test
+    fun `findBySearchTermAndStatusAndExcludePendingOverThreshold is case insensitive`() {
+      val expectedSearchResult: List<SubjectAccessRequest> =
+        listOf(sarWithSearchableNdeliusId, sarWithSearchableCaseReference)
+
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingOverThreshold(
+          "TEST",
+          setOf(Status.Completed),
+          LocalDateTime.parse("2020-01-01T00:00:00"),
+          Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ).content
+
+      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
+      assertThat(result).isEqualTo(expectedSearchResult)
+    }
+
+    @ParameterizedTest
+    @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepositoryTest#filterByStatusAndExcludeOverThresholdValues")
+    fun `findBySearchTermAndStatusAndExcludePendingOverThreshold returns SAR entries filtered by status and exclude older than threshold`(statuses: Set<Status>, pendingThreshold: LocalDateTime, expectedSearchResult: List<SubjectAccessRequest>) {
+      databaseInsert()
+
+      val result =
+        subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingOverThreshold(
+          "",
+          statuses,
+          pendingThreshold,
+          Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ).content
 
       assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
       assertThat(result).isEqualTo(expectedSearchResult)
@@ -424,7 +785,7 @@ class SubjectAccessRequestRepositoryTest {
         newDownloadDateTime,
       )
 
-      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(6)
+      assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(8)
       assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
       assertThat(subjectAccessRequestRepository.getReferenceById(completedSar.id))
         .isEqualTo(expectedUpdatedRecord)

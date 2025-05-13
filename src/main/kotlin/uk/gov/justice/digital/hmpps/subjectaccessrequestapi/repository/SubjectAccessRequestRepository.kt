@@ -45,6 +45,61 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
     pagination: Pageable,
   ): Page<SubjectAccessRequest?>
 
+  @Lock(LockModeType.PESSIMISTIC_READ)
+  @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
+  @Query(
+    "SELECT report FROM SubjectAccessRequest report " +
+      "WHERE (" +
+      "LOWER(report.sarCaseReferenceNumber) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+      "OR LOWER(report.nomisId) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+      "OR LOWER(report.ndeliusCaseReferenceId) LIKE LOWER(CONCAT('%', :searchTerm, '%'))" +
+      ") " +
+      "AND report.status IN :statuses ",
+  )
+  fun findBySearchTermAndStatus(
+    @Param("searchTerm") searchTerm: String,
+    @Param("statuses") statuses: Set<Status>,
+    pagination: Pageable,
+  ): Page<SubjectAccessRequest?>
+
+  @Lock(LockModeType.PESSIMISTIC_READ)
+  @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
+  @Query(
+    "SELECT report FROM SubjectAccessRequest report " +
+      "WHERE (" +
+      "LOWER(report.sarCaseReferenceNumber) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+      "OR LOWER(report.nomisId) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+      "OR LOWER(report.ndeliusCaseReferenceId) LIKE LOWER(CONCAT('%', :searchTerm, '%'))" +
+      ") " +
+      "AND report.status IN :statuses " +
+      "AND (report.status != 'Pending' OR report.requestDateTime < :overdueThreshold)",
+  )
+  fun findBySearchTermAndStatusAndExcludePendingNotOverThreshold(
+    @Param("searchTerm") searchTerm: String,
+    @Param("statuses") statuses: Set<Status>,
+    @Param("overdueThreshold") overdueThreshold: LocalDateTime,
+    pagination: Pageable,
+  ): Page<SubjectAccessRequest?>
+
+  @Lock(LockModeType.PESSIMISTIC_READ)
+  @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
+  @Query(
+    "SELECT report FROM SubjectAccessRequest report " +
+      "WHERE (" +
+      "LOWER(report.sarCaseReferenceNumber) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+      "OR LOWER(report.nomisId) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+      "OR LOWER(report.ndeliusCaseReferenceId) LIKE LOWER(CONCAT('%', :searchTerm, '%'))" +
+      ") " +
+      "AND report.status IN :statuses " +
+      "AND (report.status != 'Pending' OR report.requestDateTime >= :overdueThreshold)",
+  )
+  fun findBySearchTermAndStatusAndExcludePendingOverThreshold(
+    @Param("searchTerm") searchTerm: String,
+    @Param("statuses") statuses: Set<Status>,
+    @Param("overdueThreshold") overdueThreshold: LocalDateTime,
+    pagination: Pageable,
+  ): Page<SubjectAccessRequest?>
+
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
     "UPDATE SubjectAccessRequest report " +
@@ -90,6 +145,16 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
   @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
   @Query("SELECT COUNT(1) FROM SubjectAccessRequest s WHERE s.status = :status")
   fun countSubjectAccessRequestsByStatus(@Param("status") status: Status): Int
+
+  @Lock(LockModeType.PESSIMISTIC_READ)
+  @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
+  @Query("SELECT COUNT(1) FROM SubjectAccessRequest s WHERE s.status = 'Pending' AND s.requestDateTime >= :overdueThreshold")
+  fun countSubjectAccessRequestsByStatusPendingAndNotOverThreshold(@Param("overdueThreshold") overdueThreshold: LocalDateTime): Int
+
+  @Lock(LockModeType.PESSIMISTIC_READ)
+  @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
+  @Query("SELECT COUNT(1) FROM SubjectAccessRequest s WHERE s.status = 'Pending' AND s.requestDateTime < :overdueThreshold")
+  fun countSubjectAccessRequestsByStatusPendingAndOverThredhold(@Param("overdueThreshold") overdueThreshold: LocalDateTime): Int
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query("UPDATE SubjectAccessRequest s SET s.status = 'Errored' WHERE s.id = :id AND s.status = 'Pending' AND :threshold > s.requestDateTime")
