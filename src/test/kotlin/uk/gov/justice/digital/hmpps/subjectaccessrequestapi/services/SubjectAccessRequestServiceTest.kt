@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito.times
@@ -22,6 +24,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -33,13 +36,16 @@ import org.springframework.security.core.context.SecurityContextHolder
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.OverdueAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.RequestTimeoutAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ExtendedSubjectAccessRequestDetail
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequestAdminSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.io.ByteArrayInputStream
 import java.time.LocalDate
@@ -57,6 +63,7 @@ class SubjectAccessRequestServiceTest {
   private val telemetryClient: TelemetryClient = mock()
   private val alertConfiguration: AlertsConfiguration = mock()
   private val requestTimeoutAlertConfig: RequestTimeoutAlertConfiguration = mock()
+  private val overdueAlertConfig: OverdueAlertConfiguration = mock()
 
   @Captor
   private lateinit var sarIdCaptor: ArgumentCaptor<UUID>
@@ -305,6 +312,263 @@ class SubjectAccessRequestServiceTest {
         },
       )
     }
+  }
+
+  @Nested
+  inner class GetSubjectAccessRequestAdminSummary {
+    private val overdueThreshold = LocalDateTime.parse("2024-05-15T15:00:00")
+
+    @BeforeEach()
+    fun setUp() {
+      whenever(alertConfiguration.overdueAlertConfig).thenReturn(overdueAlertConfig)
+      whenever(overdueAlertConfig.calculateOverdueThreshold()).thenReturn(overdueThreshold)
+      whenever(subjectAccessRequestRepository.count()).thenReturn(20)
+      whenever(subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Completed)).thenReturn(2)
+      whenever(subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Errored)).thenReturn(3)
+      whenever(subjectAccessRequestRepository.countSubjectAccessRequestsByStatusPendingAndNotOverThreshold(overdueThreshold)).thenReturn(4)
+      whenever(subjectAccessRequestRepository.countSubjectAccessRequestsByStatusPendingAndOverThredhold(overdueThreshold)).thenReturn(5)
+    }
+
+    @Test
+    fun `getSubjectAccessRequestAdminSummary calls repository findBySearchTermAndStatus with no search or pagination when no arguments are given`() {
+      whenever(
+        subjectAccessRequestRepository.findBySearchTermAndStatus(
+          searchTerm = "",
+          statuses = setOf(Status.Completed, Status.Errored, Status.Pending),
+          pagination = Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ),
+      ).thenReturn(PageImpl<SubjectAccessRequest>(listOf(sarResult()), PageRequest.of(0, 1), 1))
+
+      val result = subjectAccessRequestService.getSubjectAccessRequestAdminSummary(true, true, true, true, "", null, null)
+
+      verify(subjectAccessRequestRepository).findBySearchTermAndStatus(
+        searchTerm = "",
+        statuses = setOf(Status.Completed, Status.Pending, Status.Errored),
+        Pageable.unpaged(Sort.by("requestDateTime").descending()),
+      )
+      assertThat(result).isEqualTo(sarAdminSummaryWithRequests(listOf(extendedSarDetail())))
+    }
+
+    @Test
+    fun `getSubjectAccessRequestAdminSummary calls repository findBySearchTermAndStatus method with search string`() {
+      whenever(
+        subjectAccessRequestRepository.findBySearchTermAndStatus(
+          searchTerm = "test",
+          statuses = setOf(Status.Completed, Status.Pending, Status.Errored),
+          Pageable.unpaged(Sort.by("requestDateTime").descending()),
+        ),
+      ).thenReturn(Page.empty())
+
+      val result = subjectAccessRequestService.getSubjectAccessRequestAdminSummary(true, true, true, true, "test", null, null)
+
+      verify(subjectAccessRequestRepository).findBySearchTermAndStatus(
+        searchTerm = "test",
+        statuses = setOf(Status.Completed, Status.Pending, Status.Errored),
+        Pageable.unpaged(Sort.by("requestDateTime").descending()),
+      )
+      assertThat(result).isEqualTo(sarAdminSummaryWithRequests(emptyList()))
+    }
+
+    @Test
+    fun `getSubjectAccessRequestAdminSummary calls repository findBySearchTermAndStatus method with requestDateTime-sorted pagination`() {
+      whenever(
+        subjectAccessRequestRepository.findBySearchTermAndStatus(
+          searchTerm = "",
+          statuses = setOf(Status.Completed, Status.Pending, Status.Errored),
+          PageRequest.of(0, 1, Sort.by("requestDateTime").descending()),
+        ),
+      ).thenReturn(PageImpl<SubjectAccessRequest>(listOf(sarResult()), PageRequest.of(0, 1), 1))
+
+      val result = subjectAccessRequestService.getSubjectAccessRequestAdminSummary(true, true, true, true, "", 0, 1)
+
+      verify(subjectAccessRequestRepository).findBySearchTermAndStatus(
+        searchTerm = "",
+        statuses = setOf(Status.Completed, Status.Pending, Status.Errored),
+        PageRequest.of(0, 1, Sort.by("requestDateTime").descending()),
+      )
+      assertThat(result).isEqualTo(sarAdminSummaryWithRequests(listOf(extendedSarDetail())))
+    }
+
+    @Test
+    fun `getSubjectAccessRequestAdminSummary calls repository findBySearchTermAndStatus method with search string and requestDateTime-sorted pagination`() {
+      whenever(
+        subjectAccessRequestRepository.findBySearchTermAndStatus(
+          searchTerm = "test",
+          statuses = setOf(Status.Completed, Status.Pending, Status.Errored),
+          PageRequest.of(0, 1, Sort.by("requestDateTime").descending()),
+        ),
+      ).thenReturn(PageImpl<SubjectAccessRequest>(listOf(sarResult()), PageRequest.of(0, 1), 1))
+
+      val result = subjectAccessRequestService.getSubjectAccessRequestAdminSummary(true, true, true, true, "test", 0, 1)
+
+      verify(subjectAccessRequestRepository).findBySearchTermAndStatus(
+        searchTerm = "test",
+        statuses = setOf(Status.Completed, Status.Pending, Status.Errored),
+        PageRequest.of(0, 1, Sort.by("requestDateTime").descending()),
+      )
+      assertThat(result).isEqualTo(sarAdminSummaryWithRequests(listOf(extendedSarDetail())))
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "Pending, 2024-05-16T12:00:00, Pending",
+        "Pending, 2024-05-15T15:00:01, Pending",
+        "Pending, 2024-05-15T15:00:00, Pending",
+        "Pending, 2024-05-15T14:59:59, Overdue",
+        "Pending, 2024-05-14T15:30:00, Overdue",
+        "Completed, 2024-05-15T15:00:01, Completed",
+        "Completed, 2024-05-15T15:00:00, Completed",
+        "Completed, 2024-05-15T14:59:59, Completed",
+        "Errored, 2024-05-15T15:00:01, Errored",
+        "Errored, 2024-05-15T15:00:00, Errored",
+        "Errored, 2024-05-15T14:59:59, Errored",
+      ],
+    )
+    fun `getSubjectAccessRequestAdminSummary calls repository findBySearchTermAndStatus method and converts status accordingly`(status: Status, requestDateTime: LocalDateTime, expectedStatus: String) {
+      whenever(
+        subjectAccessRequestRepository.findBySearchTermAndStatus(
+          searchTerm = "test",
+          statuses = setOf(Status.Completed, Status.Pending, Status.Errored),
+          PageRequest.of(0, 1, Sort.by("requestDateTime").descending()),
+        ),
+      ).thenReturn(PageImpl<SubjectAccessRequest>(listOf(sarResult(status = status, requestDateTime = requestDateTime)), PageRequest.of(0, 1), 1))
+
+      val result = subjectAccessRequestService.getSubjectAccessRequestAdminSummary(true, true, true, true, "test", 0, 1)
+
+      verify(subjectAccessRequestRepository).findBySearchTermAndStatus(
+        searchTerm = "test",
+        statuses = setOf(Status.Completed, Status.Pending, Status.Errored),
+        PageRequest.of(0, 1, Sort.by("requestDateTime").descending()),
+      )
+      assertThat(result).isEqualTo(sarAdminSummaryWithRequests(listOf(extendedSarDetail(status = expectedStatus, requestDateTime = requestDateTime))))
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "true, true, true, true, Completed|Pending|Errored",
+        "true, false, true, true, Completed|Pending",
+        "false, true, true, true, Pending|Errored",
+        "false, false, true, true, Pending",
+        "true, true, false, false, Completed|Errored",
+        "true, false, false, false, Completed",
+        "false, true, false, false, Errored",
+        "false, false, false, false, ",
+      ],
+    )
+    fun `getSubjectAccessRequestAdminSummary calls repository findBySearchTermAndStatus method with different filter options`(completed: Boolean, errored: Boolean, overdue: Boolean, pending: Boolean, expectedStatuses: String?) {
+      whenever(subjectAccessRequestRepository.findBySearchTermAndStatus(any(), any(), any()))
+        .thenReturn(PageImpl<SubjectAccessRequest>(listOf(sarResult()), PageRequest.of(0, 1), 1))
+
+      val result = subjectAccessRequestService.getSubjectAccessRequestAdminSummary(completed, errored, overdue, pending, "test", 0, 1)
+
+      verify(subjectAccessRequestRepository).findBySearchTermAndStatus(
+        searchTerm = "test",
+        statuses = convertToStatusSet(expectedStatuses),
+        PageRequest.of(0, 1, Sort.by("requestDateTime").descending()),
+      )
+      assertThat(result).isEqualTo(sarAdminSummaryWithRequests(listOf(extendedSarDetail())))
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "true, true, true, false, Completed|Pending|Errored",
+        "true, false, true, false, Completed|Pending",
+        "false, true, true, false, Pending|Errored",
+        "false, false, true, false, Pending",
+      ],
+    )
+    fun `getSubjectAccessRequestAdminSummary calls repository findBySearchTermAndStatusAndExcludePendingNotOverThreshold method with different filter options`(completed: Boolean, errored: Boolean, overdue: Boolean, pending: Boolean, expectedStatuses: String?) {
+      whenever(subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingNotOverThreshold(any(), any(), any(), any()))
+        .thenReturn(PageImpl<SubjectAccessRequest>(listOf(sarResult()), PageRequest.of(0, 1), 1))
+
+      val result = subjectAccessRequestService.getSubjectAccessRequestAdminSummary(completed, errored, overdue, pending, "test", 0, 1)
+
+      verify(subjectAccessRequestRepository).findBySearchTermAndStatusAndExcludePendingNotOverThreshold(
+        searchTerm = "test",
+        statuses = convertToStatusSet(expectedStatuses),
+        overdueThreshold = overdueThreshold,
+        PageRequest.of(0, 1, Sort.by("requestDateTime").descending()),
+      )
+      assertThat(result).isEqualTo(sarAdminSummaryWithRequests(listOf(extendedSarDetail())))
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "true, true, false, true, Completed|Pending|Errored",
+        "true, false, false, true, Completed|Pending",
+        "false, true, false, true, Pending|Errored",
+        "false, false, false, true, Pending",
+      ],
+    )
+    fun `getSubjectAccessRequestAdminSummary calls repository findBySearchTermAndStatusAndExcludePendingOverThreshold method with different filter options`(completed: Boolean, errored: Boolean, overdue: Boolean, pending: Boolean, expectedStatuses: String?) {
+      whenever(subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingOverThreshold(any(), any(), any(), any()))
+        .thenReturn(PageImpl<SubjectAccessRequest>(listOf(sarResult()), PageRequest.of(0, 1), 1))
+
+      val result = subjectAccessRequestService.getSubjectAccessRequestAdminSummary(completed, errored, overdue, pending, "test", 0, 1)
+
+      verify(subjectAccessRequestRepository).findBySearchTermAndStatusAndExcludePendingOverThreshold(
+        searchTerm = "test",
+        statuses = convertToStatusSet(expectedStatuses),
+        overdueThreshold = overdueThreshold,
+        PageRequest.of(0, 1, Sort.by("requestDateTime").descending()),
+      )
+      assertThat(result).isEqualTo(sarAdminSummaryWithRequests(listOf(extendedSarDetail())))
+    }
+
+    private fun sarAdminSummaryWithRequests(requests: List<ExtendedSubjectAccessRequestDetail>) = SubjectAccessRequestAdminSummary(
+      totalCount = 20,
+      completedCount = 2,
+      pendingCount = 4,
+      overdueCount = 5,
+      erroredCount = 3,
+      filterCount = requests.size.toLong(),
+      requests = requests,
+    )
+
+    private fun convertToStatusSet(csvSet: String?): Set<Status> = csvSet?.split("|")?.map(Status::valueOf)?.toSet() ?: emptySet()
+
+    private fun sarResult(
+      status: Status = Status.Completed,
+      requestDateTime: LocalDateTime = LocalDateTime.parse("2020-01-01T00:00:00"),
+    ) = SubjectAccessRequest(
+      id = UUID.fromString("55555555-5555-5555-5555-555555555555"),
+      status = status,
+      dateFrom = LocalDate.parse("2025-01-01"),
+      dateTo = LocalDate.parse("2025-03-01"),
+      sarCaseReferenceNumber = "123",
+      services = "",
+      nomisId = "",
+      ndeliusCaseReferenceId = "",
+      requestedBy = "user",
+      requestDateTime = requestDateTime,
+      claimDateTime = LocalDateTime.parse("2020-01-01T00:00:00"),
+      claimAttempts = 0,
+      objectUrl = "url",
+      lastDownloaded = null,
+    )
+    private fun extendedSarDetail(
+      status: String = "Completed",
+      requestDateTime: LocalDateTime = LocalDateTime.parse("2020-01-01T00:00:00"),
+    ) = ExtendedSubjectAccessRequestDetail(
+      id = UUID.fromString("55555555-5555-5555-5555-555555555555"),
+      status = status,
+      dateFrom = LocalDate.parse("2025-01-01"),
+      dateTo = LocalDate.parse("2025-03-01"),
+      sarCaseReferenceNumber = "123",
+      services = "",
+      nomisId = "",
+      ndeliusCaseReferenceId = "",
+      requestedBy = "user",
+      requestDateTime = requestDateTime,
+      claimDateTime = LocalDateTime.parse("2020-01-01T00:00:00"),
+      claimAttempts = 0,
+      objectUrl = "url",
+      lastDownloaded = null,
+    )
   }
 
   @Nested

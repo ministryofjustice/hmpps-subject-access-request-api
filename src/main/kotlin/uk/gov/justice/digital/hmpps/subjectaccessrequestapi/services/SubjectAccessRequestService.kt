@@ -21,16 +21,19 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.C
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.DuplicateRequestResponseEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ExtendedSubjectAccessRequestDetail
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueSubjectAccessRequests
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequestAdminSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.Optional
 import java.util.UUID
+import kotlin.String
 
 @Service
 class SubjectAccessRequestService(
@@ -101,6 +104,85 @@ class SubjectAccessRequestService(
       ndeliusSearch = search,
       pagination = pagination,
     ).content
+  }
+
+  fun getSubjectAccessRequestAdminSummary(
+    completed: Boolean,
+    errored: Boolean,
+    overdue: Boolean,
+    pending: Boolean,
+    search: String,
+    pageNumber: Int? = null,
+    pageSize: Int? = null,
+  ): SubjectAccessRequestAdminSummary {
+    val statusFilters = HashSet<Status>()
+    if (completed) statusFilters.add(Status.Completed)
+    if (errored) statusFilters.add(Status.Errored)
+    if (pending) statusFilters.add(Status.Pending)
+    if (overdue) statusFilters.add(Status.Pending)
+
+    var pagination = Pageable.unpaged(Sort.by("requestDateTime").descending())
+    if (pageNumber != null && pageSize != null) {
+      pagination = PageRequest.of(pageNumber, pageSize, Sort.by("requestDateTime").descending())
+    }
+
+    val overdueThreshold = alertsConfiguration.overdueAlertConfig.calculateOverdueThreshold()
+    val result = when {
+      overdue && !pending -> subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingNotOverThreshold(
+        searchTerm = search,
+        statuses = statusFilters,
+        overdueThreshold = overdueThreshold,
+        pagination = pagination,
+      )
+      !overdue && pending -> subjectAccessRequestRepository.findBySearchTermAndStatusAndExcludePendingOverThreshold(
+        searchTerm = search,
+        statuses = statusFilters,
+        overdueThreshold = overdueThreshold,
+        pagination = pagination,
+      )
+      else -> subjectAccessRequestRepository.findBySearchTermAndStatus(
+        searchTerm = search,
+        statuses = statusFilters,
+        pagination = pagination,
+      )
+    }
+
+    val requests = result.content
+      .filterNotNull()
+      .map {
+        ExtendedSubjectAccessRequestDetail(
+          id = it.id,
+          status = if (it.status == Status.Pending && it.requestDateTime < overdueThreshold) "Overdue" else it.status.toString(),
+          dateFrom = it.dateFrom,
+          dateTo = it.dateTo,
+          sarCaseReferenceNumber = it.sarCaseReferenceNumber,
+          services = it.services,
+          nomisId = it.nomisId,
+          ndeliusCaseReferenceId = it.ndeliusCaseReferenceId,
+          requestedBy = it.requestedBy,
+          requestDateTime = it.requestDateTime,
+          claimDateTime = it.claimDateTime,
+          claimAttempts = it.claimAttempts,
+          objectUrl = it.objectUrl,
+          lastDownloaded = it.lastDownloaded,
+        )
+      }
+    val totalCount = subjectAccessRequestRepository.count()
+    val completedCount = subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Completed)
+    val erroredCount = subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Errored)
+    val pendingCount = subjectAccessRequestRepository.countSubjectAccessRequestsByStatusPendingAndNotOverThreshold(overdueThreshold)
+    val overdueCount = subjectAccessRequestRepository.countSubjectAccessRequestsByStatusPendingAndOverThredhold(overdueThreshold)
+    val filterCount = result.totalElements
+
+    return SubjectAccessRequestAdminSummary(
+      totalCount = totalCount,
+      completedCount = completedCount,
+      erroredCount = erroredCount,
+      pendingCount = pendingCount,
+      overdueCount = overdueCount,
+      filterCount = filterCount,
+      requests = requests,
+    )
   }
 
   fun claimSubjectAccessRequest(id: UUID) = subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(
