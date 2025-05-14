@@ -14,6 +14,9 @@ generic-service:
     LOCATIONS_API_URL: "https://locations-inside-prison.hmpps.service.justice.gov.uk"
     NOMIS_MAPPINGS_API_URL: "https://nomis-sync-prisoner-mapping.hmpps.service.justice.gov.uk"
     APPLICATION_HEALTH_DEV_PORTAL_URL: "https://developer-portal.hmpps.service.justice.gov.uk/components/%s/environment/prod"
+    APPLICATION_APPINSIGHTS_SUBSCRIPTIONID: a5ddf257-3b21-4ba9-a28c-ab30f751b383
+    APPLICATION_APPINSIGHTS_RESOURCEGROUP: nomisapi-prod-rg
+    APPLICATION_APPINSIGHTS_INSTANCENAME: nomisapi-prod
     SENTRY_ENV: prod
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack

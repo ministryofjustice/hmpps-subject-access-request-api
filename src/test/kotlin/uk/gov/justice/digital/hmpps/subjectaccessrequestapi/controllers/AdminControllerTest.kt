@@ -41,6 +41,7 @@ class AdminControllerTest {
           claimAttempts = 0,
           objectUrl = "url",
           lastDownloaded = null,
+          appInsightsEventsUrl = "appinsightsurl",
         ),
       ),
     )

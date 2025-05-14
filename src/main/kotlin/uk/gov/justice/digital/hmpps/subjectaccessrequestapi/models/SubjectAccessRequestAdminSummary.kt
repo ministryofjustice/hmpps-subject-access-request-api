@@ -33,6 +33,7 @@ data class ExtendedSubjectAccessRequestDetail(
   val claimAttempts: Int,
   val objectUrl: String?,
   val lastDownloaded: LocalDateTime?,
+  val appInsightsEventsUrl: String,
 ) {
   val durationHumanReadable: String = formatDuration(
     Duration.between(requestDateTime, LocalDateTime.now()).toMillis(),
