@@ -100,7 +100,7 @@ application:
   health:
     alt-services: hmpps-book-secure-move-api
   appInsights:
-    subscriptionId: c27cfedb-f5e9-45e6-9642-0fad1a5c94e7
+    subscriptionId: 11111111-1111-1111-1111-111111111111
     resourceGroup: nomisapi-t3-rg
     instanceName: nomisapi-t3
     timespan: PT168H

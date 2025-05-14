@@ -107,7 +107,7 @@ class AdminControllerIntTest : IntegrationTestBase() {
             objectUrl = null,
             lastDownloaded = null,
             appInsightsEventsUrl = "https://portal.azure.com/#blade/Microsoft_Azure_Monitoring_Logs/LogsBlade/resourceId/" +
-              "%2Fsubscriptions%2Fc27cfedb-f5e9-45e6-9642-0fad1a5c94e7" +
+              "%2Fsubscriptions%2F11111111-1111-1111-1111-111111111111" +
               "%2FresourceGroups%2Fnomisapi-t3-rg" +
               "%2Fproviders%2Fmicrosoft.insights%2Fcomponents%2Fnomisapi-t3" +
               "/source/LogsBlade.AnalyticsShareLinkToQuery" +

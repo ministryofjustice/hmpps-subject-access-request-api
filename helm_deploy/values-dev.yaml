@@ -17,7 +17,6 @@ generic-service:
     LOCATIONS_API_URL: "https://locations-inside-prison-api-dev.hmpps.service.justice.gov.uk"
     NOMIS_MAPPINGS_API_URL: "https://nomis-sync-prisoner-mapping-dev.hmpps.service.justice.gov.uk"
     APPLICATION_HEALTH_DEV_PORTAL_URL: "https://developer-portal.hmpps.service.justice.gov.uk/components/%s/environment/dev"
-    APPLICATION_APPINSIGHTS_SUBSCRIPTIONID: c27cfedb-f5e9-45e6-9642-0fad1a5c94e7
     APPLICATION_APPINSIGHTS_RESOURCEGROUP: nomisapi-t3-rg
     APPLICATION_APPINSIGHTS_INSTANCENAME: nomisapi-t3
     SENTRY_ENV: dev
