@@ -122,6 +122,54 @@ class SubjectAccessRequestController(
     return ResponseEntity(response, HttpStatus.CREATED)
   }
 
+  @Operation(
+    summary = "Get a Subject Access Request.",
+    description = "Get a Subject Access Request by ID",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Successfully retrieve a Subject Access Request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = SubjectAccessRequest::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden - user not authorised to create a Subject Access Request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = CreateSubjectAccessRequestEntity::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Subject Access Request not found.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
   @GetMapping("/subjectAccessRequest/{id}")
   fun getSubjectAccessRequest(
     @PathVariable id: UUID,
