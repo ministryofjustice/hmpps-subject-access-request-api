@@ -58,16 +58,22 @@ class ServicesControllerGetRequestByIdIntTest : IntegrationTestBase() {
 
   @Test
   fun `get report by ID returns 200 when the requested ID exists`() {
-    val body = webTestClient
+    webTestClient
       .get()
       .uri("/api/subjectAccessRequest/${sar.id}")
       .headers(setAuthorisation(roles = listOf("ROLE_SAR_USER_ACCESS", "ROLE_SAR_DATA_ACCESS")))
       .exchange()
       .expectStatus().isOk
-      .expectBody().returnResult().responseBody
-
-    val entity = objectMapper.readValue(body, SubjectAccessRequest::class.java)
-    assertThat(entity).isEqualTo(sar)
+      .expectBody()
+      .jsonPath(".id").isEqualTo(sar.id.toString())
+      .jsonPath(".status").isEqualTo("Pending")
+      .jsonPath(".dateFrom").isEqualTo(dateFrom.toString())
+      .jsonPath(".dateTo").isEqualTo(dateTo.toString())
+      .jsonPath(".sarCaseReferenceNumber").isEqualTo("666xzy")
+      .jsonPath(".services").isEqualTo("{1,2,4}")
+      .jsonPath(".nomisId").isEqualTo("")
+      .jsonPath(".ndeliusCaseReferenceId").isEqualTo("hansGruber99")
+      .jsonPath(".requestedBy").isEqualTo("Hans Gruber")
   }
 
   @Test
