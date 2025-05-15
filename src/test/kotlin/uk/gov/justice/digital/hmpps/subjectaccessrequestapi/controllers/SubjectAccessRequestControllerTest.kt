@@ -218,7 +218,6 @@ class SubjectAccessRequestControllerTest {
     }
   }
 
-
   @Nested
   inner class GetTotalSubjectAccessRequests {
     @Test
