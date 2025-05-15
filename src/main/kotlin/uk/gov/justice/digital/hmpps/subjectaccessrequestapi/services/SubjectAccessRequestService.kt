@@ -38,7 +38,6 @@ import java.util.Base64
 import java.util.Optional
 import java.util.UUID
 import java.util.zip.GZIPOutputStream
-import kotlin.String
 
 @Service
 class SubjectAccessRequestService(
@@ -359,7 +358,7 @@ class SubjectAccessRequestService(
     subjectAccessRequestId = id.toString(),
   )
 
-  private fun findSubjectAccessRequest(id: UUID): Optional<SubjectAccessRequest> {
+  fun findSubjectAccessRequest(id: UUID): Optional<SubjectAccessRequest> {
     try {
       return subjectAccessRequestRepository.findById(id)
     } catch (ex: Exception) {
