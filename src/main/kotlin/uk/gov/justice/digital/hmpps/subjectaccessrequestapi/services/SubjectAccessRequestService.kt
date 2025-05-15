@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.ApplicationInsightsQueryConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.DuplicateRequestResponseEntity
@@ -28,11 +29,15 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequestAdminSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
+import java.io.ByteArrayOutputStream
+import java.net.URLEncoder
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.Base64
 import java.util.Optional
 import java.util.UUID
+import java.util.zip.GZIPOutputStream
 import kotlin.String
 
 @Service
@@ -41,6 +46,7 @@ class SubjectAccessRequestService(
   val subjectAccessRequestRepository: SubjectAccessRequestRepository,
   val alertsConfiguration: AlertsConfiguration,
   private val telemetryClient: TelemetryClient,
+  private val appInsightsQueryConfig: ApplicationInsightsQueryConfiguration,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -165,6 +171,7 @@ class SubjectAccessRequestService(
           claimAttempts = it.claimAttempts,
           objectUrl = it.objectUrl,
           lastDownloaded = it.lastDownloaded,
+          appInsightsEventsUrl = constructAppInsightsEventsUrl(it.id),
         )
       }
     val totalCount = subjectAccessRequestRepository.count()
@@ -183,6 +190,31 @@ class SubjectAccessRequestService(
       filterCount = filterCount,
       requests = requests,
     )
+  }
+
+  fun encodeKQLQuery(query: String): String {
+    val byteArrayOutputStream = ByteArrayOutputStream()
+    GZIPOutputStream(byteArrayOutputStream).use { gzip ->
+      gzip.write(query.toByteArray(Charsets.UTF_8))
+    }
+    val base64EncodedQuery = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray())
+    return URLEncoder.encode(base64EncodedQuery, Charsets.UTF_8)
+  }
+
+  fun constructAppInsightsEventsUrl(sarId: UUID): String {
+    val encodedQuery = encodeKQLQuery(
+      encodeKQLQuery(
+        "customEvents | " +
+          "where cloud_RoleName like 'hmpps-subject-access-request' " +
+          "and (customDimensions['UUID'] == '$sarId' or customDimensions['id'] == '$sarId')",
+      ),
+    )
+    return "https://portal.azure.com/#blade/Microsoft_Azure_Monitoring_Logs/LogsBlade/resourceId/" +
+      "%2Fsubscriptions%2F${appInsightsQueryConfig.subscriptionId}" +
+      "%2FresourceGroups%2F${appInsightsQueryConfig.resourceGroup}" +
+      "%2Fproviders%2Fmicrosoft.insights" +
+      "%2Fcomponents%2F${appInsightsQueryConfig.instanceName}" +
+      "/source/LogsBlade.AnalyticsShareLinkToQuery/q/$encodedQuery/timespan/${appInsightsQueryConfig.timespan}"
   }
 
   fun claimSubjectAccessRequest(id: UUID) = subjectAccessRequestRepository.updateClaimDateTimeAndClaimAttemptsIfBeforeThreshold(

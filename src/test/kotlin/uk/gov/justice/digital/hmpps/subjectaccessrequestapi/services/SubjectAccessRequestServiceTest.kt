@@ -36,6 +36,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.ApplicationInsightsQueryConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.OverdueAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.RequestTimeoutAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
@@ -64,6 +65,7 @@ class SubjectAccessRequestServiceTest {
   private val alertConfiguration: AlertsConfiguration = mock()
   private val requestTimeoutAlertConfig: RequestTimeoutAlertConfiguration = mock()
   private val overdueAlertConfig: OverdueAlertConfiguration = mock()
+  private val appInsightsQueryConfig: ApplicationInsightsQueryConfiguration = mock()
 
   @Captor
   private lateinit var sarIdCaptor: ArgumentCaptor<UUID>
@@ -73,6 +75,7 @@ class SubjectAccessRequestServiceTest {
     subjectAccessRequestRepository,
     alertConfiguration,
     telemetryClient,
+    appInsightsQueryConfig,
   )
 
   private val formattedCurrentTime =
@@ -322,6 +325,10 @@ class SubjectAccessRequestServiceTest {
     fun setUp() {
       whenever(alertConfiguration.overdueAlertConfig).thenReturn(overdueAlertConfig)
       whenever(overdueAlertConfig.calculateOverdueThreshold()).thenReturn(overdueThreshold)
+      whenever(appInsightsQueryConfig.subscriptionId).thenReturn("74a5e675-1b5b-4627-9add-84acc58b7b7b")
+      whenever(appInsightsQueryConfig.resourceGroup).thenReturn("app-res-grp")
+      whenever(appInsightsQueryConfig.instanceName).thenReturn("app-instance")
+      whenever(appInsightsQueryConfig.timespan).thenReturn("PT24H")
       whenever(subjectAccessRequestRepository.count()).thenReturn(20)
       whenever(subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Completed)).thenReturn(2)
       whenever(subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Errored)).thenReturn(3)
@@ -568,6 +575,13 @@ class SubjectAccessRequestServiceTest {
       claimAttempts = 0,
       objectUrl = "url",
       lastDownloaded = null,
+      appInsightsEventsUrl = "https://portal.azure.com/#blade/Microsoft_Azure_Monitoring_Logs/LogsBlade/resourceId/" +
+        "%2Fsubscriptions%2F74a5e675-1b5b-4627-9add-84acc58b7b7b" +
+        "%2FresourceGroups%2Fapp-res-grp" +
+        "%2Fproviders%2Fmicrosoft.insights%2Fcomponents%2Fapp-instance" +
+        "/source/LogsBlade.AnalyticsShareLinkToQuery" +
+        "/q/H4sIAAAAAAAA%2Fy2Oyw5DQABFv6Z7ZVQsmRjMeI4w0l29FVFGvL6%2BmvQubs7iJudagNvaPzcRyak7bQC6VDdBkj%2B9Q5u6krM6NsMZEqMgxTXiY1L2HXCasaoaW4PbjqxqIYI8t6p9Zz0%2BhQFhaEjeKXdaIHojgSvAoF19TpcF1Al905c%2BwQF47NPzfI4ipGZKS8KbqONTOlx%2FfwS9lRrs0pUDvVrZcehU0VpezHyOlAIxnMW%2F318yN8FWxAAAAA%3D%3D" +
+        "/timespan/PT24H",
     )
   }
 

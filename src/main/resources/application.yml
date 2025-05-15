@@ -99,6 +99,11 @@ application:
       threshold-unit: HOURS
   health:
     alt-services: hmpps-book-secure-move-api
+  appInsights:
+    subscriptionId: 11111111-1111-1111-1111-111111111111
+    resourceGroup: nomisapi-t3-rg
+    instanceName: nomisapi-t3
+    timespan: PT168H
 
 management:
   endpoints:

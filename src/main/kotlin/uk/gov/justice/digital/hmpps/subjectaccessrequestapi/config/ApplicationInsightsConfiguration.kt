@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config
 
 import com.microsoft.applicationinsights.TelemetryClient
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -12,6 +13,14 @@ class ApplicationInsightsConfiguration {
   @Bean
   fun telemetryClient(): TelemetryClient = TelemetryClient()
 }
+
+@Configuration
+class ApplicationInsightsQueryConfiguration(
+  @Value("\${application.appInsights.subscriptionId}") val subscriptionId: String,
+  @Value("\${application.appInsights.resourceGroup}") val resourceGroup: String,
+  @Value("\${application.appInsights.instanceName}") val instanceName: String,
+  @Value("\${application.appInsights.timespan}") val timespan: String,
+)
 
 fun TelemetryClient.trackEvent(name: String, properties: Map<String, String>) = this.trackEvent(name, properties, null)
 

@@ -21,7 +21,7 @@ class AdminControllerIntTest : IntegrationTestBase() {
   private lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
 
   companion object {
-    private val REQUEST_ID = UUID.randomUUID()
+    private val REQUEST_ID = UUID.fromString("8caf5cb9-0f25-4b6e-b400-f0c95ac3fc97")
   }
 
   @BeforeEach
@@ -106,6 +106,13 @@ class AdminControllerIntTest : IntegrationTestBase() {
             claimDateTime = null,
             objectUrl = null,
             lastDownloaded = null,
+            appInsightsEventsUrl = "https://portal.azure.com/#blade/Microsoft_Azure_Monitoring_Logs/LogsBlade/resourceId/" +
+              "%2Fsubscriptions%2F11111111-1111-1111-1111-111111111111" +
+              "%2FresourceGroups%2Fnomisapi-t3-rg" +
+              "%2Fproviders%2Fmicrosoft.insights%2Fcomponents%2Fnomisapi-t3" +
+              "/source/LogsBlade.AnalyticsShareLinkToQuery" +
+              "/q/H4sIAAAAAAAA%2Fy2PzXKCMBhFn8a9pUnFZQKCBD4oBjDpTphAaKBFTP3p05cZe%2BduzuLOmbtHl4j8Z%2BUEWMCcbzyghKCgwdWdpqHtSV8bDaTncckitbGjbt9A5D%2BhfrT0%2B9opBO9eJsXWOGxUkM4TM6Tls7%2F9yN29KDs3w1kE8lbwBx6p1YM%2BH8asgs913FDVoRuJF%2FlRNd5ByMkdvtYLnnZF4Oh6519La%2BqCh5Wwp1%2FQZz4NjB1llc4isBfbJdxPVg5NwmWE8KDd5k6NfHl%2BevWX%2FgFmI1ht5gAAAA%3D%3D" +
+              "/timespan/PT168H",
           ),
         ),
       ),
