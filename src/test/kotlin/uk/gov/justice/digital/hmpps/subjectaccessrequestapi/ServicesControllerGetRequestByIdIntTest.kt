@@ -1,8 +1,5 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -11,7 +8,6 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.Integrat
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -21,10 +17,6 @@ class ServicesControllerGetRequestByIdIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
-
-  private val objectMapper = ObjectMapper()
-    .registerModule(JavaTimeModule())
-    .setDateFormat(SimpleDateFormat("yyyy-MM-dd"))
 
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   private val dateFrom = LocalDate.parse("30/12/2023", dateFormatter)
