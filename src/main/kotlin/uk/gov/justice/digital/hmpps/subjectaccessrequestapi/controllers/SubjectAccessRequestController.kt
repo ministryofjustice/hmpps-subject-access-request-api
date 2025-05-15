@@ -122,6 +122,14 @@ class SubjectAccessRequestController(
     return ResponseEntity(response, HttpStatus.CREATED)
   }
 
+  @GetMapping("/subjectAccessRequest/{id}")
+  fun getSubjectAccessRequest(
+    @PathVariable id: UUID,
+  ): ResponseEntity<SubjectAccessRequest> = subjectAccessRequestService
+    .findSubjectAccessRequest(id).takeIf { it.isPresent }
+    ?.let { ResponseEntity(it.get(), HttpStatus.OK) }
+    ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
   @GetMapping("/subjectAccessRequests")
   @Operation(summary = "Get Subject Access Requests.", description = "Return a list of Subject Access Requests.")
   @ApiResponses(

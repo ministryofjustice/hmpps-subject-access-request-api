@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
-import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -22,11 +22,13 @@ import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.io.ByteArrayInputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.Optional
 import java.util.UUID
 
 class SubjectAccessRequestControllerTest {
@@ -167,6 +169,55 @@ class SubjectAccessRequestControllerTest {
       )
     }
   }
+
+  @Nested
+  inner class GetSubjectAccessRequest {
+
+    @Test
+    fun `getSubjectAccessRequest should return status 404 when ID not found`() {
+      whenever(subjectAccessRequestService.findSubjectAccessRequest(any())).thenReturn(Optional.empty())
+
+      val response = subjectAccessRequestController.getSubjectAccessRequest(UUID.randomUUID())
+
+      assertThat(response).isNotNull
+      assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+    }
+
+    @Test
+    fun `getSubjectAccessRequest should return status 200 when ID found`() {
+      val subjectAccessRequest: SubjectAccessRequest = mock()
+      whenever(subjectAccessRequestService.findSubjectAccessRequest(any())).thenReturn(Optional.of(subjectAccessRequest))
+
+      val response = subjectAccessRequestController.getSubjectAccessRequest(UUID.randomUUID())
+
+      assertThat(response).isNotNull
+      assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+      assertThat(response.body).isEqualTo(subjectAccessRequest)
+    }
+
+    @Test
+    fun `getSubjectAccessRequest should return status 500 when find by ID throws an error`() {
+      val id = UUID.randomUUID()
+
+      val expectedError = SubjectAccessRequestApiException(
+        message = "unexpected error occurred while attempting to find request by id",
+        status = HttpStatus.INTERNAL_SERVER_ERROR,
+        subjectAccessRequestId = id.toString(),
+      )
+
+      whenever(subjectAccessRequestService.findSubjectAccessRequest(any())).thenThrow(expectedError)
+
+      val ex = assertThrows<SubjectAccessRequestApiException> {
+        subjectAccessRequestController.getSubjectAccessRequest(id)
+      }
+
+      assertThat(ex).isNotNull
+      assertThat(ex.message).contains("unexpected error occurred while attempting to find request by id")
+      assertThat(ex.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+      assertThat(ex.subjectAccessRequestId).isEqualTo(id.toString())
+    }
+  }
+
 
   @Nested
   inner class GetTotalSubjectAccessRequests {
