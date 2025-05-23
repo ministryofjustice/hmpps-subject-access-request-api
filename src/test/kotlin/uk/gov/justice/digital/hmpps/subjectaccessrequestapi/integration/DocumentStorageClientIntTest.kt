@@ -5,11 +5,16 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientAutoConfiguration
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpStatus
+import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.WebClientConfiguration
@@ -20,7 +25,7 @@ import java.io.File
 import java.util.*
 
 @ActiveProfiles("test")
-@SpringBootTest(classes = [DocumentStorageClient::class, WebClientConfiguration::class, WebClientAutoConfiguration::class, OAuth2ClientAutoConfiguration::class, SecurityAutoConfiguration::class])
+@SpringBootTest(classes = [DocumentStorageClient::class, WebClientConfiguration::class, WebClientAutoConfiguration::class, OAuth2ClientAutoConfiguration::class, OAuth2TestConfig::class, SecurityAutoConfiguration::class])
 @WithMockAuthUser
 class DocumentStorageClientIntTest {
 
@@ -80,4 +85,12 @@ class DocumentStorageClientIntTest {
       hmppsAuthMockServer.stop()
     }
   }
+}
+
+class OAuth2TestConfig {
+  @Bean
+  fun authorizedClientManager(
+    clientRegistrationRepository: ClientRegistrationRepository,
+    authorizedClientService: OAuth2AuthorizedClientService,
+  ): OAuth2AuthorizedClientManager = AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientService)
 }
