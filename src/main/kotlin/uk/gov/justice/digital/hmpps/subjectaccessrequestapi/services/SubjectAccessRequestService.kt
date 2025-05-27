@@ -202,11 +202,9 @@ class SubjectAccessRequestService(
 
   fun constructAppInsightsEventsUrl(sarId: UUID): String {
     val encodedQuery = encodeKQLQuery(
-      encodeKQLQuery(
-        "customEvents | " +
-          "where cloud_RoleName like 'hmpps-subject-access-request' " +
-          "and (customDimensions['UUID'] == '$sarId' or customDimensions['id'] == '$sarId')",
-      ),
+      "customEvents | " +
+        "where cloud_RoleName like 'hmpps-subject-access-request' " +
+        "and (customDimensions['UUID'] == '$sarId' or customDimensions['id'] == '$sarId')",
     )
     return "https://portal.azure.com/#blade/Microsoft_Azure_Monitoring_Logs/LogsBlade/resourceId/" +
       "%2Fsubscriptions%2F${appInsightsQueryConfig.subscriptionId}" +
