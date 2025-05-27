@@ -111,7 +111,7 @@ class AdminControllerIntTest : IntegrationTestBase() {
               "%2FresourceGroups%2Fnomisapi-t3-rg" +
               "%2Fproviders%2Fmicrosoft.insights%2Fcomponents%2Fnomisapi-t3" +
               "/source/LogsBlade.AnalyticsShareLinkToQuery" +
-              "/q/H4sIAAAAAAAA%2Fy2PzXKCMBhFn8a9pUnFZQKCBD4oBjDpTphAaKBFTP3p05cZe%2BduzuLOmbtHl4j8Z%2BUEWMCcbzyghKCgwdWdpqHtSV8bDaTncckitbGjbt9A5D%2BhfrT0%2B9opBO9eJsXWOGxUkM4TM6Tls7%2F9yN29KDs3w1kE8lbwBx6p1YM%2BH8asgs913FDVoRuJF%2FlRNd5ByMkdvtYLnnZF4Oh6519La%2BqCh5Wwp1%2FQZz4NjB1llc4isBfbJdxPVg5NwmWE8KDd5k6NfHl%2BevWX%2FgFmI1ht5gAAAA%3D%3D" +
+              "/q/H4sIAAAAAAAA%2F5XMrQ7CMBAA4Fc5VxBNGtiAibkhMAiSKUJIe7tmhf6MXQuGhyfBovge4MPCOYX9k2JmeMNrpJkAfSrD9ZQ8HXUg8O5OIMYwTSy5mBthlhqRmOVMj0KcBeg4wAK%2FWecCRXYp8ln0%2FaETF2hbEDvUtkbTSGVXtazMhqSplJJWYVNrXFtstgLSDL%2BLG%2F45lh8cxBkY1AAAAA%3D%3D" +
               "/timespan/PT168H",
           ),
         ),
