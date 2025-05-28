@@ -1,11 +1,13 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers
 
+import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ExtendedSubjectAccessRequestDetail
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequestAdminSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
@@ -15,9 +17,11 @@ import java.util.UUID
 
 class AdminControllerTest {
   private val subjectAccessRequestService: SubjectAccessRequestService = mock()
-  private val adminController = AdminController(subjectAccessRequestService)
+  private val telemetryClient: TelemetryClient = mock()
+  private val adminController = AdminController(subjectAccessRequestService, telemetryClient)
 
   companion object {
+    private val SAR_UUID = UUID.fromString("55555555-5555-5555-5555-555555555555")
     private val ADMIN_SUMMARY = SubjectAccessRequestAdminSummary(
       totalCount = 10,
       completedCount = 1,
@@ -27,7 +31,7 @@ class AdminControllerTest {
       filterCount = 5,
       requests = listOf(
         ExtendedSubjectAccessRequestDetail(
-          id = UUID.fromString("55555555-5555-5555-5555-555555555555"),
+          id = SAR_UUID,
           status = "Completed",
           dateFrom = LocalDate.parse("2025-01-01"),
           dateTo = LocalDate.parse("2025-03-01"),
@@ -103,6 +107,17 @@ class AdminControllerTest {
         pageSize = null,
       )
       assertThat(result).isEqualTo(ADMIN_SUMMARY)
+    }
+  }
+
+  @Nested
+  inner class RestartSubjectAccessRequest {
+    @Test
+    fun `restartSubjectAccessRequest is called`() {
+      val response = adminController.restartSubjectAccessRequest(SAR_UUID)
+
+      verify(subjectAccessRequestService).restartSubjectAccessRequest(SAR_UUID)
+      assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
     }
   }
 }

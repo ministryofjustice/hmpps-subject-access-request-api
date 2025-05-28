@@ -159,4 +159,8 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query("UPDATE SubjectAccessRequest s SET s.status = 'Errored' WHERE s.id = :id AND s.status = 'Pending' AND :threshold > s.requestDateTime")
   fun updateStatusToErrorSubmittedBefore(@Param("id") id: UUID, @Param("threshold") threshold: LocalDateTime): Int
+
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query("UPDATE SubjectAccessRequest s SET s.status = 'Pending', s.requestDateTime = :requestDateTime WHERE s.id = :id")
+  fun updateStatusToPendingAndRequestDateTime(@Param("id") id: UUID, @Param("requestDateTime") requestDateTime: LocalDateTime): Int
 }

@@ -15,7 +15,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class AdminControllerIntTest : IntegrationTestBase() {
+class AdminControllerGetRequestsIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
