@@ -34,6 +34,7 @@ import java.net.URLEncoder
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.Base64
 import java.util.Optional
 import java.util.UUID
@@ -366,6 +367,34 @@ class SubjectAccessRequestService(
         subjectAccessRequestId = id.toString(),
       )
     }
+  }
+
+  @Transactional
+  fun restartSubjectAccessRequest(id: UUID) {
+    subjectAccessRequestRepository.findById(id).orElse(null)?.let { subjectAccessRequest ->
+      when (subjectAccessRequest.status) {
+        Status.Errored -> {
+          log.info("updating subject access request $id to status '${Status.Pending} and request date time of now'")
+          subjectAccessRequestRepository.updateStatusToPendingAndRequestDateTime(id, LocalDateTime.now(ZoneId.systemDefault())).takeIf { it != 0 }
+            ?: throw SubjectAccessRequestApiException(
+              message = "subject access request was not successfully restarted",
+              status = HttpStatus.BAD_REQUEST,
+              subjectAccessRequestId = id.toString(),
+            )
+        }
+        else -> {
+          throw SubjectAccessRequestApiException(
+            message = "restart request unsuccessful, existing status is '${subjectAccessRequest.status}'",
+            status = HttpStatus.BAD_REQUEST,
+            subjectAccessRequestId = id.toString(),
+          )
+        }
+      }
+    } ?: throw SubjectAccessRequestApiException(
+      message = "restart subject access request unsuccessful, request ID not found",
+      status = HttpStatus.NOT_FOUND,
+      subjectAccessRequestId = id.toString(),
+    )
   }
 
   private fun copyAndSaveSubjectAccessRequest(source: SubjectAccessRequest, requestedBy: String): UUID {

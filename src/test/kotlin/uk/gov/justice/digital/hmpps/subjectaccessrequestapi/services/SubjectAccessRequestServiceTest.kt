@@ -9,6 +9,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito.times
@@ -900,6 +901,75 @@ class SubjectAccessRequestServiceTest {
       ndeliusCaseReferenceId = null,
       requestedBy = "Bob",
     )
+  }
+
+  @Nested
+  inner class RestartSubjectAccessRequest {
+
+    private val uuid = UUID.fromString("55555555-5555-5555-5555-555555555555")
+
+    @Test
+    fun `restartSubjectAccessRequest calls repository update method to set status and requestDateTime successfully`() {
+      whenever(subjectAccessRequestRepository.findById(uuid)).thenReturn(Optional.of(SubjectAccessRequest(status = Status.Errored)))
+      whenever(subjectAccessRequestRepository.updateStatusToPendingAndRequestDateTime(eq(uuid), any())).thenReturn(1)
+
+      subjectAccessRequestService.restartSubjectAccessRequest(uuid)
+
+      verify(subjectAccessRequestRepository).updateStatusToPendingAndRequestDateTime(
+        eq(uuid),
+        argThat { it -> java.time.Duration.between(it, LocalDateTime.now()).abs().seconds <= 5 },
+      )
+    }
+
+    @Test
+    fun `restartSubjectAccessRequest throws Exception when update status and requestDateTime not successful`() {
+      whenever(subjectAccessRequestRepository.findById(uuid)).thenReturn(Optional.of(SubjectAccessRequest(status = Status.Errored)))
+      whenever(subjectAccessRequestRepository.updateStatusToPendingAndRequestDateTime(eq(uuid), any())).thenReturn(0)
+
+      val exception = assertThrows<SubjectAccessRequestApiException> {
+        subjectAccessRequestService.restartSubjectAccessRequest(uuid)
+      }
+
+      assertThat(exception.message).isEqualTo("subject access request was not successfully restarted")
+      assertThat(exception.status).isEqualTo(HttpStatus.BAD_REQUEST)
+      assertThat(exception.subjectAccessRequestId).isEqualTo(uuid.toString())
+
+      verify(subjectAccessRequestRepository).updateStatusToPendingAndRequestDateTime(
+        eq(uuid),
+        argThat { it -> java.time.Duration.between(it, LocalDateTime.now()).abs().seconds <= 5 },
+      )
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Status::class, names = ["Pending", "Completed"])
+    fun `restartSubjectAccessRequest throws Exception when status is not Errored`(status: Status) {
+      whenever(subjectAccessRequestRepository.findById(uuid)).thenReturn(Optional.of(SubjectAccessRequest(status = status)))
+
+      val exception = assertThrows<SubjectAccessRequestApiException> {
+        subjectAccessRequestService.restartSubjectAccessRequest(uuid)
+      }
+
+      assertThat(exception.message).isEqualTo("restart request unsuccessful, existing status is '$status'")
+      assertThat(exception.status).isEqualTo(HttpStatus.BAD_REQUEST)
+      assertThat(exception.subjectAccessRequestId).isEqualTo(uuid.toString())
+
+      verify(subjectAccessRequestRepository, never()).updateStatusToPendingAndRequestDateTime(any(), any())
+    }
+
+    @Test
+    fun `restartSubjectAccessRequest throws exception when request does not exist`() {
+      whenever(subjectAccessRequestRepository.findById(uuid)).thenReturn(Optional.empty())
+
+      val exception = assertThrows<SubjectAccessRequestApiException> {
+        subjectAccessRequestService.restartSubjectAccessRequest(uuid)
+      }
+
+      assertThat(exception.message).isEqualTo("restart subject access request unsuccessful, request ID not found")
+      assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+      assertThat(exception.subjectAccessRequestId).isEqualTo(uuid.toString())
+
+      verify(subjectAccessRequestRepository, never()).updateStatusToPendingAndRequestDateTime(any(), any())
+    }
   }
 
   private val nDeliusRequest = CreateSubjectAccessRequestEntity(
