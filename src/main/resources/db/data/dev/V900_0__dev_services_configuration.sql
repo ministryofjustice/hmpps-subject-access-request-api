@@ -8,7 +8,7 @@ VALUES
     ('hmpps-offender-categorisation-api', 'Categorisation Tool', 'https://hmpps-offender-categorisation-api-dev.hmpps.service.justice.gov.uk', 5),
     ('create-and-vary-a-licence-api', 'Create and Vary a Licence', 'https://create-and-vary-a-licence-api-dev.hmpps.service.justice.gov.uk', 6),
     ('hmpps-hdc-api', 'Home Detention Curfew', 'https://hdc-api-dev.hmpps.service.justice.gov.uk', 7),
-    ('offender-management-allocation-manager', 'Manage Prison Offender Manager Cases', 'https://test.moic.service.justice.gov.uk', 8),
+    ('offender-management-allocation-manager', 'Manage Prison Offender Manager Cases', 'https://dev.moic.service.justice.gov.uk', 8),
     ('hmpps-complexity-of-need', 'Complexity Of Need', 'https://complexity-of-need-staging.hmpps.service.justice.gov.uk', 9),
     ('offender-case-notes', 'Sensitive Case Notes', 'https://dev.offender-case-notes.service.justice.gov.uk', 10),
     ('hmpps-incentives-api', 'Incentives', 'https://incentives-api-dev.hmpps.service.justice.gov.uk', 11),
