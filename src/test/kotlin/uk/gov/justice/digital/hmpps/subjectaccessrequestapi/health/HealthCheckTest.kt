@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.health
 
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.test.web.reactive.server.WebTestClient.BodyContentSpec
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
 
@@ -31,7 +30,6 @@ class HealthCheckTest : IntegrationTestBase() {
       .componentHasStatusAndUrls("my-alt-dynamic-service", "UP", 8091, "sarServiceApis.details.")
   }
 
-  @AutoConfigureWebTestClient(timeout = "PT15S")
   @Test
   fun `Health page reports down`() {
     stubPingWithResponse(503)
