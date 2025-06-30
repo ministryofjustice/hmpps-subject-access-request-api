@@ -37,11 +37,10 @@ jobs:
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_postgres_verify.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
-      jdk_tag: "21.0"
-      postgres_tag: "17"
-      postgres_db: sar-db
-      postgres_username: admin
-      postgres_password: admin_password
+      postgres-tag: "17"
+      postgres-db: sar-db
+      postgres-username: admin
+      postgres-password: admin_password
   build:
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
