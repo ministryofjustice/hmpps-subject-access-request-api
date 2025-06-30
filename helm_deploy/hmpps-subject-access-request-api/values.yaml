@@ -7,7 +7,7 @@ generic-service:
   replicaCount: 4
 
   image:
-    repository: quay.io/hmpps/hmpps-subject-access-request-api
+    repository: ghcr.io/ministryofjustice/hmpps-subject-access-request-api
     tag: app_version    # override at deployment time
     port: 8080
 
@@ -21,7 +21,6 @@ generic-service:
     JAVA_OPTS: "-Xmx512m"
     SERVER_PORT: "8080"
     SPRING_PROFILES_ACTIVE: "logstash"
-    APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
@@ -31,11 +30,12 @@ generic-service:
 
   namespace_secrets:
     hmpps-subject-access-request-api:
-      APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
+      SENTRY_DSN: "SENTRY_DSN"
+    hmpps-subject-access-request-api-client-creds:
       API_CLIENT_ID: "API_CLIENT_ID"
       API_CLIENT_SECRET: "API_CLIENT_SECRET"
-      SENTRY_DSN: "SENTRY_DSN"
-      APPLICATION_APPINSIGHTS_SUBSCRIPTIONID: "APPLICATION_APPINSIGHTS_SUBSCRIPTIONID"
+    hmpps-subject-access-request-api-application-insights:
+      APPLICATIONINSIGHTS_CONNECTION_STRING: "APPLICATIONINSIGHTS_CONNECTION_STRING"
 
     rds-instance-output:
       DATABASE_ENDPOINT: "rds_instance_endpoint"
