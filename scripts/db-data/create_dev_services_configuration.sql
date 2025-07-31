@@ -1,5 +1,4 @@
 -- Insert service configuration for the Dev environment
-DELETE FROM service_configuration;
 INSERT INTO service_configuration (service_name, label, url, list_order)
 VALUES
     ('G1', 'G1', 'G1', 1),
@@ -29,4 +28,8 @@ VALUES
     ('hmpps-approved-premises-api', 'Approved Premises', 'https://approved-premises-api-dev.hmpps.service.justice.gov.uk', 25),
     ('make-recall-decision-api', 'Consider a Recall', 'https://make-recall-decision-api-dev.hmpps.service.justice.gov.uk', 26),
     ('hmpps-health-and-medication-api', 'Health and Medication', 'https://health-and-medication-api-dev.hmpps.service.justice.gov.uk', 27),
-    ('wiremock-test-service-api', 'Wiremock Test Service', 'http://hmpps-subject-access-request-worker-wiremock', 9999);
+    ('wiremock-test-service-api', 'Wiremock Test Service', 'http://hmpps-subject-access-request-worker-wiremock', 9999)
+ON CONFLICT (service_name) DO UPDATE SET
+    label = EXCLUDED.label,
+    url = EXCLUDED.url,
+    list_order = EXCLUDED.list_order;
