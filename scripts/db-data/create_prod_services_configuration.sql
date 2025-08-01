@@ -1,6 +1,5 @@
 -- Insert service configuration for the Prod environment
 
-DELETE FROM service_configuration;
 INSERT INTO service_configuration (service_name, label, url, list_order)
 VALUES
     ('G1', 'G1', 'G1', 1),
@@ -28,4 +27,8 @@ VALUES
     ('hmpps-accredited-programmes-api', 'Accredited Programmes', 'https://accredited-programmes-api.hmpps.service.justice.gov.uk', 23),
     ('hmpps-interventions-service', 'Refer and Monitor an Intervention', 'https://hmpps-interventions-service.apps.live-1.cloud-platform.service.justice.gov.uk', 24),
     ('hmpps-approved-premises-api', 'Approved Premises', 'https://approved-premises-api.hmpps.service.justice.gov.uk', 25),
-    ('make-recall-decision-api', 'Consider a Recall', 'https://make-recall-decision-api.hmpps.service.justice.gov.uk', 26);
+    ('make-recall-decision-api', 'Consider a Recall', 'https://make-recall-decision-api.hmpps.service.justice.gov.uk', 26)
+ON CONFLICT (service_name) DO UPDATE SET
+    label = EXCLUDED.label,
+    url = EXCLUDED.url,
+    list_order = EXCLUDED.list_order;

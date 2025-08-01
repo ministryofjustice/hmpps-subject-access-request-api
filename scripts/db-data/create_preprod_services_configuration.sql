@@ -1,6 +1,5 @@
 -- Insert service configuration for the Preprod environment
 
-DELETE FROM service_configuration;
 INSERT INTO service_configuration (service_name, label, url, list_order)
 VALUES
     ('G1', 'G1', 'G1', 1),
@@ -29,4 +28,8 @@ VALUES
     ('hmpps-interventions-service', 'Refer and Monitor an Intervention', 'https://hmpps-interventions-service-preprod.apps.live-1.cloud-platform.service.justice.gov.uk', 24),
     ('hmpps-approved-premises-api', 'Approved Premises', 'https://approved-premises-api-preprod.hmpps.service.justice.gov.uk', 25),
     ('make-recall-decision-api', 'Consider a Recall', 'https://make-recall-decision-api-preprod.hmpps.service.justice.gov.uk', 26),
-    ('hmpps-health-and-medication-api', 'Health and Medication', 'https://health-and-medication-api-preprod.hmpps.service.justice.gov.uk', 27);
+    ('hmpps-health-and-medication-api', 'Health and Medication', 'https://health-and-medication-api-preprod.hmpps.service.justice.gov.uk', 27)
+ON CONFLICT (service_name) DO UPDATE SET
+    label = EXCLUDED.label,
+    url = EXCLUDED.url,
+    list_order = EXCLUDED.list_order;
