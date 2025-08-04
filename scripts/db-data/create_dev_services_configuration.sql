@@ -28,6 +28,7 @@ VALUES
     ('hmpps-approved-premises-api', 'Approved Premises', 'https://approved-premises-api-dev.hmpps.service.justice.gov.uk', 25),
     ('make-recall-decision-api', 'Consider a Recall', 'https://make-recall-decision-api-dev.hmpps.service.justice.gov.uk', 26),
     ('hmpps-health-and-medication-api', 'Health and Medication', 'https://health-and-medication-api-dev.hmpps.service.justice.gov.uk', 27),
+    ('hmpps-managing-prisoner-apps-api', 'Managing Prisoner Applications', 'https://managing-prisoner-apps-api-dev.hmpps.service.justice.gov.uk', 28),
     ('wiremock-test-service-api', 'Wiremock Test Service', 'http://hmpps-subject-access-request-worker-wiremock', 9999)
 ON CONFLICT (service_name) DO UPDATE SET
     label = EXCLUDED.label,

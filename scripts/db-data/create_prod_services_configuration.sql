@@ -27,7 +27,9 @@ VALUES
     ('hmpps-accredited-programmes-api', 'Accredited Programmes', 'https://accredited-programmes-api.hmpps.service.justice.gov.uk', 23),
     ('hmpps-interventions-service', 'Refer and Monitor an Intervention', 'https://hmpps-interventions-service.apps.live-1.cloud-platform.service.justice.gov.uk', 24),
     ('hmpps-approved-premises-api', 'Approved Premises', 'https://approved-premises-api.hmpps.service.justice.gov.uk', 25),
-    ('make-recall-decision-api', 'Consider a Recall', 'https://make-recall-decision-api.hmpps.service.justice.gov.uk', 26)
+    ('make-recall-decision-api', 'Consider a Recall', 'https://make-recall-decision-api.hmpps.service.justice.gov.uk', 26),
+    ('hmpps-health-and-medication-api', 'Health and Medication', 'https://health-and-medication-api.hmpps.service.justice.gov.uk', 27),
+    ('hmpps-managing-prisoner-apps-api', 'Managing Prisoner Applications', 'https://managing-prisoner-apps-api.hmpps.service.justice.gov.uk', 28)
 ON CONFLICT (service_name) DO UPDATE SET
     label = EXCLUDED.label,
     url = EXCLUDED.url,
