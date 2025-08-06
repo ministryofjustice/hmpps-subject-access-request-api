@@ -6,7 +6,7 @@ VALUES
     ('G3', 'G3', 'G3', 3),
     ('hmpps-book-secure-move-api', 'Book a Secure Move', 'https://hmpps-book-secure-move-api-staging.apps.cloud-platform.service.justice.gov.uk', 4),
     ('hmpps-offender-categorisation-api', 'Categorisation Tool', 'https://hmpps-offender-categorisation-api-dev.hmpps.service.justice.gov.uk', 5),
-    ('create-and-vary-a-licence-api', 'Create and Vary a Licence', 'https://create-and-vary-a-licence-api-dev.hmpps.service.justice.gov.uk', 6),
+    ('create-and-vary-a-licence-api', 'Create and Vary a Licence', 'https://create-and-vary-a-licence-api-test2.hmpps.service.justice.gov.uk', 6),
     ('hmpps-hdc-api', 'Home Detention Curfew', 'https://hdc-api-dev.hmpps.service.justice.gov.uk', 7),
     ('offender-management-allocation-manager', 'Manage Prison Offender Manager Cases', 'https://dev.moic.service.justice.gov.uk', 8),
     ('hmpps-complexity-of-need', 'Complexity Of Need', 'https://complexity-of-need-staging.hmpps.service.justice.gov.uk', 9),
