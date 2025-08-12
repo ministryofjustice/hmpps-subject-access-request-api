@@ -36,6 +36,7 @@ generic-service:
       API_CLIENT_SECRET: "API_CLIENT_SECRET"
     hmpps-subject-access-request-api-application-insights:
       APPLICATIONINSIGHTS_CONNECTION_STRING: "APPLICATIONINSIGHTS_CONNECTION_STRING"
+      APPLICATION_APPINSIGHTS_SUBSCRIPTIONID: "APPLICATION_APPINSIGHTS_SUBSCRIPTIONID"
 
     rds-instance-output:
       DATABASE_ENDPOINT: "rds_instance_endpoint"
