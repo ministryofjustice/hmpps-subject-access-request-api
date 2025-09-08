@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.0.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.0.1"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.2.10"
   kotlin("plugin.spring") version "2.2.10"
   kotlin("plugin.jpa") version "2.2.10"
@@ -19,7 +19,7 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.5.0")
   implementation("org.json:json:20250517")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
   implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.20.0")
   implementation("io.sentry:sentry-logback:8.20.0")
 
