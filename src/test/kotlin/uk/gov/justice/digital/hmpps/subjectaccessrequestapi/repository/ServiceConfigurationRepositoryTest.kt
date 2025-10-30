@@ -40,6 +40,7 @@ class ServiceConfigurationRepositoryTest {
       url = "s1.com",
       order = 1,
       enabled = true,
+      templateMigrated = false,
     )
 
     private val s2 = ServiceConfiguration(
@@ -48,6 +49,7 @@ class ServiceConfigurationRepositoryTest {
       url = "s2.com",
       order = 2,
       enabled = true,
+      templateMigrated = false,
     )
 
     private val s3 = ServiceConfiguration(
@@ -56,6 +58,7 @@ class ServiceConfigurationRepositoryTest {
       url = "s3.com",
       order = 3,
       enabled = true,
+      templateMigrated = false,
     )
   }
 }

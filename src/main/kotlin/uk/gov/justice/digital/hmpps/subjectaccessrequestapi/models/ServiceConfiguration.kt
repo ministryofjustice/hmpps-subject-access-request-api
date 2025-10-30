@@ -27,4 +27,7 @@ data class ServiceConfiguration(
 
   @Column(name = "enabled", nullable = false)
   val enabled: Boolean,
+
+  @Column(name = "template_migrated", nullable = false)
+  val templateMigrated: Boolean,
 )
