@@ -24,7 +24,7 @@ data class TemplateVersion(
 
   @Column(name = "status", nullable = true)
   @Enumerated(EnumType.STRING)
-  var status: TemplateStatus? = null,
+  var status: TemplateVersionStatus? = null,
 
   @Column(name = "version", nullable = false)
   val version: Int,
@@ -45,7 +45,7 @@ data class TemplateVersion(
   )
 }
 
-enum class TemplateStatus {
+enum class TemplateVersionStatus {
   PUBLISHED,
   PENDING,
 }

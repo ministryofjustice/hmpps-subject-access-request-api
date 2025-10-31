@@ -4,13 +4,13 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionStatus
 import java.util.UUID
 
 @Repository
 interface TemplateVersionRepository : JpaRepository<TemplateVersion, UUID> {
-  fun deleteByServiceConfigurationIdAndStatus(id: UUID, status: TemplateStatus)
+  fun deleteByServiceConfigurationIdAndStatus(id: UUID, status: TemplateVersionStatus)
   fun findByServiceConfigurationIdOrderByVersionDesc(id: UUID): List<TemplateVersion>
 
   @Query(
@@ -25,10 +25,10 @@ interface TemplateVersionRepository : JpaRepository<TemplateVersion, UUID> {
     "SELECT template FROM TemplateVersion template " +
       "WHERE template.serviceConfiguration.id = :id " +
       "AND template.status = :status " +
-      "ORDER BY template.createdAt DESC "
+      "ORDER BY template.createdAt DESC ",
   )
   fun findByServiceConfigurationIdAndStatus(
     @Param("id") id: UUID,
-    @Param("status") status: TemplateStatus,
+    @Param("status") status: TemplateVersionStatus,
   ): List<TemplateVersion>
 }

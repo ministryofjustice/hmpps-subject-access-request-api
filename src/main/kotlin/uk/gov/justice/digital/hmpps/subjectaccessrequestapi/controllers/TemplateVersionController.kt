@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.ServiceConfigurationService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.TemplateVersionService
 import java.time.LocalDateTime
@@ -100,10 +100,11 @@ class TemplateVersionController(
     @PathVariable("id") serviceId: UUID,
   ): ResponseEntity<List<TemplateVersionEntity>> = serviceConfigurationService.getById(serviceId)
     ?.let { serviceConfig ->
-      val versions = templateVersionService.getVersions(serviceConfig.id)?.map { it.toEntity() } ?: emptyList()
+      val versions = templateVersionService.getVersions(serviceConfig.id)
+        ?.map { it.toEntity() }
+        ?: emptyList()
       ResponseEntity.ok(versions)
     } ?: ResponseEntity.notFound().build()
-
 
   @PostMapping("/service/{id}")
   @Operation(
@@ -171,7 +172,7 @@ class TemplateVersionController(
     ?.let { service ->
       file.bytes.takeIf { it.isNotEmpty() }
         ?.let { bytes ->
-          val templateVersion = templateVersionService.newTemplateVersion(service.id, String(bytes))
+          val templateVersion = templateVersionService.saveNewTemplateVersion(service.id, String(bytes))
           log.info(
             "created template version: {}, status: {}, service: {}",
             service.serviceName,
@@ -205,7 +206,7 @@ data class TemplateVersionEntity(
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
   val createdDate: LocalDateTime? = null,
   val fileHash: String? = null,
-  val status: TemplateStatus? = null,
+  val status: TemplateVersionStatus? = null,
 ) {
-  constructor() : this(null, null, null, null, null, TemplateStatus.PENDING)
+  constructor() : this(null, null, null, null, null, TemplateVersionStatus.PENDING)
 }

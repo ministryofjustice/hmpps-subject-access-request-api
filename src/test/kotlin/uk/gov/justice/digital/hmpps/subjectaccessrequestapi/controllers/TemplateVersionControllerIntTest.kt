@@ -13,8 +13,8 @@ import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionRepository
 import java.time.LocalDateTime
@@ -47,7 +47,7 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
   private val publishedTemplateV1 = TemplateVersion(
     id = UUID.randomUUID(),
     serviceConfiguration = serviceConfig,
-    status = TemplateStatus.PUBLISHED,
+    status = TemplateVersionStatus.PUBLISHED,
     version = 1,
     createdAt = LocalDateTime.now(),
     fileHash = "template-v1-hash",
@@ -56,7 +56,7 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
   private val pendingTemplateV2 = TemplateVersion(
     id = UUID.randomUUID(),
     serviceConfiguration = serviceConfig,
-    status = TemplateStatus.PENDING,
+    status = TemplateVersionStatus.PENDING,
     version = 2,
     createdAt = LocalDateTime.now(),
     fileHash = "template-v2-hash",
@@ -215,7 +215,7 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
       assertThat(actual!!.version).isEqualTo(1)
       assertThat(actual.serviceConfiguration).isEqualTo(serviceConfig)
       assertThat(actual.fileHash).isEqualTo(templateV1Hash)
-      assertThat(actual.status).isEqualTo(TemplateStatus.PENDING)
+      assertThat(actual.status).isEqualTo(TemplateVersionStatus.PENDING)
     }
 
     @Test
@@ -251,7 +251,7 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
           version = 2,
           createdAt = createdTemplate.createdDate!!,
           fileHash = templateV2Hash,
-          status = TemplateStatus.PENDING,
+          status = TemplateVersionStatus.PENDING,
         ),
       )
       assertThat(existingTemplateVersions[1]).isEqualTo(publishedTemplateV1)
@@ -271,7 +271,8 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
       MultipartBodyBuilder().apply {
         part("file", getMultipartBodyPart(templateBody))
           .header(
-            "Content-Disposition", "form-data; name=file; filename=test.txt",
+            "Content-Disposition",
+            "form-data; name=file; filename=test.txt",
           )
       }.build(),
     ).exchange()
