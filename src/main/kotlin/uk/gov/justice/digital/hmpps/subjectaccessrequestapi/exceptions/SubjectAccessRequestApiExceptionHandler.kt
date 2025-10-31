@@ -78,6 +78,34 @@ class SubjectAccessRequestApiExceptionHandler {
     ).also { log.error("Unexpected exception", e) }
     .also { logAndCapture("Unexpected exception:", e) }
 
+  @ExceptionHandler(TemplateVersionServiceConfigurationNotFoundException::class)
+  fun handleTemplateVersionServiceConfigurationNotFoundException(
+    e: TemplateVersionServiceConfigurationNotFoundException,
+  ): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(NOT_FOUND)
+    .body(
+      ErrorResponse(
+        status = NOT_FOUND,
+        userMessage = e.message,
+        developerMessage = e.message,
+      ),
+    ).also { log.error("Template version exception:", e) }
+    .also { logAndCapture("Template version exception:", e) }
+
+  @ExceptionHandler(TemplateVersionTemplateBodyEmptyException::class)
+  fun handleTemplateBodyEmptyException(
+    e: TemplateVersionTemplateBodyEmptyException,
+  ): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(BAD_REQUEST)
+    .body(
+      ErrorResponse(
+        status = BAD_REQUEST,
+        userMessage = e.message,
+        developerMessage = e.message,
+      ),
+    ).also { log.error("Template version exception:", e) }
+    .also { logAndCapture("Template version exception:", e) }
+
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
