@@ -20,15 +20,4 @@ interface TemplateVersionRepository : JpaRepository<TemplateVersion, UUID> {
       "LIMIT 1",
   )
   fun findLatestByServiceConfigurationId(@Param("id") id: UUID): TemplateVersion?
-
-  @Query(
-    "SELECT template FROM TemplateVersion template " +
-      "WHERE template.serviceConfiguration.id = :id " +
-      "AND template.status = :status " +
-      "ORDER BY template.createdAt DESC ",
-  )
-  fun findByServiceConfigurationIdAndStatus(
-    @Param("id") id: UUID,
-    @Param("status") status: TemplateVersionStatus,
-  ): List<TemplateVersion>
 }

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -35,11 +36,11 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
   private val templateV2Hash = "e54c30a7c4849a0c74e6a193528a267cf1851b90ea3bf79c4b4d149283749bab"
 
   private var serviceConfig = ServiceConfiguration(
-    id = UUID.randomUUID(),
+    id = UUID.fromString("953a5ece-334b-4797-bfb9-f0fa9ff48f7d"),
     serviceName = serviceName,
     label = "HMPPS Example Service",
     url = "http://localhost:8080/",
-    order = 1,
+    order = 666,
     enabled = true,
     templateMigrated = true,
   )
@@ -64,10 +65,13 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    templateVersionRepository.deleteAll()
-
-    serviceConfigurationRepository.deleteAll()
     serviceConfigurationRepository.save(serviceConfig)
+  }
+
+  @AfterEach
+  fun cleanup() {
+    templateVersionRepository.deleteAll()
+    serviceConfigurationRepository.deleteById(serviceConfig.id)
   }
 
   @Nested
