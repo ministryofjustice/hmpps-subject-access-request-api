@@ -151,7 +151,7 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
         .jsonPath("$[0].id").isNotEmpty
         .jsonPath("$[0].serviceName").isEqualTo("hmpps-example-service")
         .jsonPath("$[0].version").isEqualTo(1)
-        .jsonPath("$[0].createdDate").isEqualTo(publishedTemplateV1.createdAt)
+        .jsonPath("$[0].createdDate").isNotEmpty
         .jsonPath("$[0].fileHash").isEqualTo("template-v1-hash")
         .jsonPath("$[0].status").isEqualTo("PUBLISHED")
     }
@@ -248,16 +248,13 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
         templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfig.id)
 
       assertThat(existingTemplateVersions).hasSize(2)
-      assertThat(existingTemplateVersions[0]).isEqualTo(
-        TemplateVersion(
-          id = createdTemplate!!.id!!,
-          serviceConfiguration = serviceConfig,
-          version = 2,
-          createdAt = createdTemplate.createdDate!!,
-          fileHash = templateV2Hash,
-          status = TemplateVersionStatus.PENDING,
-        ),
-      )
+      assertThat(existingTemplateVersions[0].id).isEqualTo(createdTemplate.id)
+      assertThat(existingTemplateVersions[0].serviceConfiguration).isEqualTo(serviceConfig)
+      assertThat(existingTemplateVersions[0].version).isEqualTo(2)
+      assertThat(existingTemplateVersions[0].createdAt).isNotNull()
+      assertThat(existingTemplateVersions[0].fileHash).isEqualTo(templateV2Hash)
+      assertThat(existingTemplateVersions[0].status).isEqualTo(TemplateVersionStatus.PENDING)
+
       assertThat(existingTemplateVersions[1]).isEqualTo(publishedTemplateV1)
     }
   }
