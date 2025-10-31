@@ -230,8 +230,19 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
         templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfig.id)
 
       assertThat(existingTemplateVersions).hasSize(2)
-      assertThat(existingTemplateVersions[0]).isEqualTo(pendingTemplateV2)
-      assertThat(existingTemplateVersions[1]).isEqualTo(publishedTemplateV1)
+      assertThat(existingTemplateVersions[0].id).isEqualTo(pendingTemplateV2.id)
+      assertThat(existingTemplateVersions[0].serviceConfiguration).isEqualTo(serviceConfig)
+      assertThat(existingTemplateVersions[0].version).isEqualTo(2)
+      assertThat(existingTemplateVersions[0].createdAt).isNotNull()
+      assertThat(existingTemplateVersions[0].fileHash).isEqualTo(pendingTemplateV2.fileHash)
+      assertThat(existingTemplateVersions[0].status).isEqualTo(TemplateVersionStatus.PENDING)
+
+      assertThat(existingTemplateVersions[1].id).isEqualTo(publishedTemplateV1.id)
+      assertThat(existingTemplateVersions[1].serviceConfiguration).isEqualTo(serviceConfig)
+      assertThat(existingTemplateVersions[1].version).isEqualTo(1)
+      assertThat(existingTemplateVersions[1].createdAt).isNotNull()
+      assertThat(existingTemplateVersions[1].fileHash).isEqualTo(publishedTemplateV1.fileHash)
+      assertThat(existingTemplateVersions[1].status).isEqualTo(TemplateVersionStatus.PUBLISHED)
 
       val response = postTemplateVersion(serviceConfig.id, templateV2Body)
         .expectBody()
@@ -257,10 +268,10 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
 
       assertThat(existingTemplateVersions[1].id).isEqualTo(publishedTemplateV1.id)
       assertThat(existingTemplateVersions[1].serviceConfiguration).isEqualTo(serviceConfig)
-      assertThat(existingTemplateVersions[1].version).isEqualTo(2)
+      assertThat(existingTemplateVersions[1].version).isEqualTo(1)
       assertThat(existingTemplateVersions[1].createdAt).isNotNull()
-      assertThat(existingTemplateVersions[1].fileHash).isEqualTo(templateV1Hash)
-      assertThat(existingTemplateVersions[1].status).isEqualTo(TemplateVersionStatus.PENDING)
+      assertThat(existingTemplateVersions[1].fileHash).isEqualTo(publishedTemplateV1.fileHash)
+      assertThat(existingTemplateVersions[1].status).isEqualTo(TemplateVersionStatus.PUBLISHED)
     }
   }
 
