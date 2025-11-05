@@ -30,6 +30,7 @@ VALUES
     ('hmpps-health-and-medication-api', 'Health and Medication', 'https://health-and-medication-api-dev.hmpps.service.justice.gov.uk', 27),
     ('hmpps-managing-prisoner-apps-api', 'Managing Prisoner Applications', 'https://managing-prisoner-apps-api-dev.hmpps.service.justice.gov.uk', 28),
     ('hmpps-jobs-board-api', 'Match Jobs and Manage Applications', 'https://jobs-board-api-dev.hmpps.service.justice.gov.uk', 29),
+    ('hmpps-support-additional-needs-api', 'Support for Additional Needs', 'https://support-for-additional-needs-api-dev.hmpps.service.justice.gov.uk', 30),
     ('wiremock-test-service-api', 'Wiremock Test Service', 'http://hmpps-subject-access-request-worker-wiremock', 9999)
 ON CONFLICT (service_name) DO UPDATE SET
     label = EXCLUDED.label,
