@@ -6,7 +6,7 @@ VALUES
     ('G3', 'G3', 'G3', 3),
     ('hmpps-book-secure-move-api', 'Book a Secure Move', 'https://hmpps-book-secure-move-api-staging.apps.cloud-platform.service.justice.gov.uk', 4),
     ('hmpps-offender-categorisation-api', 'Categorisation Tool', 'https://hmpps-offender-categorisation-api-dev.hmpps.service.justice.gov.uk', 5),
-    ('create-and-vary-a-licence-api', 'Create and Vary a Licence', 'https://create-and-vary-a-licence-api-dev.hmpps.service.justice.gov.uk', 6),
+    ('create-and-vary-a-licence-api', 'Create and Vary a Licence', 'https://create-and-vary-a-licence-api-test2.hmpps.service.justice.gov.uk', 6),
     ('hmpps-hdc-api', 'Home Detention Curfew', 'https://hdc-api-dev.hmpps.service.justice.gov.uk', 7),
     ('offender-management-allocation-manager', 'Manage Prison Offender Manager Cases', 'https://dev.moic.service.justice.gov.uk', 8),
     ('hmpps-complexity-of-need', 'Complexity Of Need', 'https://complexity-of-need-staging.hmpps.service.justice.gov.uk', 9),
@@ -26,4 +26,9 @@ VALUES
     ('hmpps-accredited-programmes-api', 'Accredited Programmes', 'https://accredited-programmes-api-dev.hmpps.service.justice.gov.uk', 23),
     ('hmpps-interventions-service', 'Refer and Monitor an Intervention', 'https://hmpps-interventions-service-dev.apps.live-1.cloud-platform.service.justice.gov.uk', 24),
     ('hmpps-approved-premises-api', 'Approved Premises', 'https://approved-premises-api-dev.hmpps.service.justice.gov.uk', 25),
-    ('make-recall-decision-api', 'Consider a Recall', 'https://make-recall-decision-api-dev.hmpps.service.justice.gov.uk', 26);
+    ('make-recall-decision-api', 'Consider a Recall', 'https://make-recall-decision-api-dev.hmpps.service.justice.gov.uk', 26),
+    ('hmpps-health-and-medication-api', 'Health and Medication', 'https://health-and-medication-api-dev.hmpps.service.justice.gov.uk', 27),
+    ('hmpps-managing-prisoner-apps-api', 'Managing Prisoner Applications', 'https://managing-prisoner-apps-api-dev.hmpps.service.justice.gov.uk', 28),
+    ('hmpps-jobs-board-api', 'Match Jobs and Manage Applications', 'https://jobs-board-api-dev.hmpps.service.justice.gov.uk', 29),
+    ('hmpps-support-additional-needs-api', 'Support for Additional Needs', 'https://support-for-additional-needs-api-dev.hmpps.service.justice.gov.uk', 30),
+    ('wiremock-test-service-api', 'Wiremock Test Service', 'http://hmpps-subject-access-request-worker-wiremock', 9999);
