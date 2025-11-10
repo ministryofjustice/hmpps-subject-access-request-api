@@ -32,6 +32,9 @@ data class TemplateVersion(
   @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP(6)")
   var createdAt: LocalDateTime = LocalDateTime.now(),
 
+  @Column(name = "published_at", nullable = true, columnDefinition = "TIMESTAMP(6)")
+  var publishedAt: LocalDateTime? = null,
+
   @Column(name = "file_hash", nullable = false)
   var fileHash: String? = null,
 ) {
@@ -41,6 +44,7 @@ data class TemplateVersion(
     status = null,
     version = 0,
     createdAt = LocalDateTime.now(),
+    publishedAt = null,
     fileHash = null,
   )
 }
