@@ -1,0 +1,1 @@
+ALTER TABLE template_version ADD COLUMN published_at TIMESTAMP DEFAULT NULL;
