@@ -27,7 +27,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/templates")
-@PreAuthorize("hasAnyRole('ROLE_SAR_DATA_ACCESS', 'ROLE_SAR_SUPPORT')")
+@PreAuthorize("hasAnyRole('ROLE_SAR_DATA_ACCESS', 'ROLE_SAR_SUPPORT', 'ROLE_SAR_REGISTER_TEMPLATE')")
 class TemplateVersionController(
   private val templateVersionService: TemplateVersionService,
   private val serviceConfigurationService: ServiceConfigurationService,

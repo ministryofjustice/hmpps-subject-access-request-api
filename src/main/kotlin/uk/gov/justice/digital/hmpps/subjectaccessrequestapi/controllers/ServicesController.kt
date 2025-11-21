@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.ServiceConf
 
 @RestController
 @RequestMapping("/api/services")
-@PreAuthorize("hasAnyRole('ROLE_SAR_USER_ACCESS', 'ROLE_SAR_DATA_ACCESS', 'ROLE_SAR_SUPPORT')")
+@PreAuthorize("hasAnyRole('ROLE_SAR_USER_ACCESS', 'ROLE_SAR_DATA_ACCESS', 'ROLE_SAR_SUPPORT', 'ROLE_SAR_REGISTER_TEMPLATE')")
 class ServicesController(
   private val serviceConfigurationService: ServiceConfigurationService,
 ) {
@@ -61,7 +61,7 @@ class ServicesController(
   )
   fun getServices(): ResponseEntity<List<ServiceInfo>> {
     val services: List<ServiceInfo>? = serviceConfigurationService.getServiceConfigurationSanitised()?.map {
-      ServiceInfo(it.id, it.serviceName, it.label, it.url, it.order, it.enabled)
+      ServiceInfo(it.id, it.serviceName, it.label, it.url, it.order, it.enabled, it.templateMigrated)
     }
     return ResponseEntity(services, HttpStatus.OK)
   }

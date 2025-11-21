@@ -7,6 +7,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.MediaType
@@ -137,13 +139,20 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
         .expectBody().jsonPath("$.length()").isEqualTo(0)
     }
 
-    @Test
-    fun `get template returns list of templates for service`() {
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "ROLE_SAR_DATA_ACCESS",
+        "ROLE_SAR_SUPPORT",
+        "ROLE_SAR_REGISTER_TEMPLATE",
+      ],
+    )
+    fun `get template returns list of templates for service for valid role`(role: String) {
       templateVersionRepository.saveAll(listOf(publishedTemplateV1))
 
       webTestClient.get()
         .uri("/api/templates/service/${serviceConfig.id}")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
+        .headers(setAuthorisation(roles = listOf(role)))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -202,9 +211,16 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
       ).expectStatus().isBadRequest
     }
 
-    @Test
-    fun `post new template version returns CREATED`() {
-      postTemplateVersion(id = serviceConfig.id, templateBody = templateV1Body)
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "ROLE_SAR_DATA_ACCESS",
+        "ROLE_SAR_SUPPORT",
+        "ROLE_SAR_REGISTER_TEMPLATE",
+      ],
+    )
+    fun `post new template version returns CREATED for valid role`(role: String) {
+      postTemplateVersion(id = serviceConfig.id, templateBody = templateV1Body, authRoles = listOf(role))
         .expectStatus().isCreated
         .expectBody()
         .jsonPath("$.id").isNotEmpty
