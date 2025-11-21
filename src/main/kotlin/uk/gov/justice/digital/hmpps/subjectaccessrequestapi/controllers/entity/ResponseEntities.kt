@@ -52,4 +52,5 @@ data class ServiceInfo(
   val url: String,
   val order: Int,
   val enabled: Boolean,
+  val templateMigrated: Boolean,
 )
