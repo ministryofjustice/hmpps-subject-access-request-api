@@ -2,7 +2,7 @@ version: '3.1'
 services:
 
   sar-db:
-    image: postgres:17
+    image: postgres:18
     networks:
       - hmpps
     container_name: sar-db
