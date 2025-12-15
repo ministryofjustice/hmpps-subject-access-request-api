@@ -32,6 +32,9 @@ application:
     dev-portal:
       url: https://developer-portal.hmpps.service.justice.gov.uk/components/%s/environment/dev
     alt-services: hmpps-book-secure-move-api,my-alt-dynamic-service
+  # test key which doesn't send emails, but is automatically accepted by notify
+  notify:
+    key: testkey-992308b2-1e8f-4667-816b-8bdde781a4ac-9c211cf4-96d1-4c30-848b-8f172bca0b41
 
 management.endpoint:
   health.cache.time-to-live: 0

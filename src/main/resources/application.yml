@@ -104,6 +104,9 @@ application:
     resourceGroup: nomisapi-t3-rg
     instanceName: nomisapi-t3
     timespan: PT168H
+  notify:
+    new-template-version:
+      template: 126055c3-fff0-469d-b62a-cf0f44c26618
 
 management:
   endpoints:

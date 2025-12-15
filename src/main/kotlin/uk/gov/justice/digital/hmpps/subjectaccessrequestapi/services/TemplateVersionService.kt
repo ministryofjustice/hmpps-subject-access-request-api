@@ -17,6 +17,7 @@ import java.util.UUID
 class TemplateVersionService(
   private val templateVersionRepository: TemplateVersionRepository,
   private val serviceConfigurationRepository: ServiceConfigurationRepository,
+  private val notificationService: NotificationService,
 ) {
 
   private companion object {
@@ -52,7 +53,7 @@ class TemplateVersionService(
       TemplateVersionStatus.PENDING,
     )
 
-    return templateVersionRepository.save(
+    val newTemplateVersion = templateVersionRepository.save(
       TemplateVersion(
         id = UUID.randomUUID(),
         serviceConfiguration = serviceConfiguration,
@@ -61,6 +62,8 @@ class TemplateVersionService(
         fileHash = templateHash,
       ),
     )
+    notificationService.sendNewTemplateVersionNotification(newTemplateVersion)
+    return newTemplateVersion
   }
 
   @Transactional

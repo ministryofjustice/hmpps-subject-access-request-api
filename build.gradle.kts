@@ -22,6 +22,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
   implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.27.1")
   implementation("io.sentry:sentry-logback:8.27.1")
+  implementation("uk.gov.service.notify:notifications-java-client:5.2.1-RELEASE")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.4.240")

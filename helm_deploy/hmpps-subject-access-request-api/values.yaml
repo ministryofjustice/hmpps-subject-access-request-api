@@ -32,6 +32,7 @@ generic-service:
     hmpps-subject-access-request-api:
       APPLICATION_APPINSIGHTS_SUBSCRIPTIONID: "APPLICATION_APPINSIGHTS_SUBSCRIPTIONID"
       SENTRY_DSN: "SENTRY_DSN"
+      APPLICATION_NOTIFY_KEY: "APPLICATION_NOTIFY_KEY"
     hmpps-subject-access-request-api-client-creds:
       API_CLIENT_ID: "API_CLIENT_ID"
       API_CLIENT_SECRET: "API_CLIENT_SECRET"
