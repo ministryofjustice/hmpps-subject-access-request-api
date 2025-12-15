@@ -3,49 +3,21 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.ByteArrayResource
-import org.springframework.http.MediaType
-import org.springframework.http.client.MultipartBodyBuilder
-import org.springframework.test.web.reactive.server.WebTestClient
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionStatus
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionRepository
 import java.time.LocalDateTime
 import java.util.UUID
 
-class TemplateVersionControllerIntTest : IntegrationTestBase() {
+class TemplateVersionControllerIntTest : TemplateVersionIntTestBase() {
 
-  @Autowired
-  private lateinit var templateVersionRepository: TemplateVersionRepository
-
-  @Autowired
-  private lateinit var serviceConfigurationRepository: ServiceConfigurationRepository
-
-  private val serviceName = "hmpps-example-service"
   private val templateV1Body = "HMPPS Example Service template version 1"
   private val templateV1Hash = "457c8112d022123fc1eee3743949bff01aab388e319314e1e792561d153a8db6"
   private val templateV2Body = "HMPPS Example Service template version 2 - newer and better"
   private val templateV2Hash = "e54c30a7c4849a0c74e6a193528a267cf1851b90ea3bf79c4b4d149283749bab"
-
-  private var serviceConfig = ServiceConfiguration(
-    id = UUID.fromString("953a5ece-334b-4797-bfb9-f0fa9ff48f7d"),
-    serviceName = serviceName,
-    label = "HMPPS Example Service",
-    url = "http://localhost:8080/",
-    order = 666,
-    enabled = true,
-    templateMigrated = true,
-  )
 
   private val publishedTemplateV1 = TemplateVersion(
     id = UUID.randomUUID(),
@@ -64,17 +36,6 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
     createdAt = LocalDateTime.now(),
     fileHash = "template-v2-hash",
   )
-
-  @BeforeEach
-  fun setup() {
-    serviceConfigurationRepository.save(serviceConfig)
-  }
-
-  @AfterEach
-  fun cleanup() {
-    templateVersionRepository.deleteAll()
-    serviceConfigurationRepository.deleteById(serviceConfig.id)
-  }
 
   @Nested
   inner class SecurityTestCases {
@@ -289,28 +250,5 @@ class TemplateVersionControllerIntTest : IntegrationTestBase() {
       assertThat(existingTemplateVersions[1].fileHash).isEqualTo(publishedTemplateV1.fileHash)
       assertThat(existingTemplateVersions[1].status).isEqualTo(TemplateVersionStatus.PUBLISHED)
     }
-  }
-
-  private fun postTemplateVersion(
-    id: UUID,
-    templateBody: String,
-    authRoles: List<String>? = listOf("ROLE_SAR_DATA_ACCESS"),
-  ): WebTestClient.ResponseSpec = webTestClient
-    .post()
-    .uri("/api/templates/service/$id")
-    .contentType(MediaType.MULTIPART_FORM_DATA)
-    .headers(setAuthorisation(roles = authRoles))
-    .bodyValue(
-      MultipartBodyBuilder().apply {
-        part("file", getMultipartBodyPart(templateBody))
-          .header(
-            "Content-Disposition",
-            "form-data; name=file; filename=test.txt",
-          )
-      }.build(),
-    ).exchange()
-
-  private fun getMultipartBodyPart(value: String) = object : ByteArrayResource(value.toByteArray()) {
-    override fun getFilename(): String = "test.txt"
   }
 }

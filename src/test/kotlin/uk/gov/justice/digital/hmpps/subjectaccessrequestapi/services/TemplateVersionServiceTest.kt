@@ -26,6 +26,7 @@ class TemplateVersionServiceTest {
 
   private val templateVersionRepository: TemplateVersionRepository = mock()
   private val serviceConfigurationRepository: ServiceConfigurationRepository = mock()
+  private val notificationService: NotificationService = mock()
 
   private val templateBody = "Once upon a midnight dreary, while I pondered, weak and weary"
   private val expectedHashValue = "18f918f8e6ebefe1e3795f4d82fdcce58fb2db0193a3c46719459438abc4dfac"
@@ -33,6 +34,7 @@ class TemplateVersionServiceTest {
   private val templateVersionService = TemplateVersionService(
     templateVersionRepository,
     serviceConfigurationRepository,
+    notificationService,
   )
 
   private val serviceConfig: ServiceConfiguration = mock()
@@ -135,6 +137,7 @@ class TemplateVersionServiceTest {
 
       verify(serviceConfigurationRepository, times(1)).findById(serviceConfigId)
       verifyNoInteractions(templateVersionRepository)
+      verifyNoInteractions(notificationService)
     }
 
     @Test
@@ -151,6 +154,7 @@ class TemplateVersionServiceTest {
 
       verify(serviceConfigurationRepository, times(1)).findById(serviceConfigId)
       verifyNoInteractions(templateVersionRepository)
+      verifyNoInteractions(notificationService)
     }
 
     @Test
@@ -163,7 +167,7 @@ class TemplateVersionServiceTest {
 
       val templateVersionCaptor = argumentCaptor<TemplateVersion>()
 
-      templateVersionService.saveNewTemplateVersion(serviceConfigId, templateBody)
+      val savedVersion = templateVersionService.saveNewTemplateVersion(serviceConfigId, templateBody)
 
       verify(serviceConfigurationRepository, times(1)).findById(serviceConfigId)
       verify(templateVersionRepository, times(1)).deleteByServiceConfigurationIdAndStatus(
@@ -171,6 +175,7 @@ class TemplateVersionServiceTest {
         TemplateVersionStatus.PENDING,
       )
       verify(templateVersionRepository, times(1)).save(templateVersionCaptor.capture())
+      verify(notificationService).sendNewTemplateVersionNotification(savedVersion)
 
       assertThat(templateVersionCaptor.allValues).hasSize(1)
       val actual = templateVersionCaptor.allValues.first()
@@ -192,7 +197,7 @@ class TemplateVersionServiceTest {
 
       val templateVersionCaptor = argumentCaptor<TemplateVersion>()
 
-      templateVersionService.saveNewTemplateVersion(serviceConfigId, templateBody)
+      val savedVersion = templateVersionService.saveNewTemplateVersion(serviceConfigId, templateBody)
 
       verify(serviceConfigurationRepository, times(1)).findById(serviceConfigId)
       verify(templateVersionRepository, times(1)).deleteByServiceConfigurationIdAndStatus(
@@ -200,6 +205,7 @@ class TemplateVersionServiceTest {
         TemplateVersionStatus.PENDING,
       )
       verify(templateVersionRepository, times(1)).save(templateVersionCaptor.capture())
+      verify(notificationService).sendNewTemplateVersionNotification(savedVersion)
 
       assertThat(templateVersionCaptor.allValues).hasSize(1)
       val actual = templateVersionCaptor.allValues.first()
