@@ -4,6 +4,7 @@ import com.microsoft.applicationinsights.TelemetryClient
 import org.apache.commons.lang3.StringUtils.isNotBlank
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.ManageUsersApiClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.NotifyConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
@@ -14,6 +15,7 @@ import java.time.format.DateTimeFormatter
 @Service
 class NotificationService(
   private val notificationClient: NotificationClientApi,
+  private val manageUsersApiClient: ManageUsersApiClient,
   private val telemetryClient: TelemetryClient,
   private val authenticationFacade: AuthenticationFacade,
   private val notifyConfiguration: NotifyConfiguration,
@@ -30,7 +32,7 @@ class NotificationService(
       val parameters = mapOf(
         "product" to product,
         "version" to templateVersion.version.toString(),
-        "user" to user,
+        "user" to user?.let { manageUsersApiClient.getUserFullName(it) },
         "datetime" to templateVersion.createdAt.format(dataTimeFmt),
       )
       try {

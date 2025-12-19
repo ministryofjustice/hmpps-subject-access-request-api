@@ -18,6 +18,7 @@ private const val NOMIS_USER_ROLES_NAME = "nomis-user-roles-api"
 private const val SAR_DELIUS_NAME = "subject-access-requests-and-delius"
 private const val LOCATIONS_NAME = "hmpps-locations-inside-prison-api"
 private const val NOMIS_MAPPING_NAME = "hmpps-nomis-mapping-service"
+private const val MANAGE_USERS_NAME = "hmpps-manage-users-api"
 
 @Component(DOCUMENT_STORE_NAME)
 class DocumentStoreHealthPing(
@@ -60,6 +61,12 @@ class NomisMappingsApiHealthPing(
   @Qualifier("nomisMappingsApiHealthWebClientWrapper") webClientWrapper: WebClientWrapper,
   @Value("\${application.health.dev-portal.url}") portalUrl: String,
 ) : ExtendedHealthPingCheck(webClientWrapper, NOMIS_MAPPING_NAME, portalUrl)
+
+@Component(MANAGE_USERS_NAME)
+class ManageUsersApiHealthPing(
+  @Qualifier("manageUsersApiHealthWebClientWrapper") webClientWrapper: WebClientWrapper,
+  @Value("\${application.health.dev-portal.url}") portalUrl: String,
+) : ExtendedHealthPingCheck(webClientWrapper, MANAGE_USERS_NAME, portalUrl)
 
 open class ExtendedHealthPingCheck(private val webClientWrapper: WebClientWrapper, private val serviceName: String, private val portalUrl: String) : HealthPingCheck(webClientWrapper.webClient) {
   override fun health(): Health = super.health().addExtraUrls(webClientWrapper.baseUrl, serviceName, portalUrl)

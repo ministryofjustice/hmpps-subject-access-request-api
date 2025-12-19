@@ -20,6 +20,8 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthApiExtension.Companion.hmppsAuth
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.LocationsApiExtension
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.LocationsApiExtension.Companion.locationsApi
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.ManageUsersApiExtension
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.ManageUsersApiExtension.Companion.manageUsersApi
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.NomisMappingsApiExtension
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.NomisMappingsApiExtension.Companion.nomisMappingsApi
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.NomisUserRolesApiExtension
@@ -39,6 +41,7 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
   SarAndDeliusApiExtension::class,
   LocationsApiExtension::class,
   NomisMappingsApiExtension::class,
+  ManageUsersApiExtension::class,
   DynamicServiceExtension::class,
   DynamicServiceAltHealthExtension::class,
 )
@@ -70,6 +73,7 @@ abstract class IntegrationTestBase {
     sarAndDeliusApi.stubHealthPing(status)
     locationsApi.stubHealthPing(status)
     nomisMappingsApi.stubHealthPing(status)
+    manageUsersApi.stubHealthPing(status)
     dynamicService.stubHealthPing(status)
     dynamicServiceAlt.stubAltHealth(status)
   }
