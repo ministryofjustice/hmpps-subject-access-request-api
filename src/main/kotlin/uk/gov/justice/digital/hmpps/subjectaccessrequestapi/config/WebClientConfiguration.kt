@@ -19,6 +19,7 @@ class WebClientConfiguration(
   @Value("\${nomis-user-roles-api.url}") val nomisUserRolesApiBaseUri: String,
   @Value("\${locations-api.url}") val locationsApiBaseUri: String,
   @Value("\${nomis-mappings-api.url}") val nomisMappingsApiBaseUri: String,
+  @Value("\${manage-users-api.url}") val manageUsersApiBaseUri: String,
   @Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @Value("\${api.timeout:20s}") val timeout: Duration,
   @Value("\${api.timeout:300s}") val longTimeout: Duration,
@@ -66,6 +67,12 @@ class WebClientConfiguration(
 
   @Bean
   fun nomisMappingsApiHealthWebClientWrapper(builder: WebClient.Builder): WebClientWrapper = builder.wrappedHealthWebClient(nomisMappingsApiBaseUri, healthTimeout)
+
+  @Bean
+  fun manageUsersApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = manageUsersApiBaseUri, timeout)
+
+  @Bean
+  fun manageUsersApiHealthWebClientWrapper(builder: WebClient.Builder): WebClientWrapper = builder.wrappedHealthWebClient(manageUsersApiBaseUri, healthTimeout)
 
   @Bean
   fun dynamicHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient("", healthTimeout)

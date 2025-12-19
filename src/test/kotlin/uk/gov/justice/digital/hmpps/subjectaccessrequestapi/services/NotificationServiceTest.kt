@@ -9,6 +9,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.ManageUsersApiClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.NotifyConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
@@ -19,6 +20,7 @@ import java.time.LocalDateTime
 
 class NotificationServiceTest {
   private val notificationClient: NotificationClientApi = mock()
+  private val manageUsersApiClient: ManageUsersApiClient = mock()
   private val telemetryClient: TelemetryClient = mock()
   private val authenticationFacade: AuthenticationFacade = mock()
   private val notifyConfiguration: NotifyConfiguration = mock()
@@ -41,6 +43,7 @@ class NotificationServiceTest {
   private val notificationService =
     NotificationService(
       notificationClient,
+      manageUsersApiClient,
       telemetryClient,
       authenticationFacade,
       notifyConfiguration,
@@ -51,6 +54,7 @@ class NotificationServiceTest {
     whenever(authenticationFacade.currentUsername).thenReturn("test_user")
     whenever(notifyConfiguration.newTemplateVersionTemplateId).thenReturn(newTemplateVersionTemplateId)
     whenever(notifyConfiguration.newTemplateVersionEmailAddresses).thenReturn(emailAddress)
+    whenever(manageUsersApiClient.getUserFullName("test_user")).thenReturn("John Smith")
   }
 
   @Test
@@ -58,14 +62,31 @@ class NotificationServiceTest {
     val expectedParameters = mapOf(
       "product" to "Service One",
       "version" to "14",
-      "user" to "test_user",
+      "user" to "John Smith",
       "datetime" to "16 November 2025 10:15:30",
     )
 
     notificationService.sendNewTemplateVersionNotification(templateVersion)
 
     verify(notificationClient).sendEmail(newTemplateVersionTemplateId, emailAddress, expectedParameters, null)
+    verify(manageUsersApiClient).getUserFullName("test_user")
     verifyNoInteractions(telemetryClient)
+  }
+
+  @Test
+  fun `Sends email notification when no username`() {
+    whenever(authenticationFacade.currentUsername).thenReturn(null)
+    val expectedParameters = mapOf(
+      "product" to "Service One",
+      "version" to "14",
+      "user" to null,
+      "datetime" to "16 November 2025 10:15:30",
+    )
+
+    notificationService.sendNewTemplateVersionNotification(templateVersion)
+
+    verify(notificationClient).sendEmail(newTemplateVersionTemplateId, emailAddress, expectedParameters, null)
+    verifyNoInteractions(manageUsersApiClient, telemetryClient)
   }
 
   @Test
@@ -73,7 +94,7 @@ class NotificationServiceTest {
     val expectedParameters = mapOf(
       "product" to "Service One",
       "version" to "14",
-      "user" to "test_user",
+      "user" to "John Smith",
       "datetime" to "16 November 2025 10:15:30",
     )
     doAnswer {
@@ -84,6 +105,7 @@ class NotificationServiceTest {
       .isInstanceOf(NotificationClientException::class.java)
       .hasMessage("Test message")
 
+    verify(manageUsersApiClient).getUserFullName("test_user")
     verify(telemetryClient).trackEvent(
       "newTemplateVersionNotificationFailure",
       mapOf("product" to "Service One", "reason" to "NotificationClientException", "user" to "test_user"),
@@ -97,7 +119,6 @@ class NotificationServiceTest {
 
     notificationService.sendNewTemplateVersionNotification(templateVersion)
 
-    verifyNoInteractions(notificationClient)
-    verifyNoInteractions(telemetryClient)
+    verifyNoInteractions(notificationClient, manageUsersApiClient, telemetryClient)
   }
 }
