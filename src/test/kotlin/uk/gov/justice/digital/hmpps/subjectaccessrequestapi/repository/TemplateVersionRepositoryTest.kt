@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PRISON
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionStatus
@@ -27,6 +28,7 @@ class TemplateVersionRepositoryTest @Autowired constructor(
     order = 999,
     enabled = true,
     templateMigrated = true,
+    category = PRISON,
   )
 
   private var serviceConfig2 = ServiceConfiguration(
@@ -37,6 +39,7 @@ class TemplateVersionRepositoryTest @Autowired constructor(
     order = 6666,
     enabled = true,
     templateMigrated = true,
+    category = PRISON,
   )
 
   private val service1TemplateV1Published = TemplateVersion(

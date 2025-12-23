@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PRISON
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 
 @DataJpaTest
@@ -41,6 +43,7 @@ class ServiceConfigurationRepositoryTest {
       order = 1,
       enabled = true,
       templateMigrated = false,
+      category = PRISON,
     )
 
     private val s2 = ServiceConfiguration(
@@ -50,6 +53,7 @@ class ServiceConfigurationRepositoryTest {
       order = 2,
       enabled = true,
       templateMigrated = false,
+      category = PRISON,
     )
 
     private val s3 = ServiceConfiguration(
@@ -59,6 +63,7 @@ class ServiceConfigurationRepositoryTest {
       order = 3,
       enabled = true,
       templateMigrated = false,
+      category = PRISON,
     )
   }
 }

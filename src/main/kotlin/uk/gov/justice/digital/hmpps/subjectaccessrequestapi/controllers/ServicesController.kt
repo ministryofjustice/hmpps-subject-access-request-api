@@ -61,7 +61,7 @@ class ServicesController(
   )
   fun getServices(): ResponseEntity<List<ServiceInfo>> {
     val services: List<ServiceInfo>? = serviceConfigurationService.getServiceConfigurationSanitised()?.map {
-      ServiceInfo(it.id, it.serviceName, it.label, it.url, it.order, it.enabled, it.templateMigrated)
+      ServiceInfo(it.id, it.serviceName, it.label, it.url, it.order, it.enabled, it.templateMigrated, it.category)
     }
     return ResponseEntity(services, HttpStatus.OK)
   }

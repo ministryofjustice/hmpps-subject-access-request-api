@@ -12,6 +12,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.ManageUsersApiClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.NotifyConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PRISON
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
 import uk.gov.service.notify.NotificationClientApi
@@ -35,6 +36,7 @@ class NotificationServiceTest {
       order = 1,
       enabled = true,
       templateMigrated = true,
+      category = PRISON,
     ),
     version = 14,
     createdAt = LocalDateTime.parse("2025-11-16T10:15:30"),
