@@ -39,5 +39,6 @@ data class ServiceConfiguration(
 )
 
 enum class ServiceCategory {
-  PRISON, PROBATION
+  PRISON,
+  PROBATION,
 }
