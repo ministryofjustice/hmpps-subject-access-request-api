@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDate
 import java.util.UUID
@@ -53,4 +54,5 @@ data class ServiceInfo(
   val order: Int,
   val enabled: Boolean,
   val templateMigrated: Boolean,
+  val category: ServiceCategory,
 )

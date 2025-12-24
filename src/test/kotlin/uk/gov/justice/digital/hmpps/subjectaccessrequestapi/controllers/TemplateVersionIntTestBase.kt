@@ -8,6 +8,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionRepository
@@ -31,6 +32,7 @@ class TemplateVersionIntTestBase : IntegrationTestBase() {
     order = 666,
     enabled = true,
     templateMigrated = true,
+    category = ServiceCategory.PRISON,
   )
 
   @BeforeEach
