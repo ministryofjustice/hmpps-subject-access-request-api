@@ -19,7 +19,7 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.2")
   implementation("org.json:json:20251224")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
   implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.29.0")
   implementation("io.sentry:sentry-logback:8.29.0")
   implementation("uk.gov.service.notify:notifications-java-client:6.0.0-RELEASE")
