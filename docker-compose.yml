@@ -3,8 +3,6 @@ services:
 
   hmpps-sar-api:
     image: quay.io/hmpps/hmpps-subject-access-request-api:latest
-    #    build:
-    #      context: .
     container_name: hmpps-subject-access-request-api
     ports:
       - "8000:8080"
