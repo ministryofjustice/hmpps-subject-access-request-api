@@ -2,7 +2,7 @@ version: "3"
 services:
 
   hmpps-sar-api:
-    image: quay.io/hmpps/hmpps-subject-access-request-api:latest
+    image: ghcr.io/ministryofjustice/hmpps-subject-access-request-api:latest
     container_name: hmpps-subject-access-request-api
     ports:
       - "8000:8080"
