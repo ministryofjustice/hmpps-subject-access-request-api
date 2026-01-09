@@ -1,8 +1,8 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.2.0"
-  id("org.jetbrains.kotlin.plugin.serialization") version "2.2.21"
-  kotlin("plugin.spring") version "2.2.21"
-  kotlin("plugin.jpa") version "2.2.21"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.3.0"
+  id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
+  kotlin("plugin.spring") version "2.3.0"
+  kotlin("plugin.jpa") version "2.3.0"
 }
 
 configurations {
@@ -17,12 +17,12 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.2")
-  implementation("org.json:json:20250517")
+  implementation("org.json:json:20251224")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.27.1")
-  implementation("io.sentry:sentry-logback:8.27.1")
-  implementation("uk.gov.service.notify:notifications-java-client:5.2.1-RELEASE")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.29.0")
+  implementation("io.sentry:sentry-logback:8.29.0")
+  implementation("uk.gov.service.notify:notifications-java-client:6.0.0-RELEASE")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.4.240")
@@ -39,11 +39,11 @@ dependencies {
 }
 
 kotlin {
-  jvmToolchain(21)
+  jvmToolchain(25)
 }
 
 tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+    compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
   }
 }
