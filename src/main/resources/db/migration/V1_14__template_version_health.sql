@@ -1,5 +1,4 @@
 -- Table to persist the template version health check results.
--- TODO service config id needs to be unique
 CREATE TABLE IF NOT EXISTS template_version_health_status
 (
     id                       UUID PRIMARY KEY,
