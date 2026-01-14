@@ -1,0 +1,38 @@
+version: '3.1'
+services:
+
+  sar-db:
+    image: postgres:17
+    networks:
+      - hmpps
+    container_name: sar-db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=admin_password
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=sar-db
+
+  localstack:
+    image: localstack/localstack:3
+    networks:
+      - hmpps
+    container_name: localstack-pl
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    networks:
+      - hmpps
+    container_name: gotenberg
+    ports:
+      - "3001:3000"
+
+networks:
+  hmpps:
