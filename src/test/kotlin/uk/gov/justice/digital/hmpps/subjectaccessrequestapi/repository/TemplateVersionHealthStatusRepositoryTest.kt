@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusT
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.UUID
 
 @DataJpaTest
@@ -25,7 +25,7 @@ class TemplateVersionHealthStatusRepositoryTest {
   @Autowired
   private lateinit var serviceConfigurationRepository: ServiceConfigurationRepository
 
-  private val now = LocalDateTime.now()
+  private val now = Instant.now()
 
   private var serviceConfig: ServiceConfiguration = ServiceConfiguration(
     id = UUID.randomUUID(),
@@ -79,7 +79,7 @@ class TemplateVersionHealthStatusRepositoryTest {
         lastModified = now,
       ),
     )
-    val newModifiedTime = LocalDateTime.parse("2099-11-04T14:33:45")
+    val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
 
     val changedRecords =
       templateVersionHealthStatusRepository.updateStatusWhenChanged(serviceConfig.id, newStatus, newModifiedTime)
@@ -114,7 +114,7 @@ class TemplateVersionHealthStatusRepositoryTest {
         lastModified = now,
       ),
     )
-    val newModifiedTime = LocalDateTime.parse("2099-11-04T14:33:45")
+    val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
 
     val changedRecords =
       templateVersionHealthStatusRepository.updateStatusWhenChanged(serviceConfig.id, newStatus, newModifiedTime)
@@ -140,7 +140,7 @@ class TemplateVersionHealthStatusRepositoryTest {
         lastModified = now,
       ),
     )
-    val newModifiedTime = LocalDateTime.parse("2099-11-04T14:33:45")
+    val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
 
     val changedRecords =
       templateVersionHealthStatusRepository.updateStatusWhenChanged(

@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.UUID
 
 @Repository
@@ -22,6 +22,6 @@ interface TemplateVersionHealthStatusRepository : JpaRepository<TemplateVersionH
   fun updateStatusWhenChanged(
     @Param("serviceConfigurationId") serviceConfigurationId: UUID,
     @Param("newStatus") newStatus: HealthStatusType,
-    @Param("currentTime") currentTime: LocalDateTime,
+    @Param("currentTime") currentTime: Instant,
   ): Int
 }

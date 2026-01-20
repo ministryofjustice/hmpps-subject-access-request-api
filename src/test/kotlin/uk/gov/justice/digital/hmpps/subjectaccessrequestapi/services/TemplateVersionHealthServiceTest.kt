@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCatego
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionHealthStatusRepository
 import java.time.Clock
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
@@ -24,7 +24,7 @@ private const val TEMPLATE_ONE = "<h1>My Template One</h1>"
 class TemplateVersionHealthServiceTest {
 
   companion object {
-    private val NOW = LocalDateTime.now(ZoneOffset.UTC)
+    private val NOW = Instant.now()
 
     private val serviceConfiguration = ServiceConfiguration(
       id = UUID.randomUUID(),
@@ -41,7 +41,7 @@ class TemplateVersionHealthServiceTest {
   private val templateVersionHealthStatusRepository: TemplateVersionHealthStatusRepository = mock()
   private val templateVersionService: TemplateVersionService = mock()
   private val dynamicServicesClient: DynamicServicesClient = mock()
-  private val clock: Clock = Clock.fixed(NOW.toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+  private val clock: Clock = Clock.fixed(NOW, ZoneOffset.UTC)
 
   private val updateTemplateVersionHealthService = TemplateVersionHealthService(
     templateVersionHealthStatusRepository,

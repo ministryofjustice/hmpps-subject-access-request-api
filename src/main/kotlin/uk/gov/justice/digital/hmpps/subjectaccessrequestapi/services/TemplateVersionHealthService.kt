@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfig
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionHealthStatusRepository
 import java.security.MessageDigest
 import java.time.Clock
-import java.time.LocalDateTime
 
 @Service
 class TemplateVersionHealthService(
@@ -33,7 +32,7 @@ class TemplateVersionHealthService(
       templateVersionHealthStatusRepository.updateStatusWhenChanged(
         serviceConfiguration.id,
         health,
-        LocalDateTime.now(clock),
+        clock.instant(),
       )
       log.info("Updated template version health status in database for {}", serviceConfiguration.serviceName)
     } ?: run {
