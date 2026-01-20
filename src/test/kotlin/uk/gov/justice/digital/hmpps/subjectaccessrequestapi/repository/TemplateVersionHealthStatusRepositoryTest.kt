@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCatego
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 @DataJpaTest
@@ -25,7 +26,7 @@ class TemplateVersionHealthStatusRepositoryTest {
   @Autowired
   private lateinit var serviceConfigurationRepository: ServiceConfigurationRepository
 
-  private val now = Instant.now()
+  private val now = Instant.now().truncatedTo(ChronoUnit.MICROS)
 
   private var serviceConfig: ServiceConfiguration = ServiceConfiguration(
     id = UUID.randomUUID(),
