@@ -9,8 +9,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
-import java.time.LocalDateTime
-import java.time.ZoneId
+import java.time.Instant
 import java.util.UUID
 
 @Entity
@@ -28,7 +27,7 @@ data class TemplateVersionHealthStatus(
   val status: HealthStatusType? = null,
 
   @Column(name = "last_modified", nullable = false)
-  val lastModified: LocalDateTime = LocalDateTime.now(ZoneId.systemDefault()),
+  val lastModified: Instant = Instant.now(),
 )
 
 enum class HealthStatusType {

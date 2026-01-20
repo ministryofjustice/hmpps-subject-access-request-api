@@ -78,4 +78,14 @@ class TemplateVersionService(
 
   private fun getServiceConfigurationOrError(id: UUID) = serviceConfigurationRepository.findByIdOrNull(id)
     ?: throw TemplateVersionServiceConfigurationNotFoundException(id)
+
+  fun isTemplateHashValid(serviceConfigurationId: UUID, templateHash: String): Boolean {
+    val versions = getVersions(serviceConfigurationId).orEmpty()
+    if (versions.isEmpty()) return false
+    val latest = versions.first()
+    if (latest.status == TemplateVersionStatus.PUBLISHED) {
+      return latest.fileHash == templateHash
+    }
+    return latest.fileHash == templateHash || versions.getOrNull(1)?.fileHash == templateHash
+  }
 }

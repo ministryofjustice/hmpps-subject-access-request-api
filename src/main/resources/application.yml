@@ -85,6 +85,9 @@ application:
   remove-reports:
     age: 7
     frequency: 3600000
+  template-version-health:
+    frequency: 900000 # 15 minutes
+    lock-max: PT10M
   alerts:
     reports-overdue:
       alert-interval-minutes: 120

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed.alerts
 
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
@@ -22,6 +23,7 @@ class BacklogThresholdAlert(
     timeUnit = TimeUnit.MINUTES,
     initialDelay = 1,
   )
+  @SchedulerLock(name = "backlogThresholdAlert")
   fun execute() {
     try {
       val backlogSize = subjectAccessRequestService.countPendingSubjectAccessRequests()
