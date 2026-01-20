@@ -39,13 +39,19 @@ class TemplateVersionServiceTest {
 
   private val serviceConfig: ServiceConfiguration = mock()
 
+  private val serviceConfigurationId = UUID.randomUUID()
+
+  private val hashOne = "template-v1-hash"
+  private val hashTwo = "template-v2-hash"
+  private val hashThree = "template-v3-hash"
+
   private val templateV1 = TemplateVersion(
     id = UUID.randomUUID(),
     serviceConfiguration = serviceConfig,
     status = TemplateVersionStatus.PUBLISHED,
     version = 1,
     createdAt = LocalDateTime.now(),
-    fileHash = "template-v1-hash",
+    fileHash = hashOne,
   )
 
   private val templateV2 = TemplateVersion(
@@ -54,7 +60,16 @@ class TemplateVersionServiceTest {
     status = TemplateVersionStatus.PENDING,
     version = 2,
     createdAt = LocalDateTime.now(),
-    fileHash = "template-v2-hash",
+    fileHash = hashTwo,
+  )
+
+  private val templateV3 = TemplateVersion(
+    id = UUID.randomUUID(),
+    serviceConfiguration = serviceConfig,
+    status = TemplateVersionStatus.PUBLISHED,
+    version = 3,
+    createdAt = LocalDateTime.now(),
+    fileHash = hashThree,
   )
 
   @Nested
@@ -214,6 +229,165 @@ class TemplateVersionServiceTest {
       assertThat(actual.status).isEqualTo(TemplateVersionStatus.PENDING)
       assertThat(actual.version).isEqualTo(2)
       assertThat(actual.fileHash).isEqualTo(expectedHashValue)
+    }
+  }
+
+  @Nested
+  inner class CheckTemplateHashIsValid {
+
+    @Test
+    fun `should return false when no versions found`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        emptyList(),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, hashOne)
+
+      assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `should return true when single PUBLISHED version found with matching hash`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        listOf(templateV1),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, hashOne)
+
+      assertThat(result).isTrue()
+    }
+
+    @Test
+    fun `should return false when single PUBLISHED version found with non matching hash`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        listOf(templateV1),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, "non-matching")
+
+      assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `should return false when single PENDING version found with non matching hash`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        listOf(templateV2),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, "non-matching")
+
+      assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `should return false when single version found with no hash`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        listOf(
+          TemplateVersion(
+            id = UUID.randomUUID(),
+            status = TemplateVersionStatus.PUBLISHED,
+            version = 1,
+            createdAt = LocalDateTime.now(),
+            fileHash = null,
+          ),
+        ),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, hashOne)
+
+      assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `should return false when two PUBLISHED versions found with oldest matching hash`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        listOf(templateV3, templateV1),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, hashOne)
+
+      assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `should return false when PUBLISHED and PENDING versions found with PENDING matching hash but older`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        listOf(templateV3, templateV2),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, hashTwo)
+
+      assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `should return false when PENDING and PUBLISHED versions found with no matching hash`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        listOf(templateV2, templateV1),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, hashThree)
+
+      assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `should return true when PENDING and PUBLISHED versions found with PENDING matching hash`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        listOf(templateV2, templateV1),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, hashTwo)
+
+      assertThat(result).isTrue()
+    }
+
+    @Test
+    fun `should return true when PENDING and PUBLISHED versions found with PUBLISHED matching hash`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        listOf(templateV2, templateV1),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, hashOne)
+
+      assertThat(result).isTrue()
+    }
+
+    @Test
+    fun `should return false when PENDING and PUBLISHED versions found with no hashes`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        listOf(
+          TemplateVersion(
+            id = UUID.randomUUID(),
+            status = TemplateVersionStatus.PENDING,
+            version = 2,
+            createdAt = LocalDateTime.now(),
+            fileHash = null,
+          ),
+          TemplateVersion(
+            id = UUID.randomUUID(),
+            status = TemplateVersionStatus.PUBLISHED,
+            version = 1,
+            createdAt = LocalDateTime.now(),
+            fileHash = null,
+          ),
+        ),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, hashOne)
+
+      assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `should return false when PENDING and PUBLISHED and PUBLISHED versions found with older PUBLISHED matching hash`() {
+      whenever(templateVersionRepository.findByServiceConfigurationIdOrderByVersionDesc(serviceConfigurationId)).thenReturn(
+        listOf(templateV3, templateV2, templateV1),
+      )
+
+      val result = templateVersionService.isTemplateHashValid(serviceConfigurationId, hashOne)
+
+      assertThat(result).isFalse()
     }
   }
 }

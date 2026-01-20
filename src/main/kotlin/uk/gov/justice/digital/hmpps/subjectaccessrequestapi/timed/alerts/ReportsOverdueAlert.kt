@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed.alerts
 
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
@@ -22,6 +23,7 @@ class ReportsOverdueAlert(
     timeUnit = TimeUnit.MINUTES,
     initialDelay = 1,
   )
+  @SchedulerLock(name = "reportsOverdueAlert")
   fun execute() {
     Status.Pending
     try {

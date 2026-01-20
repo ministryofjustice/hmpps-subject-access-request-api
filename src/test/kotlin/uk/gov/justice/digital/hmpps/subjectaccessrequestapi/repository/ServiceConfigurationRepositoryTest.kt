@@ -25,12 +25,16 @@ class ServiceConfigurationRepositoryTest {
 
     val actual = repository.findByOrderByOrderAsc()
 
-    assertThat(actual).isNotNull
-    assertThat(actual).isNotEmpty
-    assertThat(actual).hasSize(3)
-    assertThat(actual!![0]).isEqualTo(s1)
-    assertThat(actual[1]).isEqualTo(s2)
-    assertThat(actual[2]).isEqualTo(s3)
+    assertThat(actual).isNotNull.isNotEmpty.hasSize(3).containsExactly(s1, s2, s3)
+  }
+
+  @Test
+  fun `findAllByEnabledAndTemplateMigrated returns only enabled and migrated services`() {
+    repository.saveAll(listOf(s2, s1, s3, s4))
+
+    val actual = repository.findAllByEnabledAndTemplateMigrated()
+
+    assertThat(actual).isNotNull.isNotEmpty.hasSize(1).containsExactly(s2)
   }
 
   companion object {
@@ -40,7 +44,7 @@ class ServiceConfigurationRepositoryTest {
       label = "Service One",
       url = "s1.com",
       order = 1,
-      enabled = true,
+      enabled = false,
       templateMigrated = false,
       category = PRISON,
     )
@@ -51,7 +55,7 @@ class ServiceConfigurationRepositoryTest {
       url = "s2.com",
       order = 2,
       enabled = true,
-      templateMigrated = false,
+      templateMigrated = true,
       category = PRISON,
     )
 
@@ -62,6 +66,16 @@ class ServiceConfigurationRepositoryTest {
       order = 3,
       enabled = true,
       templateMigrated = false,
+      category = PRISON,
+    )
+
+    private val s4 = ServiceConfiguration(
+      serviceName = "service4",
+      label = "Service Four",
+      url = "s4.com",
+      order = 4,
+      enabled = false,
+      templateMigrated = true,
       category = PRISON,
     )
   }

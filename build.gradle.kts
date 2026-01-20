@@ -23,6 +23,8 @@ dependencies {
   implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.29.0")
   implementation("io.sentry:sentry-logback:8.29.0")
   implementation("uk.gov.service.notify:notifications-java-client:6.0.0-RELEASE")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:7.5.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.5.0")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.4.240")

@@ -22,6 +22,17 @@ class DynamicServiceMockServer : WireMockServer(DYNAMIC_SERVICE_PORT) {
       ),
     )
   }
+
+  fun stubGetTemplate(status: Int, body: String? = "<h1>Template one</h2>") {
+    stubFor(
+      get("/subject-access-request/template").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "text/plain")
+          .withBody(body)
+          .withStatus(status),
+      ),
+    )
+  }
 }
 
 class DynamicServiceExtension :
