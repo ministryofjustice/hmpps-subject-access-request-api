@@ -79,13 +79,13 @@ class TemplateVersionService(
   private fun getServiceConfigurationOrError(id: UUID) = serviceConfigurationRepository.findByIdOrNull(id)
     ?: throw TemplateVersionServiceConfigurationNotFoundException(id)
 
-  fun isTemplateHashValid(serviceConfigurationId: UUID, templateHash: String): Boolean {
-    val versions = getVersions(serviceConfigurationId)
-    if (versions?.isEmpty() ?: true) return false
-    val latest = versions[0]
-    if (latest.status == TemplateVersionStatus.PUBLISHED || versions.size == 1) {
-      return latest.fileHash?.equals(templateHash) ?: false
+  fun isTemplateHashValid (serviceConfigurationId: UUID, templateHash: String): Boolean {
+    val versions = getVersions(serviceConfigurationId).orEmpty()
+    if (versions.isEmpty()) return false
+    val latest = versions.first()
+    if (latest.status == TemplateVersionStatus.PUBLISHED) {
+      return latest.fileHash == templateHash
     }
-    return latest.fileHash?.equals(templateHash) ?: false || versions[1].fileHash?.equals(templateHash) ?: false
+    return latest.fileHash == templateHash || versions.getOrNull(1)?.fileHash == templateHash
   }
 }
