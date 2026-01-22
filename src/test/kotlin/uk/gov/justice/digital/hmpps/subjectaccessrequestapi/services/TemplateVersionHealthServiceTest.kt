@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.mockito.kotlin.argThat
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
@@ -13,6 +14,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DynamicServic
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionHealthStatusRepository
 import java.time.Clock
 import java.time.Instant
@@ -24,7 +26,7 @@ private const val TEMPLATE_ONE = "<h1>My Template One</h1>"
 class TemplateVersionHealthServiceTest {
 
   companion object {
-    private val NOW = Instant.now()
+    private val NOW: Instant = Instant.now()
 
     private val serviceConfiguration = ServiceConfiguration(
       id = UUID.randomUUID(),
@@ -71,7 +73,7 @@ class TemplateVersionHealthServiceTest {
       "false, UNHEALTHY",
     ],
   )
-  fun `should update status when template found and single template version with hash found`(
+  fun `should create status when template found and no existing health status`(
     fileHashValid: Boolean,
     expectedHealthStatus: HealthStatusType,
   ) {
@@ -82,9 +84,45 @@ class TemplateVersionHealthServiceTest {
         "0a1bf7a8b5b414b50e3b9a0c746e1b493dadddaf74ba3861ff4f663ea65938d2",
       ),
     ).thenReturn(fileHashValid)
+    whenever(templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfiguration.id))
+      .thenReturn(null)
 
     updateTemplateVersionHealthService.updateTemplateVersionHealthData(serviceConfiguration)
 
+    verify(templateVersionHealthStatusRepository).findByServiceConfigurationId(serviceConfiguration.id)
+    verify(templateVersionHealthStatusRepository).save(
+      argThat { templateVersionHealth ->
+        templateVersionHealth.serviceConfiguration == serviceConfiguration &&
+          templateVersionHealth.status == expectedHealthStatus &&
+          templateVersionHealth.lastModified.toEpochMilli() == NOW.toEpochMilli()
+      },
+    )
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+    value = [
+      "true, HEALTHY",
+      "false, UNHEALTHY",
+    ],
+  )
+  fun `should update status when template found and existing health status`(
+    fileHashValid: Boolean,
+    expectedHealthStatus: HealthStatusType,
+  ) {
+    whenever(dynamicServicesClient.getServiceTemplate(serviceConfiguration)).thenReturn(TEMPLATE_ONE)
+    whenever(
+      templateVersionService.isTemplateHashValid(
+        serviceConfiguration.id,
+        "0a1bf7a8b5b414b50e3b9a0c746e1b493dadddaf74ba3861ff4f663ea65938d2",
+      ),
+    ).thenReturn(fileHashValid)
+    whenever(templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfiguration.id))
+      .thenReturn(TemplateVersionHealthStatus())
+
+    updateTemplateVersionHealthService.updateTemplateVersionHealthData(serviceConfiguration)
+
+    verify(templateVersionHealthStatusRepository).findByServiceConfigurationId(serviceConfiguration.id)
     verify(templateVersionHealthStatusRepository).updateStatusWhenChanged(
       serviceConfiguration.id,
       expectedHealthStatus,
