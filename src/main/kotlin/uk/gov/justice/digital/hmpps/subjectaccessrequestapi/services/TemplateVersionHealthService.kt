@@ -6,9 +6,11 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DynamicServicesClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionHealthStatusRepository
 import java.security.MessageDigest
 import java.time.Clock
+import java.util.UUID
 
 @Service
 class TemplateVersionHealthService(
@@ -29,11 +31,22 @@ class TemplateVersionHealthService(
       val actualServiceHash = getSha256HashValue(template)
       val hashValid = templateVersionService.isTemplateHashValid(serviceConfiguration.id, actualServiceHash)
       val health = if (hashValid) HealthStatusType.HEALTHY else HealthStatusType.UNHEALTHY
-      templateVersionHealthStatusRepository.updateStatusWhenChanged(
-        serviceConfiguration.id,
-        health,
-        clock.instant(),
-      )
+      templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfiguration.id)?.let {
+        templateVersionHealthStatusRepository.updateStatusWhenChanged(
+          serviceConfiguration.id,
+          health,
+          clock.instant(),
+        )
+      } ?: run {
+        templateVersionHealthStatusRepository.save(
+          TemplateVersionHealthStatus(
+            id = UUID.randomUUID(),
+            serviceConfiguration = serviceConfiguration,
+            status = health,
+            lastModified = clock.instant(),
+          ),
+        )
+      }
       log.info("Updated template version health status in database for {}", serviceConfiguration.serviceName)
     } ?: run {
       log.info("Could not update template version health status in database for {} as no template was found", serviceConfiguration.serviceName)

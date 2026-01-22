@@ -13,6 +13,8 @@ import java.util.UUID
 @Repository
 interface TemplateVersionHealthStatusRepository : JpaRepository<TemplateVersionHealthStatus, UUID> {
 
+  fun findByServiceConfigurationId(serviceConfigurationId: UUID): TemplateVersionHealthStatus?
+
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
     "UPDATE TemplateVersionHealthStatus templateVersionHealthStatus " +

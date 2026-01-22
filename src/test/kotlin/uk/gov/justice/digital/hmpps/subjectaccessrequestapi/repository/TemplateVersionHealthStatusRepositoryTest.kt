@@ -64,6 +64,22 @@ class TemplateVersionHealthStatusRepositoryTest {
       .isEqualTo(templateVersionHealthStatus)
   }
 
+  @Test
+  fun `should retrieve record by service configuration id when exists`() {
+    templateVersionHealthStatusRepository.save(templateVersionHealthStatus)
+
+    assertThat(templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfig.id))
+      .isEqualTo(templateVersionHealthStatus)
+  }
+
+  @Test
+  fun `should not retrieve record by service configuration id when does not exist`() {
+    templateVersionHealthStatusRepository.save(templateVersionHealthStatus)
+
+    assertThat(templateVersionHealthStatusRepository.findByServiceConfigurationId(UUID.randomUUID()))
+      .isNull()
+  }
+
   @ParameterizedTest
   @CsvSource(
     value = [
