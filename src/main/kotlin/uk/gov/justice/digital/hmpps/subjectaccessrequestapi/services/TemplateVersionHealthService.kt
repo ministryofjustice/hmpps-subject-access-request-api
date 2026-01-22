@@ -66,6 +66,15 @@ class TemplateVersionHealthService(
     lastNotifiedThreshold = Instant.now(clock).minusMinutes(lastNotifiedThreshold),
   )
 
+  @Transactional
+  fun updateLastNotified(
+    templateVersionHealthStatuses: List<TemplateVersionHealthStatus>,
+    lastNotified: Instant,
+  ) {
+    templateVersionHealthStatuses.forEach { t -> t.lastNotified = lastNotified }
+    templateVersionHealthStatusRepository.saveAllAndFlush(templateVersionHealthStatuses)
+  }
+
   private fun Instant.minusMinutes(minutes: Long) = this.minus(
     minutes,
     ChronoUnit.MINUTES,

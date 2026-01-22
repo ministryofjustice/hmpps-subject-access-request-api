@@ -164,9 +164,8 @@ class TemplateVersionHealthAlertTest : IntegrationTestBase() {
           assertThat(input[0].lastModified.truncatedTo(ChronoUnit.MILLIS))
             .isEqualTo(lastModified.truncatedTo(ChronoUnit.MILLIS))
 
-          assertThat(input[0].lastNotified!!.truncatedTo(ChronoUnit.MILLIS))
-            .isEqualTo(lastNotified.truncatedTo(ChronoUnit.MILLIS))
-
+          assertThat(input[0].lastNotified).isAfter(lastNotified)
+          assertThat(input[0].lastNotified).isBefore(Instant.now())
           true
         },
       )

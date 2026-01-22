@@ -30,7 +30,7 @@ data class TemplateVersionHealthStatus(
   val lastModified: Instant = Instant.now(),
 
   @Column(name = "last_notified", nullable = true)
-  val lastNotified: Instant? = null,
+  var lastNotified: Instant? = null,
 )
 
 enum class HealthStatusType {
