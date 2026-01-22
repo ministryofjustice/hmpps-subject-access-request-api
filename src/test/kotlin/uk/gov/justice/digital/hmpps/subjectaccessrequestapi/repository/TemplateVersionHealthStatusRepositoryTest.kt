@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -54,6 +55,7 @@ class TemplateVersionHealthStatusRepositoryTest {
   @AfterEach
   fun cleanUp() {
     serviceConfigurationRepository.delete(serviceConfig)
+    templateVersionHealthStatusRepository.deleteAll()
   }
 
   @Test
@@ -176,4 +178,102 @@ class TemplateVersionHealthStatusRepositoryTest {
       ),
     )
   }
+
+  @Nested
+  inner class FindUnhealthyTemplates {
+
+    @Test
+    fun `should return empty when no unhealth templates found`() {
+      assertThat(
+        templateVersionHealthStatusRepository.findUnhealthyTemplates(
+          unhealthyStatusThreshold = now,
+          lastNotifiedThreshold = now,
+        ),
+      ).isEmpty()
+    }
+
+    @Test
+    fun `should return empty when unhealthy template is inside the unhealthy status threshold`() {
+      templateVersionHealthStatusRepository.saveAndFlush(
+        TemplateVersionHealthStatus(
+          status = HealthStatusType.UNHEALTHY,
+          serviceConfiguration = serviceConfig,
+          lastModified = now.minusMinutes(20),
+          lastNotified = null,
+        ),
+      )
+
+      assertThat(
+        templateVersionHealthStatusRepository.findUnhealthyTemplates(
+          unhealthyStatusThreshold = now.minusMinutes(30),
+          lastNotifiedThreshold = now.minusMinutes(60),
+        ),
+      ).isEmpty()
+    }
+
+    @Test
+    fun `should return result when unhealthy template is outside the unhealthy status threshold and last notified threshold is null`() {
+      val expected = templateVersionHealthStatusRepository.saveAndFlush(
+        TemplateVersionHealthStatus(
+          status = HealthStatusType.UNHEALTHY,
+          serviceConfiguration = serviceConfig,
+          lastModified = now.minusMinutes(31),
+          lastNotified = null,
+        ),
+      )
+
+      val actual = templateVersionHealthStatusRepository.findUnhealthyTemplates(
+        unhealthyStatusThreshold = now.minusMinutes(30),
+        lastNotifiedThreshold = now.minusMinutes(60),
+      )
+
+      assertThat(actual).hasSize(1)
+      assertThat(actual[0]).isEqualTo(expected)
+    }
+
+    @Test
+    fun `should return result when unhealthy template is outside the unhealthy status threshold and last notified outside threshold`() {
+      val expected = templateVersionHealthStatusRepository.saveAndFlush(
+        TemplateVersionHealthStatus(
+          status = HealthStatusType.UNHEALTHY,
+          serviceConfiguration = serviceConfig,
+          lastModified = now.minusMinutes(31),
+          lastNotified = now.minusMinutes(61),
+        ),
+      )
+
+      val actual = templateVersionHealthStatusRepository.findUnhealthyTemplates(
+        unhealthyStatusThreshold = now.minusMinutes(30),
+        lastNotifiedThreshold = now.minusMinutes(60),
+      )
+
+      assertThat(actual).hasSize(1)
+      assertThat(actual[0]).isEqualTo(expected)
+    }
+
+    @Test
+    fun `should return empty when healthy template is outside the unhealthy status threshold and last notified outside threshold`() {
+      // Scenario should never happen and updating status to HEALTHY should set last notified to NULL.
+      // Test proves query only finds results where status is UNHEALTHY
+      templateVersionHealthStatusRepository.saveAndFlush(
+        TemplateVersionHealthStatus(
+          status = HealthStatusType.HEALTHY,
+          serviceConfiguration = serviceConfig,
+          lastModified = now.minusMinutes(31),
+          lastNotified = now.minusMinutes(61),
+        ),
+      )
+
+      assertThat(
+        templateVersionHealthStatusRepository.findUnhealthyTemplates(
+          unhealthyStatusThreshold = now.minusMinutes(30),
+          lastNotifiedThreshold = now.minusMinutes(60),
+        ),
+      ).isEmpty()
+    }
+  }
+
+  private fun Instant.minusMinutes(
+    minutes: Int,
+  ): Instant = this.minus(minutes.toLong(), ChronoUnit.MINUTES)
 }

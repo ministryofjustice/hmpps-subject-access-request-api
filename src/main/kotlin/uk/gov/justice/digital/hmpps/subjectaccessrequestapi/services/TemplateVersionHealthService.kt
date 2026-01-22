@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DynamicServicesClient
@@ -11,6 +12,8 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateV
 import java.security.MessageDigest
 import java.time.Clock
 import java.util.UUID
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @Service
 class TemplateVersionHealthService(
@@ -18,6 +21,8 @@ class TemplateVersionHealthService(
   private val templateVersionService: TemplateVersionService,
   private val dynamicServicesClient: DynamicServicesClient,
   private val clock: Clock,
+  @Value("\${application.alerts.template-health-alert.unhealthy-threshold-minutes:30}") private val unhealthyStatusThreshold: Long,
+  @Value("\${application.alerts.template-health-alert.last-notified-threshold-minutes:120}") private val lastNotifiedThreshold: Long,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -49,9 +54,22 @@ class TemplateVersionHealthService(
       }
       log.info("Updated template version health status in database for {}", serviceConfiguration.serviceName)
     } ?: run {
-      log.info("Could not update template version health status in database for {} as no template was found", serviceConfiguration.serviceName)
+      log.info(
+        "Could not update template version health status in database for {} as no template was found",
+        serviceConfiguration.serviceName,
+      )
     }
   }
+
+  fun getUnhealthyTemplateVersionsMeetingNotificationCriteria() = templateVersionHealthStatusRepository.findUnhealthyTemplates(
+    unhealthyStatusThreshold = Instant.now(clock).minusMinutes(unhealthyStatusThreshold),
+    lastNotifiedThreshold = Instant.now(clock).minusMinutes(lastNotifiedThreshold),
+  )
+
+  private fun Instant.minusMinutes(minutes: Long) = this.minus(
+    minutes,
+    ChronoUnit.MINUTES,
+  )
 
   private fun getSha256HashValue(input: String): String {
     val bytes = MessageDigest.getInstance("SHA-256").digest(input.toByteArray())

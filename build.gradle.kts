@@ -25,6 +25,7 @@ dependencies {
   implementation("uk.gov.service.notify:notifications-java-client:6.0.0-RELEASE")
   implementation("net.javacrumbs.shedlock:shedlock-spring:7.5.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.5.0")
+  implementation("com.slack.api:slack-api-client:1.45.3")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.4.240")
