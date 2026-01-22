@@ -140,11 +140,14 @@ class TemplateVersionHealthAlertTest : IntegrationTestBase() {
   @Test
   fun `should raise alert when unhealthy threshold and last notified threshold are met`() {
     // last notified threshold is 120min (see application-test.yml)
+    val lastModified = now.minusMinutes(20)
+    val lastNotified = now.minusMinutes(123)
+
     val unhealthyTemplateVersion = TemplateVersionHealthStatus(
       status = HealthStatusType.UNHEALTHY,
       serviceConfiguration = serviceConfig1,
-      lastModified = now.minusMinutes(20),
-      lastNotified = now.minusMinutes(123),
+      lastModified = lastModified,
+      lastNotified = lastNotified,
     )
 
     templateVersionHealthStatusRepository.saveAndFlush(unhealthyTemplateVersion)
@@ -154,7 +157,16 @@ class TemplateVersionHealthAlertTest : IntegrationTestBase() {
     verify(slackNotificationService, times(1))
       .sendTemplateHealthAlert(
         argThat { input ->
-          assertThat(input).containsExactly(unhealthyTemplateVersion)
+          assertThat(input).hasSize(1)
+          assertThat(input[0].status).isEqualTo(HealthStatusType.UNHEALTHY)
+          assertThat(input[0].serviceConfiguration).isEqualTo(serviceConfig1)
+
+          assertThat(input[0].lastModified.truncatedTo(ChronoUnit.MILLIS))
+            .isEqualTo(lastModified.truncatedTo(ChronoUnit.MILLIS))
+
+          assertThat(input[0].lastNotified!!.truncatedTo(ChronoUnit.MILLIS))
+            .isEqualTo(lastNotified.truncatedTo(ChronoUnit.MILLIS))
+
           true
         },
       )
