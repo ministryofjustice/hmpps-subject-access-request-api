@@ -21,6 +21,12 @@ generic-service:
     APPLICATION_APPINSIGHTS_RESOURCEGROUP: nomisapi-t3-rg
     APPLICATION_APPINSIGHTS_INSTANCENAME: nomisapi-t3
     SENTRY_ENV: dev
+    TEMPLATE_VERSION_HEALTH_FREQUENCY: 300000
+    TEMPLATE_VERSION_HEALTH_MAX_LOCK: PT3M
+    TEMPLATE_VERSION_HEALTH_ALERT_INTERVAL: 300000
+    TEMPLATE_VERSION_HEALTH_ALERT_MAX_LOCK: PT3M
+    TEMPLATE_VERSION_HEALTH_ALERT_UNHEALTHY_THRESHOLD: 10
+    TEMPLATE_VERSION_HEALTH_ALERT_LAST_NOTIFIED_THRESHOLD: 120
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts

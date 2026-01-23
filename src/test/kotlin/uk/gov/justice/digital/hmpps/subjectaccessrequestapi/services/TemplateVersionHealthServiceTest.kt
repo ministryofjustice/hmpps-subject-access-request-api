@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
+import com.microsoft.applicationinsights.TelemetryClient
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -43,6 +44,7 @@ class TemplateVersionHealthServiceTest {
   private val templateVersionHealthStatusRepository: TemplateVersionHealthStatusRepository = mock()
   private val templateVersionService: TemplateVersionService = mock()
   private val dynamicServicesClient: DynamicServicesClient = mock()
+  private val telemetryClient: TelemetryClient = mock()
   private val clock: Clock = Clock.fixed(NOW, ZoneOffset.UTC)
 
   private val updateTemplateVersionHealthService = TemplateVersionHealthService(
@@ -50,6 +52,7 @@ class TemplateVersionHealthServiceTest {
     templateVersionService,
     dynamicServicesClient,
     clock,
+    telemetryClient,
     10L,
     10L,
   )
@@ -121,6 +124,13 @@ class TemplateVersionHealthServiceTest {
     ).thenReturn(fileHashValid)
     whenever(templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfiguration.id))
       .thenReturn(TemplateVersionHealthStatus())
+    whenever(
+      templateVersionHealthStatusRepository.updateStatusWhenChanged(
+        serviceConfiguration.id,
+        expectedHealthStatus,
+        NOW,
+      ),
+    ).thenReturn(1)
 
     updateTemplateVersionHealthService.updateTemplateVersionHealthData(serviceConfiguration)
 

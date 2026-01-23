@@ -17,6 +17,11 @@ server:
 
 application:
   alerts:
+    template-health:
+      alert-interval-ms: 300000
+      lock-max: PT3M
+      unhealthy-threshold-minutes: 10
+      last-notified-threshold-minutes: 120
     reports-overdue:
       alert-interval-minutes: 120
       threshold: 12

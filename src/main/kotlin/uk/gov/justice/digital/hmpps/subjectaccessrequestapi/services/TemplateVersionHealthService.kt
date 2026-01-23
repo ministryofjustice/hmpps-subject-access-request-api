@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
+import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -21,8 +22,9 @@ class TemplateVersionHealthService(
   private val templateVersionService: TemplateVersionService,
   private val dynamicServicesClient: DynamicServicesClient,
   private val clock: Clock,
-  @Value("\${application.alerts.template-health-alert.unhealthy-threshold-minutes:30}") private val unhealthyStatusThreshold: Long,
-  @Value("\${application.alerts.template-health-alert.last-notified-threshold-minutes:120}") private val lastNotifiedThreshold: Long,
+  private val telemetryClient: TelemetryClient,
+  @Value("\${application.alerts.template-health.unhealthy-threshold-minutes:30}") private val unhealthyStatusThreshold: Long,
+  @Value("\${application.alerts.template-health.last-notified-threshold-minutes:120}") private val lastNotifiedThreshold: Long,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -41,7 +43,9 @@ class TemplateVersionHealthService(
           serviceConfiguration.id,
           health,
           clock.instant(),
-        )
+        ).takeIf { it >= 1 }?.let {
+          telemetryClient.trackHealthStatusChange(health, serviceConfiguration)
+        }
       } ?: run {
         templateVersionHealthStatusRepository.save(
           TemplateVersionHealthStatus(
@@ -50,7 +54,7 @@ class TemplateVersionHealthService(
             status = health,
             lastModified = clock.instant(),
           ),
-        )
+        ).let { telemetryClient.trackHealthStatusChange(health, serviceConfiguration) }
       }
       log.info("Updated template version health status in database for {}", serviceConfiguration.serviceName)
     } ?: run {
@@ -83,5 +87,19 @@ class TemplateVersionHealthService(
   private fun getSha256HashValue(input: String): String {
     val bytes = MessageDigest.getInstance("SHA-256").digest(input.toByteArray())
     return bytes.joinToString("") { "%02x".format(it) }
+  }
+
+  private fun TelemetryClient.trackHealthStatusChange(
+    newStatus: HealthStatusType,
+    serviceConfiguration: ServiceConfiguration,
+  ) {
+    this.trackEvent(
+      "templateVersionHealthStatusUpdated",
+      mapOf(
+        "newStatus" to newStatus.name,
+        "serviceName" to serviceConfiguration.serviceName,
+      ),
+      null,
+    )
   }
 }
