@@ -165,5 +165,5 @@ sentry:
 slack:
   bot:
     auth: ${SAR_SLACK_BOT_AUTH_TOKEN}
-    template-error-recipients: ${DEV_HELP_SLACK_CHANNEL_ID}
-    dev-help-channel-id: ${TEMPLATE_ALERT_SLACK_CHANNEL_IDS}
+    template-error-recipients: ${TEMPLATE_ALERT_SLACK_CHANNEL_IDS}
+    dev-help-channel-id: ${DEV_HELP_SLACK_CHANNEL_ID}
