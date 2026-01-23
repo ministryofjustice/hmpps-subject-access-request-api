@@ -50,6 +50,8 @@ class TemplateVersionHealthServiceTest {
     templateVersionService,
     dynamicServicesClient,
     clock,
+    10L,
+    10L,
   )
 
   @AfterEach

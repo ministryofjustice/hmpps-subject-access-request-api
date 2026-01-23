@@ -89,6 +89,11 @@ application:
     frequency: 900000 # 15 minutes
     lock-max: PT10M
   alerts:
+    template-health-alert:
+      alert-interval-minutes: 10
+      lock-max: PT7M
+      unhealthy-threshold-minutes: 20
+      last-notified-threshold-minutes: 120
     reports-overdue:
       alert-interval-minutes: 120
       threshold: 12
@@ -156,3 +161,9 @@ G3-api:
 
 sentry:
   traces-sample-rate: "0.05"
+
+slack:
+  bot:
+    auth: ${SAR_SLACK_BOT_AUTH_TOKEN}
+    template-error-recipients: ${DEV_HELP_SLACK_CHANNEL_ID}
+    dev-help-channel-id: ${TEMPLATE_ALERT_SLACK_CHANNEL_IDS}

@@ -26,4 +26,15 @@ interface TemplateVersionHealthStatusRepository : JpaRepository<TemplateVersionH
     @Param("newStatus") newStatus: HealthStatusType,
     @Param("currentTime") currentTime: Instant,
   ): Int
+
+  @Query(
+    value = "SELECT t FROM TemplateVersionHealthStatus t " +
+      "WHERE t.status = 'UNHEALTHY' " +
+      "AND t.lastModified < :unhealthyStatusThreshold " +
+      "AND ( t.lastNotified IS NULL OR t.lastNotified < :lastNotifiedThreshold )",
+  )
+  fun findUnhealthyTemplates(
+    @Param("unhealthyStatusThreshold") unhealthyStatusThreshold: Instant,
+    @Param("lastNotifiedThreshold") lastNotifiedThreshold: Instant,
+  ): List<TemplateVersionHealthStatus>
 }

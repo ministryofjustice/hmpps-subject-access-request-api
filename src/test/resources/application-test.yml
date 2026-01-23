@@ -64,3 +64,9 @@ G2-api:
   url: "http://localhost:9002"
 G3-api:
   url: "http://localhost:9003"
+
+slack:
+  bot:
+    auth: "FAKE_AUTH_TOKEN"
+    template-error-recipients: "CHANNEL_ID1"
+    dev-help-channel-id: "CHANNEL_ID2"

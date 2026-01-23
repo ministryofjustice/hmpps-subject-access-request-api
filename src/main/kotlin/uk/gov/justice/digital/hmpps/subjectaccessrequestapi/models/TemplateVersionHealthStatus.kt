@@ -28,6 +28,9 @@ data class TemplateVersionHealthStatus(
 
   @Column(name = "last_modified", nullable = false)
   val lastModified: Instant = Instant.now(),
+
+  @Column(name = "last_notified", nullable = true)
+  var lastNotified: Instant? = null,
 )
 
 enum class HealthStatusType {
