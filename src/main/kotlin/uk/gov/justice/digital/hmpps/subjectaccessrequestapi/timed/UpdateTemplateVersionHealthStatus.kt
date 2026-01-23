@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed
 import io.sentry.Sentry
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
@@ -14,7 +15,9 @@ import java.security.MessageDigest
 /**
  * Update template version health status on a regular basis to enable the sending of alerts when mismatched for too long
  */
+
 @Component
+@ConditionalOnExpression("\${application.template-version-health.enabled:false}")
 class UpdateTemplateVersionHealthStatus(private val service: UpdateTemplateVersionHealthService) {
 
   @Scheduled(

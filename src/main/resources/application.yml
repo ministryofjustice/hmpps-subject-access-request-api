@@ -86,10 +86,12 @@ application:
     age: 7
     frequency: 3600000
   template-version-health:
+    enabled: false
     frequency: ${TEMPLATE_VERSION_HEALTH_FREQUENCY:300000} # 5 minutes
     lock-max: ${TEMPLATE_VERSION_HEALTH_MAX_LOCK:PT3M}
   alerts:
     template-health:
+      enabled: false
       alert-interval-ms: ${TEMPLATE_VERSION_HEALTH_ALERT_INTERVAL:300000}
       lock-max: ${TEMPLATE_VERSION_HEALTH_ALERT_MAX_LOCK:PT3M}
       unhealthy-threshold-minutes: ${TEMPLATE_VERSION_HEALTH_ALERT_UNHEALTHY_THRESHOLD:10}

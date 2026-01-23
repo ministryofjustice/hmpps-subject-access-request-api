@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed.alerts
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SlackNotificationService
@@ -10,6 +11,7 @@ import java.time.Clock
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
+@ConditionalOnExpression("\${application.alerts.template-health.enabled:false}")
 @Component
 class TemplateVersionHealthAlert(
   val templateVersionHealthService: TemplateVersionHealthService,
