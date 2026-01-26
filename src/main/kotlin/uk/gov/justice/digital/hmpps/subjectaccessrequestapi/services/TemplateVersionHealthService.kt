@@ -38,7 +38,20 @@ class TemplateVersionHealthService(
       val actualServiceHash = getSha256HashValue(template)
       val hashValid = templateVersionService.isTemplateHashValid(serviceConfiguration.id, actualServiceHash)
       val health = if (hashValid) HealthStatusType.HEALTHY else HealthStatusType.UNHEALTHY
+
+      log.info(
+        "finding service configuration ({}) by input id: {}",
+        serviceConfiguration.serviceName,
+        serviceConfiguration.id,
+      )
+
       templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfiguration.id)?.let {
+        log.info(
+          "Updating template version health status for {} by id {}",
+          serviceConfiguration.serviceName,
+          serviceConfiguration.id,
+        )
+
         templateVersionHealthStatusRepository.updateStatusWhenChanged(
           serviceConfiguration.id,
           health,
@@ -47,6 +60,12 @@ class TemplateVersionHealthService(
           telemetryClient.trackHealthStatusChange(health, serviceConfiguration)
         }
       } ?: run {
+        log.info(
+          "Template version health status for {} not found for id {} creating new record",
+          serviceConfiguration.serviceName,
+          serviceConfiguration.id,
+        )
+
         templateVersionHealthStatusRepository.save(
           TemplateVersionHealthStatus(
             id = UUID.randomUUID(),
