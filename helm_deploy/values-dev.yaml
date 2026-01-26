@@ -27,6 +27,8 @@ generic-service:
     TEMPLATE_VERSION_HEALTH_ALERT_MAX_LOCK: PT3M
     TEMPLATE_VERSION_HEALTH_ALERT_UNHEALTHY_THRESHOLD: 10
     TEMPLATE_VERSION_HEALTH_ALERT_LAST_NOTIFIED_THRESHOLD: 120
+    APPLICATION_TEMPLATE_VERSION_HEALTH_ENABLED: true
+    APPLICATION_ALERTS_TEMPLATE_HEALTH_ENABLED: true
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
