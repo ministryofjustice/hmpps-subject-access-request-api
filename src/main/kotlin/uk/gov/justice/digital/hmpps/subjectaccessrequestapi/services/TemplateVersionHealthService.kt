@@ -43,8 +43,10 @@ class TemplateVersionHealthService(
           serviceConfiguration.id,
           health,
           clock.instant(),
-        ).takeIf { it >= 1 }?.let {
-          telemetryClient.trackHealthStatusChange(health, serviceConfiguration)
+        ).also { updateCount ->
+          updateCount.takeIf { updateCount > 0 }?.let {
+            telemetryClient.trackHealthStatusChange(health, serviceConfiguration)
+          }
         }
       } ?: run {
         templateVersionHealthStatusRepository.save(

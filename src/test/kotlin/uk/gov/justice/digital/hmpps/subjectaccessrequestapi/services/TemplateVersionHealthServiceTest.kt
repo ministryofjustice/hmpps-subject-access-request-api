@@ -5,8 +5,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -140,5 +142,36 @@ class TemplateVersionHealthServiceTest {
       expectedHealthStatus,
       NOW,
     )
+  }
+
+  @Test
+  fun `should not create new record if one already exists for service configuration even if update is unsuccessful`() {
+    whenever(dynamicServicesClient.getServiceTemplate(serviceConfiguration)).thenReturn(TEMPLATE_ONE)
+    whenever(
+      templateVersionService.isTemplateHashValid(
+        serviceConfiguration.id,
+        "0a1bf7a8b5b414b50e3b9a0c746e1b493dadddaf74ba3861ff4f663ea65938d2",
+      ),
+    ).thenReturn(true)
+    whenever(templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfiguration.id))
+      .thenReturn(TemplateVersionHealthStatus())
+    whenever(
+      templateVersionHealthStatusRepository.updateStatusWhenChanged(
+        serviceConfiguration.id,
+        HealthStatusType.HEALTHY,
+        NOW,
+      ),
+    ).thenReturn(0) // return 0 to indicate update not successful
+
+    updateTemplateVersionHealthService.updateTemplateVersionHealthData(serviceConfiguration)
+
+    verify(templateVersionHealthStatusRepository).findByServiceConfigurationId(serviceConfiguration.id)
+    verify(templateVersionHealthStatusRepository).updateStatusWhenChanged(
+      serviceConfiguration.id,
+      HealthStatusType.HEALTHY,
+      NOW,
+    )
+    verify(templateVersionHealthStatusRepository, never())
+      .save(any<TemplateVersionHealthStatus>())
   }
 }
