@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.actuate.health.Health
+import org.springframework.boot.health.contributor.Health
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException

@@ -39,7 +39,7 @@ class RemoveOldRequestsAndReports(private val service: RemoveOldReportRequestsSe
 class RemoveOldReportRequestsService(
   private val documentStorageClient: DocumentStorageClient,
   private val repository: SubjectAccessRequestRepository,
-  @Value("\${application.remove-reports.age : 7}") private val removeReportsOver: Long,
+  @param:Value("\${application.remove-reports.age : 7}") private val removeReportsOver: Long,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)

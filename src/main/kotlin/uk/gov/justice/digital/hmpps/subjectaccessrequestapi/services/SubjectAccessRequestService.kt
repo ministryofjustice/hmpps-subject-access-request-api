@@ -414,5 +414,5 @@ class SubjectAccessRequestService(
     }
   }
 
-  internal fun getAuthenticationPrincipalName() = SecurityContextHolder.getContext().authentication.name
+  internal fun getAuthenticationPrincipalName() = SecurityContextHolder.getContext().authentication?.name ?: "NONE"
 }

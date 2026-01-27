@@ -21,8 +21,8 @@ import java.time.format.DateTimeFormatter
 
 @Service
 class SlackNotificationService(
-  @Value("\${slack.bot.dev-help-channel-id}") private val devHelpChannelId: String,
-  @Value("\${slack.bot.template-error-recipients}") private val templateErrorRecipients: List<String>,
+  @param:Value("\${slack.bot.dev-help-channel-id}") private val devHelpChannelId: String,
+  @param:Value("\${slack.bot.template-error-recipients}") private val templateErrorRecipients: List<String>,
   val slackClient: MethodsClient,
 ) {
 

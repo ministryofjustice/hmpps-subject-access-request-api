@@ -8,7 +8,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.LocationDetails
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.LocationDetail
 import java.util.stream.Stream
