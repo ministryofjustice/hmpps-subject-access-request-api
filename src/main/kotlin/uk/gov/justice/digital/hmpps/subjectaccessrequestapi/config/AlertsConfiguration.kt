@@ -14,9 +14,9 @@ class AlertsConfiguration(
 
 @Configuration
 class OverdueAlertConfiguration(
-  @Value("\${application.alerts.reports-overdue.threshold:12}") val threshold: Long,
-  @Value("\${application.alerts.reports-overdue.threshold-unit:HOURS}") val thresholdChronoUnit: ChronoUnit,
-  @Value("\${application.alerts.reports-overdue.alert-interval-minutes:720}") val alertIntervalMinutes: Int,
+  @param:Value("\${application.alerts.reports-overdue.threshold:12}") val threshold: Long,
+  @param:Value("\${application.alerts.reports-overdue.threshold-unit:HOURS}") val thresholdChronoUnit: ChronoUnit,
+  @param:Value("\${application.alerts.reports-overdue.alert-interval-minutes:720}") val alertIntervalMinutes: Int,
 ) {
   fun calculateOverdueThreshold(): LocalDateTime = LocalDateTime.now().minus(threshold, thresholdChronoUnit)
   fun thresholdAsString() = "$threshold $thresholdChronoUnit"
@@ -25,17 +25,17 @@ class OverdueAlertConfiguration(
 
 @Configuration
 class BacklogAlertConfiguration(
-  @Value("\${application.alerts.backlog-threshold.threshold:100}") val threshold: Int,
-  @Value("\${application.alerts.backlog-threshold.alert-interval-minutes:720}") val alertIntervalMinutes: Int,
+  @param:Value("\${application.alerts.backlog-threshold.threshold:100}") val threshold: Int,
+  @param:Value("\${application.alerts.backlog-threshold.alert-interval-minutes:720}") val alertIntervalMinutes: Int,
 ) {
   fun thresholdAlertFrequency() = "$alertIntervalMinutes ${ChronoUnit.MINUTES}"
 }
 
 @Configuration
 class RequestTimeoutAlertConfiguration(
-  @Value("\${application.alerts.report-timeout.threshold:48}") val threshold: Long,
-  @Value("\${application.alerts.report-timeout.threshold-unit:HOURS}") val thresholdChronoUnit: ChronoUnit,
-  @Value("\${application.alerts.report-timeout.alert-interval-minutes:}") val alertIntervalMinutes: Int,
+  @param:Value("\${application.alerts.report-timeout.threshold:48}") val threshold: Long,
+  @param:Value("\${application.alerts.report-timeout.threshold-unit:HOURS}") val thresholdChronoUnit: ChronoUnit,
+  @param:Value("\${application.alerts.report-timeout.alert-interval-minutes:}") val alertIntervalMinutes: Int,
 ) {
   fun calculateTimeoutThreshold(): LocalDateTime = LocalDateTime.now().minus(threshold, thresholdChronoUnit)
   fun thresholdAsString() = "$threshold $thresholdChronoUnit"

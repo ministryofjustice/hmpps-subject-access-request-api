@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.health
 
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.actuate.health.Health
-import org.springframework.boot.actuate.health.HealthIndicator
+import org.springframework.boot.health.contributor.Health
+import org.springframework.boot.health.contributor.HealthIndicator
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DynamicServicesClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
@@ -12,14 +12,14 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.ServiceConf
 class SarServicesHealthIndicator(
   private val serviceConfigurationService: ServiceConfigurationService,
   private val dynamicServicesClient: DynamicServicesClient,
-  @Value("\${G1-api.url}") private val g1ApiUrl: String,
-  @Value("\${G2-api.url}") private val g2ApiUrl: String,
-  @Value("\${G3-api.url}") private val g3ApiUrl: String,
-  @Value("\${application.health.alt-services}") private val altHealthServices: List<String>,
-  @Value("\${application.health.dev-portal.url}") private val devPortalUrl: String,
+  @param:Value("\${G1-api.url}") private val g1ApiUrl: String,
+  @param:Value("\${G2-api.url}") private val g2ApiUrl: String,
+  @param:Value("\${G3-api.url}") private val g3ApiUrl: String,
+  @param:Value("\${application.health.alt-services}") private val altHealthServices: List<String>,
+  @param:Value("\${application.health.dev-portal.url}") private val devPortalUrl: String,
 ) : HealthIndicator {
   override fun health(): Health {
-    val servicesHealth = serviceConfigurationService.getServiceConfigurationSanitised()
+    val servicesHealth: MutableMap<String, Any> = serviceConfigurationService.getServiceConfigurationSanitised()
       ?.map {
         val serviceUrl = resolveUrlPlaceHolder(it)
         val serviceHealth =
@@ -30,7 +30,7 @@ class SarServicesHealthIndicator(
           }
         it.serviceName to serviceHealth.addExtraUrls(serviceUrl, it.serviceName, devPortalUrl)
           .restrictHealthInfo(it.serviceName)
-      }?.toMap()
+      }?.toMap()?.toMutableMap() ?: mutableMapOf()
     return Health.up().withDetails(servicesHealth).build()
   }
 

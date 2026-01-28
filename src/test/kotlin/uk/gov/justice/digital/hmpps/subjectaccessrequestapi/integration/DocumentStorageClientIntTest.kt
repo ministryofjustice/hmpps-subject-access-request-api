@@ -5,10 +5,10 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientAutoConfiguration
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientAutoConfiguration
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webclient.autoconfigure.WebClientAutoConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager
@@ -22,10 +22,19 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthMockServer
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.io.File
-import java.util.*
+import java.util.UUID
 
 @ActiveProfiles("test")
-@SpringBootTest(classes = [DocumentStorageClient::class, WebClientConfiguration::class, WebClientAutoConfiguration::class, OAuth2ClientAutoConfiguration::class, OAuth2TestConfig::class, SecurityAutoConfiguration::class])
+@SpringBootTest(
+  classes = [
+    DocumentStorageClient::class,
+    WebClientConfiguration::class,
+    WebClientAutoConfiguration::class,
+    OAuth2ClientAutoConfiguration::class,
+    OAuth2TestConfig::class,
+    SecurityAutoConfiguration::class,
+  ],
+)
 @WithMockAuthUser
 class DocumentStorageClientIntTest {
 

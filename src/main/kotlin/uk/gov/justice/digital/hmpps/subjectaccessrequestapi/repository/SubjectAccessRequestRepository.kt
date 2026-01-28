@@ -43,7 +43,7 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
     nomisSearch: String,
     ndeliusSearch: String,
     pagination: Pageable,
-  ): Page<SubjectAccessRequest?>
+  ): Page<SubjectAccessRequest>
 
   @Lock(LockModeType.PESSIMISTIC_READ)
   @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
@@ -60,7 +60,7 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
     @Param("searchTerm") searchTerm: String,
     @Param("statuses") statuses: Set<Status>,
     pagination: Pageable,
-  ): Page<SubjectAccessRequest?>
+  ): Page<SubjectAccessRequest>
 
   @Lock(LockModeType.PESSIMISTIC_READ)
   @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
@@ -79,7 +79,7 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
     @Param("statuses") statuses: Set<Status>,
     @Param("overdueThreshold") overdueThreshold: LocalDateTime,
     pagination: Pageable,
-  ): Page<SubjectAccessRequest?>
+  ): Page<SubjectAccessRequest>
 
   @Lock(LockModeType.PESSIMISTIC_READ)
   @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
@@ -98,7 +98,7 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
     @Param("statuses") statuses: Set<Status>,
     @Param("overdueThreshold") overdueThreshold: LocalDateTime,
     pagination: Pageable,
-  ): Page<SubjectAccessRequest?>
+  ): Page<SubjectAccessRequest>
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(

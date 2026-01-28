@@ -23,8 +23,8 @@ class TemplateVersionHealthService(
   private val dynamicServicesClient: DynamicServicesClient,
   private val clock: Clock,
   private val telemetryClient: TelemetryClient,
-  @Value("\${application.alerts.template-health.unhealthy-threshold-minutes:30}") private val unhealthyStatusThreshold: Long,
-  @Value("\${application.alerts.template-health.last-notified-threshold-minutes:120}") private val lastNotifiedThreshold: Long,
+  @param:Value("\${application.alerts.template-health.unhealthy-threshold-minutes:30}") private val unhealthyStatusThreshold: Long,
+  @param:Value("\${application.alerts.template-health.last-notified-threshold-minutes:120}") private val lastNotifiedThreshold: Long,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)

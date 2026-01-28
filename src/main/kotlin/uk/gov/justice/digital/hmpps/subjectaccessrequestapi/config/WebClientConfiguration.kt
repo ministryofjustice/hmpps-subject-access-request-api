@@ -11,18 +11,18 @@ import java.time.Duration
 
 @Configuration
 class WebClientConfiguration(
-  @Value("\${document-storage.url}") val documentStorageApiBaseUri: String,
-  @Value("\${hmpps-auth.url}") val hmppsAuthBaseUri: String,
-  @Value("\${external-users-api.url}") val externalUserApiBaseUri: String,
-  @Value("\${prison-register.url}") val prisonRegisterBaseUri: String,
-  @Value("\${sar-and-delius-api.url}") val sarAndDeliusApiBaseUri: String,
-  @Value("\${nomis-user-roles-api.url}") val nomisUserRolesApiBaseUri: String,
-  @Value("\${locations-api.url}") val locationsApiBaseUri: String,
-  @Value("\${nomis-mappings-api.url}") val nomisMappingsApiBaseUri: String,
-  @Value("\${manage-users-api.url}") val manageUsersApiBaseUri: String,
-  @Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
-  @Value("\${api.timeout:20s}") val timeout: Duration,
-  @Value("\${api.timeout:300s}") val longTimeout: Duration,
+  @param:Value("\${document-storage.url}") val documentStorageApiBaseUri: String,
+  @param:Value("\${hmpps-auth.url}") val hmppsAuthBaseUri: String,
+  @param:Value("\${external-users-api.url}") val externalUserApiBaseUri: String,
+  @param:Value("\${prison-register.url}") val prisonRegisterBaseUri: String,
+  @param:Value("\${sar-and-delius-api.url}") val sarAndDeliusApiBaseUri: String,
+  @param:Value("\${nomis-user-roles-api.url}") val nomisUserRolesApiBaseUri: String,
+  @param:Value("\${locations-api.url}") val locationsApiBaseUri: String,
+  @param:Value("\${nomis-mappings-api.url}") val nomisMappingsApiBaseUri: String,
+  @param:Value("\${manage-users-api.url}") val manageUsersApiBaseUri: String,
+  @param:Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
+  @param:Value("\${api.timeout:20s}") val timeout: Duration,
+  @param:Value("\${api.timeout:300s}") val longTimeout: Duration,
 ) {
   @Bean
   fun hmppsAuthHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(hmppsAuthBaseUri, healthTimeout)

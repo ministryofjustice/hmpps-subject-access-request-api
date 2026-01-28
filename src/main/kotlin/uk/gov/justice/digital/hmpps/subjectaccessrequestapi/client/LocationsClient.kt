@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono
 @Component
 class LocationsClient(
   private val locationsApiWebClient: WebClient,
-  @Value("\${application.locations-request.page-size}") private val pageSize: Int,
+  @param:Value("\${application.locations-request.page-size}") private val pageSize: Int,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)

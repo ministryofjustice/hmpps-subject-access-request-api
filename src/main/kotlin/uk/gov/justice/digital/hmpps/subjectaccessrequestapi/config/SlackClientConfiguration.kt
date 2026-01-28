@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class SlackClientConfiguration(@Value("\${slack.bot.auth}") private val slackBotAuthToken: String) {
+class SlackClientConfiguration(@param:Value("\${slack.bot.auth}") private val slackBotAuthToken: String) {
 
   @Bean
   fun slackClient(): MethodsClient = Slack.getInstance().methods(slackBotAuthToken)

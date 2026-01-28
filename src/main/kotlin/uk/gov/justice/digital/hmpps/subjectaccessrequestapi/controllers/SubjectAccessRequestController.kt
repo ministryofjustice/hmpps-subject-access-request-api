@@ -321,7 +321,7 @@ class SubjectAccessRequestController(
     ],
   )
   @Parameter(name = "id", description = "ID for the Subject Access Request Report to download.", required = true, example = "11111111-2222-3333-4444-555555555555")
-  fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<out Any?>? {
+  fun getReport(@RequestParam(required = true, name = "id") id: UUID): ResponseEntity<out Any>? {
     log.info("Retrieving report for ID $id.")
     telemetryClient.trackApiEvent("ReportDownloadStarted", id.toString())
     val docResponse = subjectAccessRequestService.retrieveSubjectAccessRequestDocument(id)

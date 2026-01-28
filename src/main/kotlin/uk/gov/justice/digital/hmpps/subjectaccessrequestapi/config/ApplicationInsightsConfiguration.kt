@@ -16,10 +16,10 @@ class ApplicationInsightsConfiguration {
 
 @Configuration
 class ApplicationInsightsQueryConfiguration(
-  @Value("\${application.appInsights.subscriptionId}") val subscriptionId: String,
-  @Value("\${application.appInsights.resourceGroup}") val resourceGroup: String,
-  @Value("\${application.appInsights.instanceName}") val instanceName: String,
-  @Value("\${application.appInsights.timespan}") val timespan: String,
+  @param:Value("\${application.appInsights.subscriptionId}") val subscriptionId: String,
+  @param:Value("\${application.appInsights.resourceGroup}") val resourceGroup: String,
+  @param:Value("\${application.appInsights.instanceName}") val instanceName: String,
+  @param:Value("\${application.appInsights.timespan}") val timespan: String,
 )
 
 fun TelemetryClient.trackEvent(name: String, properties: Map<String, String>) = this.trackEvent(name, properties, null)
