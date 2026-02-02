@@ -13,4 +13,6 @@ interface ServiceConfigurationRepository : JpaRepository<ServiceConfiguration, U
     enabled: Boolean = true,
     templateMigrated: Boolean = true,
   ): List<ServiceConfiguration>?
+
+  fun findByServiceName(serviceName: String): ServiceConfiguration?
 }

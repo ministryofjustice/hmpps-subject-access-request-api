@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models
 
-import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -18,9 +17,9 @@ data class TemplateVersionHealthStatus(
   @Id
   val id: UUID = UUID.randomUUID(),
 
-  @OneToOne(cascade = [CascadeType.ALL])
+  @OneToOne
   @JoinColumn(name = "service_configuration_id")
-  val serviceConfiguration: ServiceConfiguration? = null,
+  val serviceConfiguration: ServiceConfiguration,
 
   @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)
@@ -36,4 +35,5 @@ data class TemplateVersionHealthStatus(
 enum class HealthStatusType {
   HEALTHY,
   UNHEALTHY,
+  NOT_MIGRATED,
 }

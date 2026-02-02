@@ -30,6 +30,14 @@ class TemplateVersionHealthService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  fun getTemplateHealthStatusByServiceConfigurationIds(
+    serviceConfigurationIds: List<UUID>?,
+  ): Map<UUID, TemplateVersionHealthStatus> = serviceConfigurationIds?.let {
+    templateVersionHealthStatusRepository.findByServiceConfigurationIds(
+      serviceConfigurationIds,
+    ).associateBy { it.serviceConfiguration.id }
+  } ?: emptyMap()
+
   @Transactional
   fun updateTemplateVersionHealthData(serviceConfiguration: ServiceConfiguration) {
     log.info("Updating template version health status in database for {}", serviceConfiguration.serviceName)
