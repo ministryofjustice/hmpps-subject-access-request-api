@@ -89,8 +89,8 @@ fun Health.addExtraUrlsAndTemplateHealthStatus(
 ): Health {
   val amendedDetails = mutableMapOf<String, Any>()
   amendedDetails.putAll(this.details)
-  amendedDetails.put("healthUrl", "$serviceUrl/health")
-  amendedDetails.put("portalUrl", String.format(portalUrl, serviceName))
-  amendedDetails.put("templateHealthStatus", templateHealthStatus.name)
+  amendedDetails["healthUrl"] = "$serviceUrl/health"
+  amendedDetails["portalUrl"] = String.format(portalUrl, serviceName)
+  amendedDetails["templateHealthStatus"] = templateHealthStatus.displayName
   return Health.status(this.status).withDetails(amendedDetails).build()
 }
