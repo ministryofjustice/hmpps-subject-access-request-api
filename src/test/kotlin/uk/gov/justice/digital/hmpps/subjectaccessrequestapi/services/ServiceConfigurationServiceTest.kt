@@ -50,4 +50,15 @@ class ServiceConfigurationServiceTest {
 
     verify(serviceConfigurationRepository, times(1)).findByOrderByOrderAsc()
   }
+
+  @Test
+  fun `should return expected service by service service name`() {
+    whenever(serviceConfigurationRepository.findByServiceName("service1"))
+      .thenReturn(s1)
+
+    assertThat(service.getByServiceName("service1")).isEqualTo(s1)
+
+    verify(serviceConfigurationRepository, times(1))
+      .findByServiceName("service1")
+  }
 }

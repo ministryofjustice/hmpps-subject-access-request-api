@@ -15,6 +15,14 @@ interface TemplateVersionHealthStatusRepository : JpaRepository<TemplateVersionH
 
   fun findByServiceConfigurationId(serviceConfigurationId: UUID): TemplateVersionHealthStatus?
 
+  @Query(
+    value = "SELECT t FROM TemplateVersionHealthStatus t " +
+      "WHERE t.serviceConfiguration.id IN (:serviceConfigurationIds)",
+  )
+  fun findByServiceConfigurationIds(
+    @Param("serviceConfigurationIds") serviceConfigurationIds: List<UUID>,
+  ): List<TemplateVersionHealthStatus>
+
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
     "UPDATE TemplateVersionHealthStatus templateVersionHealthStatus " +

@@ -37,6 +37,20 @@ class ServiceConfigurationRepositoryTest {
     assertThat(actual).isNotNull.isNotEmpty.hasSize(1).containsExactly(s2)
   }
 
+  @Test
+  fun `findByServiceName returns the expected service when it exists`() {
+    repository.saveAndFlush(s1)
+
+    assertThat(repository.findByServiceName("service1")).isEqualTo(s1)
+  }
+
+  @Test
+  fun `findByServiceName returns null when no service exists with requested serviceName`() {
+    repository.saveAndFlush(s1)
+
+    assertThat(repository.findByServiceName("serviceOne")).isNull()
+  }
+
   companion object {
 
     private val s1 = ServiceConfiguration(

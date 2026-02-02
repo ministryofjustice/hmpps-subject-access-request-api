@@ -10,4 +10,5 @@ import java.util.UUID
 class ServiceConfigurationService(private val serviceConfigurationRepository: ServiceConfigurationRepository) {
   fun getServiceConfigurationSanitised(): List<ServiceConfiguration>? = serviceConfigurationRepository.findByOrderByOrderAsc()
   fun getById(id: UUID): ServiceConfiguration? = serviceConfigurationRepository.findByIdOrNull(id)
+  fun getByServiceName(serviceName: String): ServiceConfiguration? = serviceConfigurationRepository.findByServiceName(serviceName)
 }

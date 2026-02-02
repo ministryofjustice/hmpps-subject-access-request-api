@@ -6,6 +6,7 @@ import org.springframework.boot.health.contributor.Health
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.WebClientWrapper
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
 import uk.gov.justice.hmpps.kotlin.health.HealthPingCheck
 
 @Component("hmppsAuth")
@@ -77,5 +78,19 @@ fun Health.addExtraUrls(serviceUrl: String, serviceName: String, portalUrl: Stri
   amendedDetails.putAll(this.details)
   amendedDetails.put("healthUrl", "$serviceUrl/health")
   amendedDetails.put("portalUrl", String.format(portalUrl, serviceName))
+  return Health.status(this.status).withDetails(amendedDetails).build()
+}
+
+fun Health.addExtraUrlsAndTemplateHealthStatus(
+  serviceUrl: String,
+  serviceName: String,
+  portalUrl: String,
+  templateHealthStatus: HealthStatusType,
+): Health {
+  val amendedDetails = mutableMapOf<String, Any>()
+  amendedDetails.putAll(this.details)
+  amendedDetails.put("healthUrl", "$serviceUrl/health")
+  amendedDetails.put("portalUrl", String.format(portalUrl, serviceName))
+  amendedDetails.put("templateHealthStatus", templateHealthStatus.name)
   return Health.status(this.status).withDetails(amendedDetails).build()
 }

@@ -29,7 +29,7 @@ class TemplateVersionHealthStatusRepositoryTest {
 
   private val now = Instant.now().truncatedTo(ChronoUnit.MICROS)
 
-  private var serviceConfig: ServiceConfiguration = ServiceConfiguration(
+  private var serviceConfig1: ServiceConfiguration = ServiceConfiguration(
     id = UUID.randomUUID(),
     serviceName = "test001",
     label = "Test Zero Zero One",
@@ -39,23 +39,34 @@ class TemplateVersionHealthStatusRepositoryTest {
     templateMigrated = true,
     category = ServiceCategory.PRISON,
   )
+  private var serviceConfig2: ServiceConfiguration = ServiceConfiguration(
+    id = UUID.randomUUID(),
+    serviceName = "test002",
+    label = "Test Zero Zero Two",
+    url = "url",
+    order = 1000,
+    enabled = true,
+    templateMigrated = true,
+    category = ServiceCategory.PRISON,
+  )
 
   private val templateVersionHealthStatus = TemplateVersionHealthStatus(
     id = UUID.randomUUID(),
     status = HealthStatusType.UNHEALTHY,
-    serviceConfiguration = serviceConfig,
+    serviceConfiguration = serviceConfig1,
     lastModified = now,
   )
 
   @BeforeEach
   fun setup() {
-    serviceConfigurationRepository.save(serviceConfig)
+    templateVersionHealthStatusRepository.deleteAll()
+    serviceConfigurationRepository.saveAllAndFlush(listOf(serviceConfig1, serviceConfig2))
   }
 
   @AfterEach
   fun cleanUp() {
-    serviceConfigurationRepository.delete(serviceConfig)
     templateVersionHealthStatusRepository.deleteAll()
+    serviceConfigurationRepository.delete(serviceConfig1)
   }
 
   @Test
@@ -67,10 +78,22 @@ class TemplateVersionHealthStatusRepositoryTest {
   }
 
   @Test
+  fun `delete should not delete service configuration record`() {
+    templateVersionHealthStatusRepository.save(templateVersionHealthStatus)
+    assertThat(serviceConfigurationRepository.findByIdOrNull(serviceConfig1.id)).isNotNull
+    assertThat(templateVersionHealthStatusRepository.findByIdOrNull(templateVersionHealthStatus.id)).isNotNull
+
+    templateVersionHealthStatusRepository.deleteById(templateVersionHealthStatus.id)
+
+    assertThat(templateVersionHealthStatusRepository.findByIdOrNull(templateVersionHealthStatus.id)).isNull()
+    assertThat(serviceConfigurationRepository.findByIdOrNull(serviceConfig1.id)).isNotNull
+  }
+
+  @Test
   fun `should retrieve record by service configuration id when exists`() {
     templateVersionHealthStatusRepository.save(templateVersionHealthStatus)
 
-    assertThat(templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfig.id))
+    assertThat(templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfig1.id))
       .isEqualTo(templateVersionHealthStatus)
   }
 
@@ -94,21 +117,21 @@ class TemplateVersionHealthStatusRepositoryTest {
       TemplateVersionHealthStatus(
         id = UUID.randomUUID(),
         status = existingStatus,
-        serviceConfiguration = serviceConfig,
+        serviceConfiguration = serviceConfig1,
         lastModified = now,
       ),
     )
     val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
 
     val changedRecords =
-      templateVersionHealthStatusRepository.updateStatusWhenChanged(serviceConfig.id, newStatus, newModifiedTime)
+      templateVersionHealthStatusRepository.updateStatusWhenChanged(serviceConfig1.id, newStatus, newModifiedTime)
 
     assertThat(changedRecords).isEqualTo(1)
     assertThat(templateVersionHealthStatusRepository.findByIdOrNull(savedTemplateVersionHealthStatus.id)).isEqualTo(
       TemplateVersionHealthStatus(
         id = savedTemplateVersionHealthStatus.id,
         status = newStatus,
-        serviceConfiguration = serviceConfig,
+        serviceConfiguration = serviceConfig1,
         lastModified = newModifiedTime,
       ),
     )
@@ -129,21 +152,21 @@ class TemplateVersionHealthStatusRepositoryTest {
       TemplateVersionHealthStatus(
         id = UUID.randomUUID(),
         status = existingStatus,
-        serviceConfiguration = serviceConfig,
+        serviceConfiguration = serviceConfig1,
         lastModified = now,
       ),
     )
     val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
 
     val changedRecords =
-      templateVersionHealthStatusRepository.updateStatusWhenChanged(serviceConfig.id, newStatus, newModifiedTime)
+      templateVersionHealthStatusRepository.updateStatusWhenChanged(serviceConfig1.id, newStatus, newModifiedTime)
 
     assertThat(changedRecords).isEqualTo(0)
     assertThat(templateVersionHealthStatusRepository.findByIdOrNull(savedTemplateVersionHealthStatus.id)).isEqualTo(
       TemplateVersionHealthStatus(
         id = savedTemplateVersionHealthStatus.id,
         status = existingStatus,
-        serviceConfiguration = serviceConfig,
+        serviceConfiguration = serviceConfig1,
         lastModified = now,
       ),
     )
@@ -155,7 +178,7 @@ class TemplateVersionHealthStatusRepositoryTest {
       TemplateVersionHealthStatus(
         id = UUID.randomUUID(),
         status = HealthStatusType.HEALTHY,
-        serviceConfiguration = serviceConfig,
+        serviceConfiguration = serviceConfig1,
         lastModified = now,
       ),
     )
@@ -173,7 +196,7 @@ class TemplateVersionHealthStatusRepositoryTest {
       TemplateVersionHealthStatus(
         id = savedTemplateVersionHealthStatus.id,
         status = HealthStatusType.HEALTHY,
-        serviceConfiguration = serviceConfig,
+        serviceConfiguration = serviceConfig1,
         lastModified = now,
       ),
     )
@@ -197,7 +220,7 @@ class TemplateVersionHealthStatusRepositoryTest {
       templateVersionHealthStatusRepository.saveAndFlush(
         TemplateVersionHealthStatus(
           status = HealthStatusType.UNHEALTHY,
-          serviceConfiguration = serviceConfig,
+          serviceConfiguration = serviceConfig1,
           lastModified = now.minusMinutes(20),
           lastNotified = null,
         ),
@@ -216,7 +239,7 @@ class TemplateVersionHealthStatusRepositoryTest {
       val expected = templateVersionHealthStatusRepository.saveAndFlush(
         TemplateVersionHealthStatus(
           status = HealthStatusType.UNHEALTHY,
-          serviceConfiguration = serviceConfig,
+          serviceConfiguration = serviceConfig1,
           lastModified = now.minusMinutes(31),
           lastNotified = null,
         ),
@@ -236,7 +259,7 @@ class TemplateVersionHealthStatusRepositoryTest {
       val expected = templateVersionHealthStatusRepository.saveAndFlush(
         TemplateVersionHealthStatus(
           status = HealthStatusType.UNHEALTHY,
-          serviceConfiguration = serviceConfig,
+          serviceConfiguration = serviceConfig1,
           lastModified = now.minusMinutes(31),
           lastNotified = now.minusMinutes(61),
         ),
@@ -258,7 +281,7 @@ class TemplateVersionHealthStatusRepositoryTest {
       templateVersionHealthStatusRepository.saveAndFlush(
         TemplateVersionHealthStatus(
           status = HealthStatusType.HEALTHY,
-          serviceConfiguration = serviceConfig,
+          serviceConfiguration = serviceConfig1,
           lastModified = now.minusMinutes(31),
           lastNotified = now.minusMinutes(61),
         ),
@@ -270,6 +293,79 @@ class TemplateVersionHealthStatusRepositoryTest {
           lastNotifiedThreshold = now.minusMinutes(60),
         ),
       ).isEmpty()
+    }
+  }
+
+  @Nested
+  inner class FindByServiceConfigurationIds {
+
+    @Test
+    fun `should return empty list when IDs do not match any entries`() {
+      assertThat(
+        templateVersionHealthStatusRepository.findByServiceConfigurationIds(
+          listOf(
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+          ),
+        ),
+      ).isEmpty()
+    }
+
+    @Test
+    fun `should return all expected templateHealthStatuses matching service configuration ID`() {
+      templateVersionHealthStatusRepository.deleteAll()
+
+      val t1 = TemplateVersionHealthStatus(
+        id = UUID.randomUUID(),
+        status = HealthStatusType.HEALTHY,
+        serviceConfiguration = serviceConfig1,
+        lastModified = now,
+      )
+
+      val t2 = TemplateVersionHealthStatus(
+        id = UUID.randomUUID(),
+        status = HealthStatusType.HEALTHY,
+        serviceConfiguration = serviceConfig2,
+        lastModified = now,
+      )
+
+      templateVersionHealthStatusRepository.saveAllAndFlush(listOf(t1, t2))
+
+      val actual = templateVersionHealthStatusRepository.findByServiceConfigurationIds(
+        listOf(
+          serviceConfig1.id,
+          serviceConfig2.id,
+        ),
+      )
+
+      assertThat(actual).hasSize(2)
+      assertThat(actual).containsExactlyInAnyOrder(t1, t2)
+    }
+
+    @Test
+    fun `should return only templateHealthStatuses matching the provided service configuration IDs`() {
+      templateVersionHealthStatusRepository.deleteAll()
+
+      val t1 = TemplateVersionHealthStatus(
+        id = UUID.randomUUID(),
+        status = HealthStatusType.HEALTHY,
+        serviceConfiguration = serviceConfig1,
+        lastModified = now,
+      )
+
+      val t2 = TemplateVersionHealthStatus(
+        id = UUID.randomUUID(),
+        status = HealthStatusType.HEALTHY,
+        serviceConfiguration = serviceConfig2,
+        lastModified = now,
+      )
+
+      templateVersionHealthStatusRepository.saveAllAndFlush(listOf(t1, t2))
+
+      val actual = templateVersionHealthStatusRepository.findByServiceConfigurationIds(listOf(serviceConfig1.id))
+      assertThat(actual).hasSize(1)
+      assertThat(actual).containsExactlyInAnyOrder(t1)
     }
   }
 
