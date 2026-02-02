@@ -32,8 +32,8 @@ data class TemplateVersionHealthStatus(
   var lastNotified: Instant? = null,
 )
 
-enum class HealthStatusType {
-  HEALTHY,
-  UNHEALTHY,
-  NOT_MIGRATED,
+enum class HealthStatusType(val displayName: String) {
+  HEALTHY("Healthy"),
+  UNHEALTHY("Unhealthy"),
+  NOT_MIGRATED("Not Migrated"),
 }

@@ -193,7 +193,7 @@ class HealthCheckTest : IntegrationTestBase() {
     .jsonPath("components.$pathPrefix$componentName.details.portalUrl")
     .isEqualTo("https://developer-portal.hmpps.service.justice.gov.uk/components/$componentName/environment/dev")
     .jsonPath("components.$pathPrefix$componentName.details.templateHealthStatus")
-    .isEqualTo(templateHealthStatus.name)
+    .isEqualTo(templateHealthStatus.displayName)
 
   private fun setTemplateHealthStatus(serviceName: String, status: HealthStatusType) {
     val serviceConfig = serviceConfigurationService.getByServiceName(serviceName)
