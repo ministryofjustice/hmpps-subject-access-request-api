@@ -18,6 +18,17 @@ application:
   notify:
     # test key which doesn't send emails, but is automatically accepted by notify
     key: testkey-992308b2-1e8f-4667-816b-8bdde781a4ac-9c211cf4-96d1-4c30-848b-8f172bca0b41
+  template-version-health:
+    enabled: true
+    frequency: ${TEMPLATE_VERSION_HEALTH_FREQUENCY:180000}
+    lock-max: ${TEMPLATE_VERSION_HEALTH_MAX_LOCK:PT2M30S}
+  alerts:
+    template-health:
+      enabled: ${APPLICATION_ALERTS_TEMPLATE_HEALTH_ENABLED:true}
+      alert-interval-ms: ${TEMPLATE_VERSION_HEALTH_ALERT_INTERVAL:300000}
+      lock-max: ${TEMPLATE_VERSION_HEALTH_ALERT_MAX_LOCK:PT4M30S}
+      unhealthy-threshold-minutes: ${TEMPLATE_VERSION_HEALTH_ALERT_UNHEALTHY_THRESHOLD:5}
+      last-notified-threshold-minutes: ${TEMPLATE_VERSION_HEALTH_ALERT_LAST_NOTIFIED_THRESHOLD:5}
 
 spring:
   datasource:
@@ -47,3 +58,10 @@ spring:
             client-secret: "clientsecret"
             authorization-grant-type: client_credentials
             scope: read
+
+slack:
+  bot:
+    noop-enabled: true
+    auth: "some_value"
+    template-error-recipients: "some_value"
+    dev-help-channel-id: "some_value"

@@ -28,7 +28,6 @@ class DynamicServiceIntTest : IntegrationTestBase() {
     serviceName = "test1",
     label = "Test One",
     url = "http://localhost:${DYNAMIC_SERVICE_PORT}",
-    order = 123,
     enabled = true,
     templateMigrated = true,
     category = ServiceCategory.PRISON,

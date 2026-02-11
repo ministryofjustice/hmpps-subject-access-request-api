@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
-import com.slack.api.methods.MethodsClient
 import com.slack.api.methods.request.chat.ChatPostMessageRequest
 import com.slack.api.methods.response.chat.ChatPostMessageResponse
 import com.slack.api.model.block.ContextBlock
@@ -16,6 +15,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.SlackApiClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
@@ -24,14 +24,13 @@ import java.time.Instant
 
 class SlackNotificationServiceTest {
 
-  private val slackClient: MethodsClient = mock()
+  private val slackClient: SlackApiClient = mock()
   private val chatPostMessageResponse: ChatPostMessageResponse = mock()
 
   private val serviceConfig: ServiceConfiguration = ServiceConfiguration(
     serviceName = "TestService",
     label = "Test",
     url = "http://localhost:8080",
-    order = 1,
     enabled = true,
     templateMigrated = true,
     category = ServiceCategory.PRISON,
@@ -46,7 +45,7 @@ class SlackNotificationServiceTest {
   private val slackNotificationService = SlackNotificationService(
     devHelpChannelId = "666",
     templateErrorRecipients = listOf("test-channel-01"),
-    slackClient = slackClient,
+    slackApiClient = slackClient,
   )
 
   @Test

@@ -33,7 +33,6 @@ class NotificationServiceTest {
       serviceName = "service-one",
       label = "Service One",
       url = "http://my-service",
-      order = 1,
       enabled = true,
       templateMigrated = true,
       category = PRISON,

@@ -34,5 +34,17 @@ services:
     ports:
       - "3001:3000"
 
+  wiremock:
+    image: wiremock/wiremock:3.5.2   # pick your version
+    container_name: wiremock
+    ports:
+      - "8099:8080"
+    command:
+      - "--verbose"
+      - "--port=8080"
+    volumes:
+      - ./wiremock/mappings:/home/wiremock/mappings
+      - ./wiremock/__files:/home/wiremock/__files
+
 networks:
   hmpps:
