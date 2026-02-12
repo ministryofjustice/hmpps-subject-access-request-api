@@ -18,7 +18,6 @@ generic-service:
 
   # Environment variables to load into the deployment
   env:
-    JAVA_TOOL_OPTIONS: "-Xmx1024m"
     SERVER_PORT: "8080"
     SPRING_PROFILES_ACTIVE: "logstash"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
