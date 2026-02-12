@@ -26,32 +26,23 @@ class ServiceConfigurationServiceTest {
   private val service = ServiceConfigurationService(serviceConfigurationRepository)
 
   @Test
-  fun `should return null when serviceConfigurationRepository return null`() {
-    whenever(serviceConfigurationRepository.findAllReportOrdering())
-      .thenReturn(null)
-
-    assertThat(service.getServiceConfigurationSanitised()).isNull()
-    verify(serviceConfigurationRepository, times(1)).findAllReportOrdering()
-  }
-
-  @Test
   fun `should return empty list when no results are returned`() {
-    whenever(serviceConfigurationRepository.findAllReportOrdering())
+    whenever(serviceConfigurationRepository.findAll())
       .thenReturn(emptyList())
 
     assertThat(service.getServiceConfigurationSanitised()).isEmpty()
-    verify(serviceConfigurationRepository, times(1)).findAllReportOrdering()
+    verify(serviceConfigurationRepository, times(1)).findAll()
   }
 
   @Test
-  fun `should return expected list of service configuration`() {
-    whenever(serviceConfigurationRepository.findAllReportOrdering())
-      .thenReturn(listOf(g1, g2, g3, s1, s2, s3, s4, s5))
+  fun `should return expected list of service configuration in the correct ordering`() {
+    whenever(serviceConfigurationRepository.findAll())
+      .thenReturn(listOf(s5, s4, g1, g3, s1, g2, s2, s3))
 
     assertThat(service.getServiceConfigurationSanitised())
       .containsExactlyElementsOf(listOf(g1, g2, g3, s1, s2, s3, s4, s5))
 
-    verify(serviceConfigurationRepository, times(1)).findAllReportOrdering()
+    verify(serviceConfigurationRepository, times(1)).findAll()
   }
 
   @Test

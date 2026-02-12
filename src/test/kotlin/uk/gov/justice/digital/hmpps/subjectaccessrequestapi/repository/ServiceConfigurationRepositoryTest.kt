@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
@@ -19,87 +18,6 @@ class ServiceConfigurationRepositoryTest {
   @BeforeEach
   fun setup() {
     repository.deleteAll()
-  }
-
-  @Nested
-  inner class FindAllOrderedByReportFormat {
-
-    @Test
-    fun `should return empty list when no services exist`() {
-      assertThat(repository.findAllReportOrdering()).isEmpty()
-    }
-
-    @Test
-    fun `should return services in expected order when no G services exist`() {
-      repository.saveAllAndFlush(listOf(probation2, prison1, prison2, prison3, prison4, probation1))
-
-      val actual = repository.findAllReportOrdering()
-      assertThat(actual).hasSize(6)
-
-      assertThat(actual).containsExactly(
-        prison1,
-        prison2,
-        prison3,
-        prison4,
-        probation1,
-        probation2,
-      )
-    }
-
-    @Test
-    fun `should return services in expected order when no Prison services exist`() {
-      repository.saveAllAndFlush(listOf(probation2, sG1, probation1, sG2))
-
-      val actual = repository.findAllReportOrdering()
-      assertThat(actual).hasSize(4)
-
-      assertThat(actual).containsExactly(
-        sG1,
-        sG2,
-        probation1,
-        probation2,
-      )
-    }
-
-    @Test
-    fun `should return services in expected order when no Probation services exist`() {
-      repository.saveAllAndFlush(listOf(sG1, prison1, prison2, sG2, prison3, prison4))
-
-      val actual = repository.findAllReportOrdering()
-      assertThat(actual).hasSize(6)
-
-      assertThat(actual).containsExactly(
-        sG1,
-        sG2,
-        prison1,
-        prison2,
-        prison3,
-        prison4,
-      )
-    }
-
-    @Test
-    fun `should return services in expected order`() {
-      repository.saveAllAndFlush(listOf(sG1, prison1, prison2, probation2, prison3, prison4, sG2, probation1))
-
-      val actual = repository.findAllReportOrdering()
-      assertThat(actual).hasSize(8)
-
-      // Expected order is
-      // G services sorted alphabetically,
-      // Prison services sorted alphabetically,
-      // Probation sorted services alphabetically
-      assertThat(actual).containsExactly(
-        sG1,
-        sG2,
-        prison1,
-        prison2,
-        prison3,
-        prison4,
-        probation1,
-        probation2,
-      )
-    }
   }
 
   @Test

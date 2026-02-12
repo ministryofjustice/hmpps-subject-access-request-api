@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.Integrat
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PRISON
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PROBATION
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.utils.ServiceConfigurationComparator
 
 class ServicesControllerIntTest : IntegrationTestBase() {
 
@@ -79,7 +80,8 @@ class ServicesControllerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should return services in expected order`() {
-    val services = serviceConfigurationRepository.findAllReportOrdering()
+    val services = serviceConfigurationRepository.findAll()
+      .sortedWith(ServiceConfigurationComparator())
 
     val actual = webTestClient.get()
       .uri("/api/services")
