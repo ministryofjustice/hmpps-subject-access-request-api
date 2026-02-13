@@ -1,7 +1,6 @@
 # hmpps-subject-access-request-api
 [![repo standards badge](https://img.shields.io/badge/dynamic/json?color=blue&style=flat&logo=github&label=MoJ%20Compliant&query=%24.result&url=https%3A%2F%2Foperations-engineering-reports.cloud-platform.service.justice.gov.uk%2Fapi%2Fv1%2Fcompliant_public_repositories%2Fhmpps-subject-access-request-api)](https://operations-engineering-reports.cloud-platform.service.justice.gov.uk/public-github-repositories.html#hmpps-subject-access-request-api "Link to report")
-[![CircleCI](https://circleci.com/gh/ministryofjustice/hmpps-subject-access-request-api/tree/main.svg?style=svg)](https://circleci.com/gh/ministryofjustice/hmpps-subject-access-request-api)
-[![Docker Repository on Quay](https://quay.io/repository/hmpps/hmpps-subject-access-request-api/status "Docker Repository on Quay")](https://quay.io/repository/hmpps/hmpps-subject-access-request-api)
+[![Docker Repository on ghcr](https://img.shields.io/badge/ghcr.io-repository-2496ED.svg?logo=docker)](https://ghcr.io/ministryofjustice/hmpps-subject-access-request-api)
 [![API docs](https://img.shields.io/badge/API_docs_-view-85EA2D.svg?logo=swagger)](https://subject-access-request-api-dev.hmpps.service.justice.gov.uk/swagger-ui/index.html?configUrl=/v3/api-docs)
 
 This is a Spring Boot application, written in Kotlin, used as an orchestration layer between the 
