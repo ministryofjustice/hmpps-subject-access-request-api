@@ -24,9 +24,6 @@ data class ServiceConfiguration(
   @Column(name = "url", nullable = false)
   val url: String,
 
-  @Column(name = "list_order", nullable = false)
-  val order: Int,
-
   @Column(name = "enabled", nullable = false)
   val enabled: Boolean,
 

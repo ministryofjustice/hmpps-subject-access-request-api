@@ -29,7 +29,6 @@ class TemplateVersionIntTestBase : IntegrationTestBase() {
     serviceName = serviceName,
     label = "HMPPS Example Service",
     url = "http://localhost:8080/",
-    order = 666,
     enabled = true,
     templateMigrated = true,
     category = ServiceCategory.PRISON,

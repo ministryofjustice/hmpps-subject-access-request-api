@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
-import com.slack.api.methods.MethodsClient
 import com.slack.api.methods.request.chat.ChatPostMessageRequest
 import com.slack.api.model.block.Blocks.asBlocks
 import com.slack.api.model.block.Blocks.context
@@ -14,6 +13,7 @@ import com.slack.api.model.block.composition.TextObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.SlackApiClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
 import java.time.Instant
 import java.time.ZoneId
@@ -23,7 +23,7 @@ import java.time.format.DateTimeFormatter
 class SlackNotificationService(
   @param:Value("\${slack.bot.dev-help-channel-id}") private val devHelpChannelId: String,
   @param:Value("\${slack.bot.template-error-recipients}") private val templateErrorRecipients: List<String>,
-  val slackClient: MethodsClient,
+  val slackApiClient: SlackApiClient,
 ) {
 
   companion object {
@@ -33,7 +33,7 @@ class SlackNotificationService(
 
   fun sendTemplateHealthAlert(unhealthyTemplates: List<TemplateVersionHealthStatus>) {
     templateErrorRecipients.takeIf { it.isNotEmpty() }?.forEach {
-      val resp = slackClient.chatPostMessage(
+      val resp = slackApiClient.chatPostMessage(
         ChatPostMessageRequest.builder()
           .channel(it)
           .blocks(buildMessage(unhealthyTemplates))
@@ -54,7 +54,7 @@ class SlackNotificationService(
       markdownText("*First detected*"),
     )
     unhealthyTemplates.forEach { t ->
-      fields.add(markdownText(t.serviceConfiguration!!.serviceName))
+      fields.add(markdownText(t.serviceConfiguration.serviceName))
       fields.add(markdownText(t.lastModified.prettyFormat()))
     }
 

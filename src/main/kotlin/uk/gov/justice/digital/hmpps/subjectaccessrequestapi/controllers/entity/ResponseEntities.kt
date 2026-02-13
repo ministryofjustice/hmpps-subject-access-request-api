@@ -51,7 +51,6 @@ data class ServiceInfo(
   val name: String,
   val label: String,
   val url: String,
-  val order: Int,
   val enabled: Boolean,
   val templateMigrated: Boolean,
   val category: ServiceCategory,

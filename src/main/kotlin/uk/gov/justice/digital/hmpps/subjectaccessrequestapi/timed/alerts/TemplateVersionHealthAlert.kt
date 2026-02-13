@@ -37,7 +37,7 @@ class TemplateVersionHealthAlert(
       .takeIf { it.isNotEmpty() }?.let { it ->
         LOG.info(
           "identified services with unhealthy template versions: {}",
-          it.joinToString { it.serviceConfiguration!!.serviceName },
+          it.joinToString { it.serviceConfiguration.serviceName },
         )
         slackNotificationService.sendTemplateHealthAlert(unhealthyTemplates = it)
         templateVersionHealthService.updateLastNotified(
