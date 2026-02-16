@@ -38,4 +38,14 @@ data class ServiceConfiguration(
 enum class ServiceCategory {
   PRISON,
   PROBATION,
+  ;
+
+  companion object {
+    @JvmStatic
+    fun valueOfOrNull(value: String): ServiceCategory? = try {
+      valueOf(value)
+    } catch (e: Exception) {
+      return null
+    }
+  }
 }

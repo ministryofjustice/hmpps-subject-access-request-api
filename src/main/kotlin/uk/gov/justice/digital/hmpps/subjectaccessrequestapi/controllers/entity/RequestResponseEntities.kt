@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDate
 import java.util.UUID
@@ -54,4 +55,24 @@ data class ServiceInfo(
   val enabled: Boolean,
   val templateMigrated: Boolean,
   val category: ServiceCategory,
+) {
+
+  constructor(serviceConfiguration: ServiceConfiguration) : this(
+    id = serviceConfiguration.id,
+    name = serviceConfiguration.serviceName,
+    label = serviceConfiguration.label,
+    url = serviceConfiguration.url,
+    enabled = serviceConfiguration.enabled,
+    templateMigrated = serviceConfiguration.templateMigrated,
+    category = serviceConfiguration.category,
+  )
+}
+
+data class CreateServiceConfigurationEntity(
+  val name: String?,
+  val label: String?,
+  val url: String?,
+  val category: String?,
+  val enabled: Boolean?,
+  val templateMigrated: Boolean?,
 )
