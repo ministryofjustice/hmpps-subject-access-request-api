@@ -37,27 +37,25 @@ class ServicesController(
   }
 
   private fun validateCreateServiceConfiguration(body: CreateServiceConfigurationEntity) {
-    body.takeIf { it.name.isNullOrBlank() }?.let {
+    if (body.name.isNullOrBlank()) {
       throw ValidationException("create service configuration requires non null non empty Name value")
     }
-    body.takeIf { it.label.isNullOrBlank() }?.let {
+    if (body.label.isNullOrBlank()) {
       throw ValidationException("create service configuration requires non null non empty Label value")
     }
-    body.takeIf { it.url.isNullOrBlank() }?.let {
+    if (body.url.isNullOrBlank()) {
       throw ValidationException("create service configuration requires non null non empty URL value")
     }
-    body.takeIf { it.category.isNullOrBlank() }?.let {
+    if (body.category.isNullOrBlank()) {
       throw ValidationException("create service configuration requires non null non empty Category value")
     }
-
-    body.category?.let { ServiceCategory.valueOfOrNull(it) }
+    ServiceCategory.valueOfOrNull(body.category)
       ?: throw ValidationException("create service configuration invalid Category value")
 
-    body.takeIf { it.enabled == null }?.let {
+    if (body.enabled == null) {
       throw ValidationException("create service configuration requires non null Enabled value")
     }
-
-    body.takeIf { it.templateMigrated == null }?.let {
+    if (body.templateMigrated == null) {
       throw ValidationException("create service configuration requires non null Template Migrated value")
     }
   }
