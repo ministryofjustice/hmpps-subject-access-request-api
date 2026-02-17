@@ -68,7 +68,7 @@ data class ServiceInfo(
   )
 }
 
-data class CreateServiceConfigurationEntity(
+data class ServiceConfigurationEntity(
   val name: String?,
   val label: String?,
   val url: String?,

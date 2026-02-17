@@ -16,23 +16,23 @@ data class ServiceConfiguration(
   val id: UUID = UUID.randomUUID(),
 
   @Column(name = "service_name", nullable = false)
-  val serviceName: String,
+  var serviceName: String,
 
   @Column(name = "label", nullable = false)
-  val label: String,
+  var label: String,
 
   @Column(name = "url", nullable = false)
-  val url: String,
+  var url: String,
 
   @Column(name = "enabled", nullable = false)
-  val enabled: Boolean,
+  var enabled: Boolean,
 
   @Column(name = "template_migrated", nullable = false)
-  val templateMigrated: Boolean,
+  var templateMigrated: Boolean,
 
   @Enumerated(EnumType.STRING)
   @Column(name = "category", nullable = false)
-  val category: ServiceCategory,
+  var category: ServiceCategory,
 )
 
 enum class ServiceCategory {
