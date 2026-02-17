@@ -43,6 +43,16 @@ class ServiceConfigurationRepositoryTest {
     assertThat(repository.findByServiceName("serviceOne")).isNull()
   }
 
+  @Test
+  fun `deleteByServiceName should delete expected records`() {
+    repository.saveAllAndFlush(listOf(prison1, prison2))
+
+    repository.deleteByServiceName("service2")
+
+    assertThat(repository.findByServiceName("service2")).isNull()
+    assertThat(repository.findByServiceName("service1")).isEqualTo(prison1)
+  }
+
   companion object {
 
     private val prison1 = ServiceConfiguration(
