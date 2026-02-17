@@ -6,14 +6,19 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.ServiceConfigurationNotFoundException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PRISON
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PROBATION
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
+import java.util.Optional
+import java.util.UUID
 
 class ServiceConfigurationServiceTest {
 
@@ -90,35 +95,95 @@ class ServiceConfigurationServiceTest {
       }
       assertThat(actual.message).isEqualTo("Service configuration with name service1 already exists")
     }
+
+    @Test
+    fun `should create a new service when no service exists with service name`() {
+      val newServiceConfig = ServiceConfiguration(
+        serviceName = "service1",
+        label = "Service 1",
+        url = "s1.com",
+        enabled = true,
+        templateMigrated = false,
+        category = PRISON,
+      )
+
+      whenever(serviceConfigurationRepository.findByServiceName("service1"))
+        .thenReturn(null)
+
+      whenever(serviceConfigurationRepository.saveAndFlush(newServiceConfig))
+        .thenReturn(newServiceConfig)
+
+      val captor = argumentCaptor<ServiceConfiguration>()
+
+      service.createServiceConfiguration(newServiceConfig)
+
+      verify(serviceConfigurationRepository, times(1))
+        .findByServiceName("service1")
+      verify(serviceConfigurationRepository, times(1))
+        .saveAndFlush(captor.capture())
+
+      assertThat(captor.allValues).hasSize(1)
+      assertThat(captor.firstValue).isEqualTo(newServiceConfig)
+    }
   }
 
-  @Test
-  fun `should create a new service when no service exists with service name`() {
-    val newServiceConfig = ServiceConfiguration(
-      serviceName = "service1",
-      label = "Service 1",
-      url = "s1.com",
-      enabled = true,
+  @Nested
+  inner class DeleteByServiceName {
+
+    @Test
+    fun `should delete service configuration by service name`() {
+      service.deleteByServiceName("service1")
+
+      verify(serviceConfigurationRepository, times(1)).deleteByServiceName("service1")
+    }
+  }
+
+  @Nested
+  inner class UpdateServiceConfiguration {
+    private val update = ServiceConfigurationService.ServiceConfigurationUpdate(
+      id = UUID.randomUUID(),
+      serviceName = "X",
+      label = "Y",
+      url = "Z",
+      enabled = false,
       templateMigrated = false,
-      category = PRISON,
+      category = PROBATION,
     )
 
-    whenever(serviceConfigurationRepository.findByServiceName("service1"))
-      .thenReturn(null)
+    @Test
+    fun `should throw Service Configuration Not Found Exception when findById returns null`() {
+      whenever(serviceConfigurationRepository.findById(update.id))
+        .thenReturn(Optional.empty<ServiceConfiguration>())
 
-    whenever(serviceConfigurationRepository.saveAndFlush(newServiceConfig))
-      .thenReturn(newServiceConfig)
+      val actual = assertThrows<ServiceConfigurationNotFoundException> { service.updateServiceConfiguration(update) }
+      assertThat(actual.message).isEqualTo("Service configuration service not found for id: ${update.id}")
 
-    val captor = argumentCaptor<ServiceConfiguration>()
+      verify(serviceConfigurationRepository, times(1)).findById(update.id)
+      verifyNoMoreInteractions(serviceConfigurationRepository)
+    }
 
-    service.createServiceConfiguration(newServiceConfig)
+    @Test
+    fun `should update service configuration`() {
+      whenever(serviceConfigurationRepository.findById(update.id))
+        .thenReturn(Optional.of(s1))
+      whenever(serviceConfigurationRepository.saveAndFlush(any()))
+        .thenReturn(mock<ServiceConfiguration>())
 
-    verify(serviceConfigurationRepository, times(1))
-      .findByServiceName("service1")
-    verify(serviceConfigurationRepository, times(1))
-      .saveAndFlush(captor.capture())
+      val captor = argumentCaptor<ServiceConfiguration>()
 
-    assertThat(captor.allValues).hasSize(1)
-    assertThat(captor.firstValue).isEqualTo(newServiceConfig)
+      service.updateServiceConfiguration(update)
+
+      verify(serviceConfigurationRepository, times(1)).findById(update.id)
+      verify(serviceConfigurationRepository, times(1)).saveAndFlush(captor.capture())
+
+      assertThat(captor.allValues).hasSize(1)
+      val actual = captor.firstValue
+      assertThat(actual.serviceName).isEqualTo("X")
+      assertThat(actual.label).isEqualTo("Y")
+      assertThat(actual.url).isEqualTo("Z")
+      assertThat(actual.category).isEqualTo(PROBATION)
+      assertThat(actual.enabled).isFalse()
+      assertThat(actual.templateMigrated).isFalse()
+    }
   }
 }
