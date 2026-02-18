@@ -77,7 +77,7 @@ class ServicesController(
   fun createServiceConfiguration(
     @RequestBody entity: ServiceConfigurationEntity,
   ): ResponseEntity<ServiceInfo> {
-    validateCreateServiceConfiguration(entity)
+    validateServiceConfigurationEntity(entity)
     val result = serviceConfigurationService.createServiceConfiguration(entity.toServiceConfiguration())
     return ResponseEntity<String>.status(HttpStatus.CREATED).body(ServiceInfo(serviceConfiguration = result))
   }
@@ -140,7 +140,7 @@ class ServicesController(
     @PathVariable id: UUID,
     @RequestBody entity: ServiceConfigurationEntity,
   ): ResponseEntity<ServiceInfo> {
-    validateCreateServiceConfiguration(entity)
+    validateServiceConfigurationEntity(entity)
     val updated = serviceConfigurationService.updateServiceConfiguration(
       createServiceConfigurationUpdate(
         id,
@@ -195,7 +195,7 @@ class ServicesController(
     return ResponseEntity(services, HttpStatus.OK)
   }
 
-  private fun validateCreateServiceConfiguration(entity: ServiceConfigurationEntity) {
+  private fun validateServiceConfigurationEntity(entity: ServiceConfigurationEntity) {
     if (entity.name.isNullOrBlank()) {
       throw ValidationException("create service configuration requires non null non empty Name value")
     }

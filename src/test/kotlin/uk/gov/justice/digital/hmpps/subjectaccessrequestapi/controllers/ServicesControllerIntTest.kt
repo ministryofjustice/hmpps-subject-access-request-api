@@ -198,18 +198,8 @@ class ServicesControllerIntTest : IntegrationTestBase() {
 
     @Test
     fun `should return status 400 when service already exists`() {
-      assertThat(serviceConfigurationService.getByServiceName("existing-service")).isNull()
-
-      createServiceConfiguration(
-        ServiceConfigurationEntity(
-          name = "existing-service",
-          label = "hmpps-existing-service",
-          url = "some value",
-          category = PRISON.name,
-          enabled = true,
-          templateMigrated = false,
-        ),
-      )
+      serviceConfigurationService.createServiceConfiguration(existingServiceConfig)
+      assertThat(serviceConfigurationService.getByServiceName(existingServiceConfig.serviceName)).isNotNull()
 
       createServiceConfiguration(
         body = ServiceConfigurationEntity(
