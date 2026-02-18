@@ -41,6 +41,20 @@ class SubjectAccessRequestApiExceptionHandler {
     ).also { log.info("No resource found exception: {}", e.message) }
     .also { logAndCapture("No resource found exception:", e) }
 
+  @ExceptionHandler(ServiceConfigurationNotFoundException::class)
+  fun handleServiceConfigurationNotFoundException(
+    e: ServiceConfigurationNotFoundException,
+  ): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(NOT_FOUND)
+    .body(
+      ErrorResponse(
+        status = NOT_FOUND,
+        userMessage = e.message,
+        developerMessage = e.message,
+      ),
+    ).also { log.info("No resource found exception: {}", e.message) }
+    .also { logAndCapture("No resource found exception:", e) }
+
   @ExceptionHandler(AccessDeniedException::class)
   fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(FORBIDDEN)

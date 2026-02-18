@@ -9,24 +9,41 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpHeaders
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.test.web.reactive.server.expectBodyList
-import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateServiceConfigurationEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.ServiceConfigurationEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.ServiceInfo
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PRISON
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PROBATION
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.utils.ServiceConfigurationComparator
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.ServiceConfigurationService
+import java.util.UUID
 
 class ServicesControllerIntTest : IntegrationTestBase() {
 
   @Autowired
-  private lateinit var serviceConfigurationRepository: ServiceConfigurationRepository
+  private lateinit var serviceConfigurationService: ServiceConfigurationService
+
+  private val existingServiceConfig = ServiceConfiguration(
+    serviceName = "existing-service",
+    label = "hmpps-existing-service",
+    url = "some value",
+    category = PRISON,
+    enabled = true,
+    templateMigrated = false,
+  )
+
+  @BeforeEach
+  fun setUp() {
+    serviceConfigurationService.deleteByServiceName(existingServiceConfig.serviceName)
+  }
+
+  @AfterEach
+  fun tearDown() {
+    serviceConfigurationService.deleteByServiceName(existingServiceConfig.serviceName)
+  }
 
   @Test
   fun `should get status unauthorised when no auth token is provided`() {
@@ -90,8 +107,8 @@ class ServicesControllerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should return services in expected order`() {
-    val services = serviceConfigurationRepository.findAll()
-      .sortedWith(ServiceConfigurationComparator())
+    val services = serviceConfigurationService.getServiceConfigurationSanitised()
+    assertThat(services).isNotNull
 
     val actual = webTestClient.get()
       .uri("/api/services")
@@ -103,7 +120,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
       .responseBody
 
     assertThat(actual).isNotEmpty
-    assertThat(actual).hasSize(services.size)
+    assertThat(actual).hasSize(services!!.size)
 
     val getErrorMessage: (Int, Any, Any) -> String = { index, actualValue, expectedValue ->
       "actual[$index].id $actualValue != expected[$index].id $expectedValue"
@@ -143,26 +160,107 @@ class ServicesControllerIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @Transactional
   inner class CreateServiceConfiguration {
 
-    val existingServiceConfig = ServiceConfiguration(
-      serviceName = "existing-service",
-      label = "hmpps-existing-service",
-      url = "some value",
-      category = PRISON,
-      enabled = true,
-      templateMigrated = false,
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "     |     |     |          |      |     | create service configuration requires non null non empty Name value",
+        " ''  |     |     |          |      |     | create service configuration requires non null non empty Name value",
+        " 'A' |     |     |          |      |     | create service configuration requires non null non empty Label value",
+        " 'A' | ''  |     |          |      |     | create service configuration requires non null non empty Label value",
+        " 'A' | 'B' |     |          |      |     | create service configuration requires non null non empty URL value",
+        " 'A' | 'B' | ''  |          |      |     | create service configuration requires non null non empty URL value",
+        " 'A' | 'B' | 'C' |          |      |     | create service configuration requires non null non empty Category value",
+        " 'A' | 'B' | 'C' | ''       |      |     | create service configuration requires non null non empty Category value",
+        " 'A' | 'B' | 'C' | 'D'      |      |     | create service configuration invalid Category value",
+        " 'A' | 'B' | 'C' | 'PRISON' |      |     | create service configuration requires non null Enabled value",
+        " 'A' | 'B' | 'C' | 'PRISON' | true |     | create service configuration requires non null Template Migrated value",
+      ],
+      delimiter = '|',
     )
-
-    @BeforeEach
-    fun setUp() {
-      serviceConfigurationRepository.deleteByServiceName(existingServiceConfig.serviceName)
+    fun `should return status 400 when mandatory fields are missing`(
+      name: String?,
+      label: String?,
+      url: String?,
+      category: String?,
+      enabled: Boolean?,
+      templateMigrated: Boolean?,
+      expectedErrorMessage: String?,
+    ) {
+      createServiceConfiguration(ServiceConfigurationEntity(name, label, url, category, enabled, templateMigrated))
+        .expectStatus()
+        .isBadRequest
+        .expectBody()
+        .jsonPath("$.userMessage")
+        .isEqualTo("Validation failure: $expectedErrorMessage")
     }
 
-    @AfterEach
-    fun tearDown() {
-      serviceConfigurationRepository.deleteByServiceName(existingServiceConfig.serviceName)
+    @Test
+    fun `should return status 400 when service already exists`() {
+      serviceConfigurationService.createServiceConfiguration(existingServiceConfig)
+      assertThat(serviceConfigurationService.getByServiceName(existingServiceConfig.serviceName)).isNotNull()
+
+      createServiceConfiguration(
+        body = ServiceConfigurationEntity(
+          name = "existing-service",
+          label = "hmpps-existing-service",
+          url = "some value",
+          category = "PRISON",
+          enabled = true,
+          templateMigrated = false,
+        ),
+      ).expectStatus()
+        .isBadRequest
+        .expectBody()
+        .jsonPath("$.userMessage")
+        .isEqualTo("Validation failure: Service configuration with name existing-service already exists")
+    }
+
+    @Test
+    fun `should successfully create new service configuration`() {
+      val actual = createServiceConfiguration(
+        body = ServiceConfigurationEntity(
+          name = "existing-service",
+          label = "hmpps-existing-service",
+          url = "some value",
+          category = "PRISON",
+          enabled = true,
+          templateMigrated = false,
+        ),
+      )
+        .expectStatus()
+        .isCreated
+        .expectBody<ServiceInfo>()
+        .returnResult()
+
+      assertThat(actual.responseBody).isNotNull
+      assertThat(actual.responseBody!!.id).isNotNull
+      assertThat(serviceConfigurationService.getById(actual.responseBody?.id!!)).isNotNull
+    }
+  }
+
+  @Nested
+  inner class UpdateServiceConfiguration {
+
+    @Test
+    fun `should return status 404 when service configuration does not exist`() {
+      val entity = ServiceConfigurationEntity(
+        name = "A",
+        label = "B",
+        url = "C",
+        category = "PRISON",
+        enabled = true,
+        templateMigrated = true,
+      )
+      val id = UUID.randomUUID()
+
+      putServiceConfiguration(id, entity)
+        .expectStatus()
+        .isNotFound
+        .expectBody()
+        .jsonPath("$.userMessage")
+        .isEqualTo("Service configuration service not found for id: $id")
     }
 
     @ParameterizedTest
@@ -182,110 +280,83 @@ class ServicesControllerIntTest : IntegrationTestBase() {
       ],
       delimiter = '|',
     )
-    fun `should return status 400 when mandatory fields are missing`(
+    fun `should return status 400 when update contains invalid values`(
       name: String?,
       label: String?,
       url: String?,
       category: String?,
-      enabled: String?,
-      templateMigrated: String?,
+      enabled: Boolean?,
+      templateMigrated: Boolean?,
       expectedErrorMessage: String?,
     ) {
-      webTestClient.post()
-        .uri("/api/services")
-        .bodyValue(createJsonBody(name, label, url, category, enabled, templateMigrated))
-        .header(HttpHeaders.CONTENT_TYPE, "application/json")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-        .exchange()
-        .expectStatus()
-        .isBadRequest
-        .expectBody()
-        .jsonPath("$.userMessage").isEqualTo("Validation failure: $expectedErrorMessage")
-    }
+      serviceConfigurationService.createServiceConfiguration(existingServiceConfig)
+      assertThat(serviceConfigurationService.getById(existingServiceConfig.id)).isNotNull
 
-    @Test
-    fun `should return status 400 when service already exists`() {
-      assertThat(serviceConfigurationRepository.findByServiceName("existing-service")).isNull()
-
-      serviceConfigurationRepository.saveAndFlush(
-        ServiceConfiguration(
-          serviceName = "existing-service",
-          label = "hmpps-existing-service",
-          url = "some value",
-          category = PRISON,
-          enabled = true,
-          templateMigrated = false,
+      // Make update request
+      putServiceConfiguration(
+        id = existingServiceConfig.id,
+        entity = ServiceConfigurationEntity(
+          name = name,
+          label = label,
+          url = url,
+          category = category,
+          enabled = enabled,
+          templateMigrated = templateMigrated,
         ),
-      )
-
-      webTestClient.post()
-        .uri("/api/services")
-        .bodyValue(
-          CreateServiceConfigurationEntity(
-            name = "existing-service",
-            label = "hmpps-existing-service",
-            url = "some value",
-            category = "PRISON",
-            enabled = true,
-            templateMigrated = false,
-          ),
-        )
-        .header(HttpHeaders.CONTENT_TYPE, "application/json")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-        .exchange()
-        .expectStatus()
+      ).expectStatus()
         .isBadRequest
         .expectBody()
         .jsonPath("$.userMessage")
-        .isEqualTo("Validation failure: Service configuration with name existing-service already exists")
+        .isEqualTo("Validation failure: $expectedErrorMessage")
     }
 
     @Test
-    fun `should successfully create new service configuration`() {
-      val actual = webTestClient.post()
-        .uri("/api/services")
-        .bodyValue(
-          CreateServiceConfigurationEntity(
-            name = "existing-service",
-            label = "hmpps-existing-service",
-            url = "some value",
-            category = "PRISON",
-            enabled = true,
-            templateMigrated = false,
-          ),
-        )
-        .header(HttpHeaders.CONTENT_TYPE, "application/json")
-        .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-        .exchange()
-        .expectStatus()
-        .isCreated
-        .expectBody<ServiceInfo>()
+    fun `should successfully update service configuration`() {
+      serviceConfigurationService.createServiceConfiguration(existingServiceConfig)
+      assertThat(serviceConfigurationService.getById(existingServiceConfig.id)).isNotNull
+
+      putServiceConfiguration(
+        id = existingServiceConfig.id,
+        entity = ServiceConfigurationEntity(
+          name = "X",
+          label = "Y",
+          url = "Z",
+          category = PROBATION.name,
+          enabled = false,
+          templateMigrated = false,
+        ),
+      ).expectStatus()
+        .isOk
+        .expectBody(ServiceInfo::class.java)
         .returnResult()
 
-      assertThat(actual.responseBody).isNotNull
-      assertThat(actual.responseBody!!.id).isNotNull
-      assertThat(serviceConfigurationRepository.findByIdOrNull(actual.responseBody?.id!!)).isNotNull
+      val latest = serviceConfigurationService.getById(existingServiceConfig.id)
+      assertThat(latest).isNotNull
+      assertThat(latest!!.serviceName).isEqualTo("X")
+      assertThat(latest.label).isEqualTo("Y")
+      assertThat(latest.url).isEqualTo("Z")
+      assertThat(latest.category).isEqualTo(PROBATION)
+      assertThat(latest.enabled).isFalse
+      assertThat(latest.templateMigrated).isFalse
     }
-
-    private fun createJsonBody(
-      name: String?,
-      label: String?,
-      url: String?,
-      category: String?,
-      enabled: String?,
-      templateMigrated: String?,
-    ): String = """{
-        "name": ${name.getQuotedValueOrNull()}, 
-        "label": ${label.getQuotedValueOrNull()}, 
-        "url": ${url.getQuotedValueOrNull()}, 
-        "category": ${category.getQuotedValueOrNull()},
-        "enabled": ${enabled.takeIf { !it.isNullOrBlank() }?.toBoolean() ?: "null"},
-        "templateMigrated": ${templateMigrated.takeIf { it.isNullOrBlank() }?.toBoolean() ?: "null"}
-      }"""
-      .trimMargin()
   }
 
-  private fun String?.getQuotedValueOrNull(): String = this?.let { "\"$it\"" } ?: "null"
+  private fun createServiceConfiguration(body: ServiceConfigurationEntity) = webTestClient.post()
+    .uri("/api/services")
+    .bodyValue(body)
+    .header(HttpHeaders.CONTENT_TYPE, "application/json")
+    .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
+    .exchange()
+
+  private fun putServiceConfiguration(
+    id: UUID,
+    entity: ServiceConfigurationEntity,
+  ) = webTestClient.put()
+    .uri("/api/services/$id")
+    .bodyValue(entity)
+    .header(HttpHeaders.CONTENT_TYPE, "application/json")
+    .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
+    .exchange()
 
   companion object {
     @JvmStatic
