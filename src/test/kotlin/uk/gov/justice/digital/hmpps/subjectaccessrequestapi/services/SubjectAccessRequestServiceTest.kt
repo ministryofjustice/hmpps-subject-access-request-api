@@ -832,7 +832,7 @@ class SubjectAccessRequestServiceTest {
       whenever(subjectAccessRequestRepository.findById(originalRequest.id))
         .thenReturn(Optional.of(originalRequest))
 
-      whenever(subjectAccessRequestRepository.save(any()))
+      whenever(subjectAccessRequestRepository.save(any<SubjectAccessRequest>()))
         .thenThrow(RuntimeException("BIG SCARY FIREBALL!!!"))
 
       val exception = assertThrows<SubjectAccessRequestApiException> {

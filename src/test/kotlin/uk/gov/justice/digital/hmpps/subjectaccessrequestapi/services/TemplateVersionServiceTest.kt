@@ -178,7 +178,7 @@ class TemplateVersionServiceTest {
       whenever(serviceConfigurationRepository.findById(serviceConfigId)).thenReturn(Optional.of(serviceConfig))
       whenever(serviceConfig.id).thenReturn(serviceConfigId)
       whenever(templateVersionRepository.findLatestByServiceConfigurationId(serviceConfigId)).thenReturn(null)
-      whenever(templateVersionRepository.save(any())).thenReturn(TemplateVersion())
+      whenever(templateVersionRepository.save(any<TemplateVersion>())).thenReturn(TemplateVersion())
 
       val templateVersionCaptor = argumentCaptor<TemplateVersion>()
 
@@ -208,7 +208,7 @@ class TemplateVersionServiceTest {
       whenever(serviceConfig.id).thenReturn(serviceConfigId)
       whenever(templateVersionRepository.findLatestByServiceConfigurationId(serviceConfigId))
         .thenReturn(TemplateVersion(version = 1))
-      whenever(templateVersionRepository.save(any())).thenReturn(TemplateVersion())
+      whenever(templateVersionRepository.save(any<TemplateVersion>())).thenReturn(TemplateVersion())
 
       val templateVersionCaptor = argumentCaptor<TemplateVersion>()
 
