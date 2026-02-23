@@ -17,4 +17,6 @@ interface ServiceConfigurationRepository : JpaRepository<ServiceConfiguration, U
   fun findByServiceName(serviceName: String): ServiceConfiguration?
 
   fun deleteByServiceName(serviceName: String)
+
+  fun findByServiceNameAndIdNot(serviceName: String, id: UUID): ServiceConfiguration?
 }
