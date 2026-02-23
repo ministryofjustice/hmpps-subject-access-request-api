@@ -76,13 +76,13 @@ class ServiceConfigurationRepositoryTest {
     }
 
     @Test
-    fun `findByServiceNameAndIdNot should return service config when service name matches but ID is different`() {
+    fun `findByServiceNameAndIdNot should return service config when service name matches but ID does not`() {
       repository.saveAndFlush(prison1)
       assertThat(repository.findByServiceNameAndIdNot("service1", UUID.randomUUID())).isEqualTo(prison1)
     }
 
     @Test
-    fun `findByServiceNameAndIdNot should return null when a service config exists with the request service name matches and the ID the same`() {
+    fun `findByServiceNameAndIdNot should return null when a service config exists with matching service name and ID`() {
       repository.saveAndFlush(prison1)
       assertThat(repository.findByServiceNameAndIdNot("service1", prison1.id)).isNull()
     }
