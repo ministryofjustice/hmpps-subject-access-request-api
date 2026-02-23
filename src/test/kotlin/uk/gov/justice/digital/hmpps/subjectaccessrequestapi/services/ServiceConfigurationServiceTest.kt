@@ -193,7 +193,7 @@ class ServiceConfigurationServiceTest {
         .thenReturn(null)
       whenever(serviceConfigurationRepository.findById(update.id))
         .thenReturn(Optional.of(s1))
-      whenever(serviceConfigurationRepository.saveAndFlush(any()))
+      whenever(serviceConfigurationRepository.saveAndFlush(any<ServiceConfiguration>()))
         .thenReturn(mock<ServiceConfiguration>())
 
       val captor = argumentCaptor<ServiceConfiguration>()
