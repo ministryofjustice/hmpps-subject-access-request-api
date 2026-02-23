@@ -151,19 +151,46 @@ class ServiceConfigurationServiceTest {
     )
 
     @Test
+    fun `should throw exception when another service configuration exists with the supplied service name`() {
+      val update = ServiceConfigurationService.ServiceConfigurationUpdate(
+        id = UUID.randomUUID(),
+        serviceName = "service1",
+        label = "Y",
+        url = "Z",
+        enabled = false,
+        templateMigrated = false,
+        category = PROBATION,
+      )
+
+      whenever(serviceConfigurationRepository.findByServiceNameAndIdNot(update.serviceName, update.id))
+        .thenReturn(s1)
+
+      val actual = assertThrows<ValidationException> { service.updateServiceConfiguration(update) }
+      assertThat(actual.message).isEqualTo("serviceName 'service1' is already in use by Service configuration ${s1.id}")
+
+      verify(serviceConfigurationRepository, times(1)).findByServiceNameAndIdNot(update.serviceName, update.id)
+      verifyNoMoreInteractions(serviceConfigurationRepository)
+    }
+
+    @Test
     fun `should throw Service Configuration Not Found Exception when findById returns null`() {
+      whenever(serviceConfigurationRepository.findByServiceNameAndIdNot(update.serviceName, update.id))
+        .thenReturn(null)
       whenever(serviceConfigurationRepository.findById(update.id))
         .thenReturn(Optional.empty<ServiceConfiguration>())
 
       val actual = assertThrows<ServiceConfigurationNotFoundException> { service.updateServiceConfiguration(update) }
       assertThat(actual.message).isEqualTo("Service configuration service not found for id: ${update.id}")
 
+      verify(serviceConfigurationRepository, times(1)).findByServiceNameAndIdNot(update.serviceName, update.id)
       verify(serviceConfigurationRepository, times(1)).findById(update.id)
       verifyNoMoreInteractions(serviceConfigurationRepository)
     }
 
     @Test
     fun `should update service configuration`() {
+      whenever(serviceConfigurationRepository.findByServiceNameAndIdNot(update.serviceName, update.id))
+        .thenReturn(null)
       whenever(serviceConfigurationRepository.findById(update.id))
         .thenReturn(Optional.of(s1))
       whenever(serviceConfigurationRepository.saveAndFlush(any()))
@@ -173,6 +200,7 @@ class ServiceConfigurationServiceTest {
 
       service.updateServiceConfiguration(update)
 
+      verify(serviceConfigurationRepository, times(1)).findByServiceNameAndIdNot(update.serviceName, update.id)
       verify(serviceConfigurationRepository, times(1)).findById(update.id)
       verify(serviceConfigurationRepository, times(1)).saveAndFlush(captor.capture())
 

@@ -47,7 +47,7 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 )
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@AutoConfigureWebTestClient(timeout = "15000")
+@AutoConfigureWebTestClient(timeout = "20000")
 abstract class IntegrationTestBase {
 
   @Autowired

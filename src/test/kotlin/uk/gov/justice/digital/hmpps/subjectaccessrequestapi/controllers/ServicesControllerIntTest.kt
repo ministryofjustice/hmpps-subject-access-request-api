@@ -311,6 +311,42 @@ class ServicesControllerIntTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `should return status 400 when updated service name is used by an existing service configuration`() {
+      val s1 = serviceConfigurationService.createServiceConfiguration(
+        ServiceConfiguration(
+          serviceName = "s1",
+          label = "s1",
+          url = "some value",
+          category = PRISON,
+          enabled = true,
+          templateMigrated = false,
+        ),
+      )
+      serviceConfigurationService.createServiceConfiguration(existingServiceConfig)
+
+      // Make update request
+      putServiceConfiguration(
+        id = existingServiceConfig.id,
+        entity = ServiceConfigurationEntity(
+          name = s1.serviceName,
+          label = existingServiceConfig.label,
+          url = existingServiceConfig.url,
+          category = PROBATION.name,
+          enabled = true,
+          templateMigrated = true,
+        ),
+      ).expectStatus()
+        .isBadRequest
+        .expectBody()
+        .jsonPath("$.userMessage")
+        .isEqualTo("Validation failure: serviceName 's1' is already in use by Service configuration ${s1.id}")
+
+      val configAfterRequest = serviceConfigurationService.getById(existingServiceConfig.id)
+      assertThat(configAfterRequest).isNotNull
+      assertThat(configAfterRequest!!.serviceName).isEqualTo("existing-service")
+    }
+
+    @Test
     fun `should successfully update service configuration`() {
       serviceConfigurationService.createServiceConfiguration(existingServiceConfig)
       assertThat(serviceConfigurationService.getById(existingServiceConfig.id)).isNotNull

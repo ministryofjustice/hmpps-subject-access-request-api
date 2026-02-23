@@ -53,18 +53,29 @@ class ServiceConfigurationService(private val serviceConfigurationRepository: Se
   @Transactional
   fun updateServiceConfiguration(
     update: ServiceConfigurationUpdate,
-  ): ServiceConfiguration = serviceConfigurationRepository.findById(update.id)
-    .orElseThrow { ServiceConfigurationNotFoundException(update.id) }
-    .let { entity ->
-      log.info("updating service configuration id: {}", entity.id)
-      entity.apply {
-        serviceName = update.serviceName
-        label = update.label
-        url = update.url
-        enabled = update.enabled
-        templateMigrated = update.templateMigrated
-        category = update.category
-      }
-      serviceConfigurationRepository.saveAndFlush(entity)
+  ): ServiceConfiguration {
+    serviceConfigurationRepository.findByServiceNameAndIdNot(update.serviceName, update.id)?.let {
+      throw serviceInUseValidationException(update.serviceName, it.id)
     }
+
+    return serviceConfigurationRepository.findById(update.id)
+      .orElseThrow { ServiceConfigurationNotFoundException(update.id) }
+      .let { entity ->
+        log.info("updating service configuration id: {}", entity.id)
+        entity.apply {
+          serviceName = update.serviceName
+          label = update.label
+          url = update.url
+          enabled = update.enabled
+          templateMigrated = update.templateMigrated
+          category = update.category
+        }
+        serviceConfigurationRepository.saveAndFlush(entity)
+      }
+  }
+
+  private fun serviceInUseValidationException(
+    serviceName: String,
+    serviceConfigurationId: UUID,
+  ) = ValidationException("serviceName '$serviceName' is already in use by Service configuration $serviceConfigurationId")
 }
