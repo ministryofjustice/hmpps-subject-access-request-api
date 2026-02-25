@@ -32,7 +32,53 @@ class ServicesController(
   private val serviceConfigurationService: ServiceConfigurationService,
 ) {
 
+  @GetMapping
+  @Operation(
+    summary = "Get the Services list",
+    description = "Get the Services list",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Request successful",
+        content = [
+          Content(
+            mediaType = "application/json",
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden - user not authorised to get services list",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  fun getServices(): ResponseEntity<List<ServiceInfo>> {
+    val services: List<ServiceInfo>? = serviceConfigurationService.getServiceConfigurationSanitised()?.map {
+      ServiceInfo(serviceConfiguration = it)
+    }
+    return ResponseEntity(services, HttpStatus.OK)
+  }
+
   @PostMapping
+  @PreAuthorize("hasAnyRole('ROLE_SAR_ADMIN_ACCESS', 'ROLE_SAR_SUPPORT')")
   @ApiResponses(
     value = [
       ApiResponse(
@@ -85,6 +131,7 @@ class ServicesController(
   }
 
   @PutMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ROLE_SAR_ADMIN_ACCESS', 'ROLE_SAR_SUPPORT')")
   @ApiResponses(
     value = [
       ApiResponse(
@@ -152,50 +199,6 @@ class ServicesController(
     return ResponseEntity.ok(ServiceInfo(updated))
   }
 
-  @GetMapping
-  @Operation(
-    summary = "Get the Services list",
-    description = "Get the Services list",
-  )
-  @ApiResponses(
-    value = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Request successful",
-        content = [
-          Content(
-            mediaType = "application/json",
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden - user not authorised to get services list",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = String::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "500",
-        description = "Unable to serve request.",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = String::class),
-          ),
-        ],
-      ),
-    ],
-  )
-  fun getServices(): ResponseEntity<List<ServiceInfo>> {
-    val services: List<ServiceInfo>? = serviceConfigurationService.getServiceConfigurationSanitised()?.map {
-      ServiceInfo(serviceConfiguration = it)
-    }
-    return ResponseEntity(services, HttpStatus.OK)
-  }
 
   private fun validateServiceConfigurationEntity(entity: ServiceConfigurationEntity) {
     if (entity.name.isNullOrBlank()) {
@@ -222,6 +225,7 @@ class ServicesController(
   }
 
   @PatchMapping("/{id}/suspend")
+  @PreAuthorize("hasAnyRole('ROLE_SAR_ADMIN_ACCESS', 'ROLE_SAR_SUPPORT')")
   fun updateServiceConfigurationSuspendedStatus(
     @PathVariable id: UUID,
     @RequestParam(value = "suspended", required = true) suspended: Boolean,

@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCatego
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.utils.ServiceConfigurationComparator
+import java.time.Instant
 import java.util.UUID
 
 @Service
@@ -82,6 +83,8 @@ class ServiceConfigurationService(private val serviceConfigurationRepository: Se
   ): ServiceConfiguration = serviceConfigurationRepository.findByIdOrNull(id)?.let {
     log.info("updating service configuration id: {} suspended={}", id, suspended)
     it.suspended = suspended
+    it.suspendedAt = if (suspended) Instant.now() else null
+
     serviceConfigurationRepository.saveAndFlush(it)
   } ?: throw ServiceConfigurationNotFoundException(id)
 

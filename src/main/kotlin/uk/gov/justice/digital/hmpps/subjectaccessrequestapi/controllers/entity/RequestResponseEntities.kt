@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -56,6 +57,7 @@ data class ServiceInfo(
   val templateMigrated: Boolean,
   val category: ServiceCategory,
   val suspended: Boolean,
+  val suspendedAt: Instant? = null,
 ) {
 
   constructor(serviceConfiguration: ServiceConfiguration) : this(
@@ -67,6 +69,7 @@ data class ServiceInfo(
     templateMigrated = serviceConfiguration.templateMigrated,
     category = serviceConfiguration.category,
     suspended = serviceConfiguration.suspended,
+    suspendedAt = serviceConfiguration.suspendedAt,
   )
 }
 
