@@ -10,11 +10,13 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.ServiceConfigurationEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.ServiceInfo
@@ -218,6 +220,15 @@ class ServicesController(
       throw ValidationException("create service configuration requires non null Template Migrated value")
     }
   }
+
+  @PatchMapping("/{id}/suspend")
+  fun updateServiceConfigurationSuspendedStatus(
+    @PathVariable id: UUID,
+    @RequestParam(value = "suspended", required = true) suspended: Boolean,
+  ): ResponseEntity<ServiceInfo> = serviceConfigurationService.updateSuspended(
+    id = id,
+    suspended = suspended,
+  ).let { ResponseEntity.ok(ServiceInfo(serviceConfiguration = it)) }
 
   private fun ServiceConfigurationEntity.toServiceConfiguration(
     id: UUID = UUID.randomUUID(),

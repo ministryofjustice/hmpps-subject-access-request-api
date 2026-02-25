@@ -55,6 +55,7 @@ data class ServiceInfo(
   val enabled: Boolean,
   val templateMigrated: Boolean,
   val category: ServiceCategory,
+  val suspended: Boolean,
 ) {
 
   constructor(serviceConfiguration: ServiceConfiguration) : this(
@@ -65,6 +66,7 @@ data class ServiceInfo(
     enabled = serviceConfiguration.enabled,
     templateMigrated = serviceConfiguration.templateMigrated,
     category = serviceConfiguration.category,
+    suspended = serviceConfiguration.suspended,
   )
 }
 

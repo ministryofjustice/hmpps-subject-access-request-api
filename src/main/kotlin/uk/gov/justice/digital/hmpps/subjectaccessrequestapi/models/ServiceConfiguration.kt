@@ -33,6 +33,9 @@ data class ServiceConfiguration(
   @Enumerated(EnumType.STRING)
   @Column(name = "category", nullable = false)
   var category: ServiceCategory,
+
+  @Column(name = "suspended", nullable = false)
+  var suspended: Boolean = false,
 )
 
 enum class ServiceCategory {
