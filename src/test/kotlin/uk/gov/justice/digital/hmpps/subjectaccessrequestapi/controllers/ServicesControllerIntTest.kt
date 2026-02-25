@@ -37,7 +37,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
     templateMigrated = true,
   )
 
-  val s2 = ServiceConfiguration(
+  private val s2 = ServiceConfiguration(
     serviceName = "S2",
     label = "X",
     url = "Y",
@@ -480,7 +480,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
 
     @ParameterizedTest
     @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.ServicesControllerIntTest#createAndUpdateServiceRoles")
-    fun `should return status 400 what suspended parameter is not a valid boolean`(
+    fun `should return status 500 when suspended parameter is not a valid boolean`(
       role: String,
     ) {
       ensureServiceConfigurationExists(s1)

@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -45,6 +47,7 @@ class ServicesController(
         content = [
           Content(
             mediaType = "application/json",
+            array = ArraySchema(arraySchema = Schema(ServiceInfo::class)),
           ),
         ],
       ),
@@ -79,6 +82,10 @@ class ServicesController(
 
   @PostMapping
   @PreAuthorize("hasAnyRole('ROLE_SAR_ADMIN_ACCESS', 'ROLE_SAR_SUPPORT')")
+  @Operation(
+    description = "Create a new service configuration",
+    summary = "Create a new service configuration",
+  )
   @ApiResponses(
     value = [
       ApiResponse(
@@ -87,6 +94,7 @@ class ServicesController(
         content = [
           Content(
             mediaType = "application/json",
+            schema = Schema(implementation = ServiceInfo::class),
           ),
         ],
       ),
@@ -132,6 +140,10 @@ class ServicesController(
 
   @PutMapping("/{id}")
   @PreAuthorize("hasAnyRole('ROLE_SAR_ADMIN_ACCESS', 'ROLE_SAR_SUPPORT')")
+  @Operation(
+    description = "Update a service configuration",
+    summary = "Update a service configuration",
+  )
   @ApiResponses(
     value = [
       ApiResponse(
@@ -140,6 +152,7 @@ class ServicesController(
         content = [
           Content(
             mediaType = "application/json",
+            schema = Schema(implementation = ServiceInfo::class),
           ),
         ],
       ),
@@ -225,6 +238,70 @@ class ServicesController(
 
   @PatchMapping("/{id}/suspend")
   @PreAuthorize("hasAnyRole('ROLE_SAR_ADMIN_ACCESS', 'ROLE_SAR_SUPPORT')")
+  @Operation(
+    description = "Update a service configuration suspended state",
+    summary = "Update a service configuration suspended state",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Service Configuration suspended status updated successful",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ServiceInfo::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Bad Request - invalid Service Configuration value",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden - user not authorised to create service configuration",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Not Found - service configuration not found",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @Parameter(
+    name = "suspended",
+    description = "Update the service configuration suspended status",
+    required = true,
+    example = "true",
+  )
   fun setServiceConfigurationSuspendedStatus(
     @PathVariable id: UUID,
     @RequestParam(value = "suspended", required = true) suspended: Boolean,
