@@ -199,7 +199,6 @@ class ServicesController(
     return ResponseEntity.ok(ServiceInfo(updated))
   }
 
-
   private fun validateServiceConfigurationEntity(entity: ServiceConfigurationEntity) {
     if (entity.name.isNullOrBlank()) {
       throw ValidationException("create service configuration requires non null non empty Name value")
@@ -226,7 +225,7 @@ class ServicesController(
 
   @PatchMapping("/{id}/suspend")
   @PreAuthorize("hasAnyRole('ROLE_SAR_ADMIN_ACCESS', 'ROLE_SAR_SUPPORT')")
-  fun updateServiceConfigurationSuspendedStatus(
+  fun setServiceConfigurationSuspendedStatus(
     @PathVariable id: UUID,
     @RequestParam(value = "suspended", required = true) suspended: Boolean,
   ): ResponseEntity<ServiceInfo> = serviceConfigurationService.updateSuspended(

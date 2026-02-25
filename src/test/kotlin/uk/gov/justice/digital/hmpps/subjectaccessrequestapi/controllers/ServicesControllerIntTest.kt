@@ -187,6 +187,14 @@ class ServicesControllerIntTest : IntegrationTestBase() {
         assertThat(info.enabled)
           .withFailMessage(getErrorMessage(index, info.enabled, expected.enabled))
           .isEqualTo(expected.enabled)
+
+        assertThat(info.suspended)
+          .withFailMessage(getErrorMessage(index, info.suspended, expected.suspended))
+          .isEqualTo(expected.suspended)
+
+        assertThat(info.suspendedAt)
+          .withFailMessage(getErrorMessage(index, info.suspendedAt ?: "null", expected.suspendedAt ?: "null"))
+          .isEqualTo(expected.suspendedAt)
       }
     }
   }

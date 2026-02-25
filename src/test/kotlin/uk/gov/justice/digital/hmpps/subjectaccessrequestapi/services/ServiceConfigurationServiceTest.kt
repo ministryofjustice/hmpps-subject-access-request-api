@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCatego
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PROBATION
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
+import java.time.Instant
 import java.util.Optional
 import java.util.UUID
 
@@ -212,6 +213,116 @@ class ServiceConfigurationServiceTest {
       assertThat(actual.category).isEqualTo(PROBATION)
       assertThat(actual.enabled).isFalse()
       assertThat(actual.templateMigrated).isFalse()
+    }
+  }
+
+  @Nested
+  inner class UpdateSuspended {
+
+    private val s = ServiceConfiguration(
+      id = UUID.randomUUID(),
+      serviceName = "service1",
+      label = "Service One",
+      url = "www.s1.com",
+      enabled = true,
+      templateMigrated = false,
+      category = PROBATION,
+      suspended = true,
+      suspendedAt = Instant.now(),
+    )
+
+    @Test
+    fun `should throw exception when service not found`() {
+      whenever(serviceConfigurationRepository.findById(s.id)).thenReturn(Optional.empty())
+
+      val actual = assertThrows<ServiceConfigurationNotFoundException> { service.updateSuspended(s.id, true) }
+
+      assertThat(actual.message).isEqualTo("Service configuration service not found for id: ${s.id}")
+
+      verify(serviceConfigurationRepository, times(1)).findById(s.id)
+      verifyNoMoreInteractions(serviceConfigurationRepository)
+    }
+
+    @Test
+    fun `should set suspended true and set suspended at`() {
+      whenever(serviceConfigurationRepository.findById(s.id)).thenReturn(Optional.of(s))
+      whenever(serviceConfigurationRepository.saveAndFlush(s)).thenAnswer { answer -> answer.arguments[0] }
+
+      val captor = argumentCaptor<ServiceConfiguration>()
+      val start = Instant.now()
+
+      assertThat(service.updateSuspended(s.id, true)).isNotNull
+
+      verify(serviceConfigurationRepository, times(1)).findById(s.id)
+      verify(serviceConfigurationRepository, times(1)).saveAndFlush(captor.capture())
+
+      assertThat(captor.allValues).hasSize(1)
+      val actual = captor.firstValue
+      assertThat(actual.serviceName).isEqualTo("service1")
+      assertThat(actual.label).isEqualTo("Service One")
+      assertThat(actual.url).isEqualTo("www.s1.com")
+      assertThat(actual.category).isEqualTo(PROBATION)
+      assertThat(actual.enabled).isTrue()
+      assertThat(actual.templateMigrated).isFalse
+      assertThat(actual.suspended).isTrue
+      assertThat(actual.suspendedAt).isNotNull
+      assertThat(actual.suspendedAt).isBetween(start, Instant.now())
+    }
+
+    @Test
+    fun `should set suspended false and suspended at null`() {
+      whenever(serviceConfigurationRepository.findById(s.id)).thenReturn(Optional.of(s))
+      whenever(serviceConfigurationRepository.saveAndFlush(s)).thenAnswer { answer -> answer.arguments[0] }
+
+      val captor = argumentCaptor<ServiceConfiguration>()
+
+      assertThat(service.updateSuspended(s.id, false)).isNotNull
+
+      verify(serviceConfigurationRepository, times(1)).findById(s.id)
+      verify(serviceConfigurationRepository, times(1)).saveAndFlush(captor.capture())
+
+      assertThat(captor.allValues).hasSize(1)
+      val actual = captor.firstValue
+      assertThat(actual.serviceName).isEqualTo("service1")
+      assertThat(actual.label).isEqualTo("Service One")
+      assertThat(actual.url).isEqualTo("www.s1.com")
+      assertThat(actual.category).isEqualTo(PROBATION)
+      assertThat(actual.enabled).isTrue()
+      assertThat(actual.templateMigrated).isFalse
+      assertThat(actual.suspended).isFalse
+      assertThat(actual.suspendedAt).isNull()
+    }
+
+    @Test
+    fun `should update suspended at when service already suspended`() {
+      val originalSuspendedAt = Instant.now()
+      s.apply {
+        suspended = true
+        suspendedAt = originalSuspendedAt
+      }
+
+      whenever(serviceConfigurationRepository.findById(s.id)).thenReturn(Optional.of(s))
+      whenever(serviceConfigurationRepository.saveAndFlush(s)).thenAnswer { answer -> answer.arguments[0] }
+
+      val captor = argumentCaptor<ServiceConfiguration>()
+      val start = Instant.now()
+
+      assertThat(service.updateSuspended(s.id, true)).isNotNull
+
+      verify(serviceConfigurationRepository, times(1)).findById(s.id)
+      verify(serviceConfigurationRepository, times(1)).saveAndFlush(captor.capture())
+
+      assertThat(captor.allValues).hasSize(1)
+      val actual = captor.firstValue
+      assertThat(actual.serviceName).isEqualTo("service1")
+      assertThat(actual.label).isEqualTo("Service One")
+      assertThat(actual.url).isEqualTo("www.s1.com")
+      assertThat(actual.category).isEqualTo(PROBATION)
+      assertThat(actual.enabled).isTrue()
+      assertThat(actual.templateMigrated).isFalse
+      assertThat(actual.suspended).isTrue
+      assertThat(actual.suspendedAt).isNotNull()
+      assertThat(actual.suspendedAt).isBetween(start, Instant.now())
     }
   }
 }
