@@ -16,6 +16,12 @@ generic-service:
     host: app-hostname.local    # override per environment
     tlsSecretName: hmpps-subject-access-request-api-cert
 
+  resources:
+    requests:
+      memory: 1Gi
+    limits:
+      memory: 1536Mi
+
   # Environment variables to load into the deployment
   env:
     SERVER_PORT: "8080"
