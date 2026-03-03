@@ -28,11 +28,11 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.DuplicateRequestResponseEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.SubjectAccessRequestResponseEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.BacklogSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueReportSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceSummary
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDateTime
@@ -134,7 +134,7 @@ class SubjectAccessRequestController(
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = SubjectAccessRequest::class),
+            schema = Schema(implementation = SubjectAccessRequestResponseEntity::class),
           ),
         ],
       ),
@@ -173,9 +173,9 @@ class SubjectAccessRequestController(
   @GetMapping("/subjectAccessRequest/{id}")
   fun getSubjectAccessRequest(
     @PathVariable id: UUID,
-  ): ResponseEntity<SubjectAccessRequest> = subjectAccessRequestService
+  ): ResponseEntity<SubjectAccessRequestResponseEntity> = subjectAccessRequestService
     .findSubjectAccessRequest(id).takeIf { it.isPresent }
-    ?.let { ResponseEntity(it.get(), HttpStatus.OK) }
+    ?.let { ResponseEntity(SubjectAccessRequestResponseEntity(it.get()), HttpStatus.OK) }
     ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
   @GetMapping("/subjectAccessRequests")
@@ -226,9 +226,9 @@ class SubjectAccessRequestController(
     @RequestParam(required = false, name = "search") search: String = "",
     @RequestParam(required = false, name = "pageNumber") pageNumber: Int? = null,
     @RequestParam(required = false, name = "pageSize") pageSize: Int? = null,
-  ): List<SubjectAccessRequest?> {
+  ): List<SubjectAccessRequestResponseEntity?> {
     val response = subjectAccessRequestService.getSubjectAccessRequests(unclaimed, search, pageNumber, pageSize)
-    return response
+    return response.filterNotNull().map { SubjectAccessRequestResponseEntity(it) }
   }
 
   @GetMapping("/totalSubjectAccessRequests")

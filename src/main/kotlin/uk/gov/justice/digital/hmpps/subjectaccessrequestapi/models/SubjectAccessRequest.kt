@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models
 
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
 import jakarta.persistence.Id
+import jakarta.persistence.OneToMany
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -24,7 +27,8 @@ data class SubjectAccessRequest(
   val dateFrom: LocalDate? = null,
   var dateTo: LocalDate? = null,
   val sarCaseReferenceNumber: String = "",
-  val services: String = "",
+  @OneToMany(mappedBy = "subjectAccessRequest", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  val services: MutableList<RequestServiceDetail> = mutableListOf(),
   val nomisId: String? = null,
   val ndeliusCaseReferenceId: String? = null,
   val requestedBy: String = "",

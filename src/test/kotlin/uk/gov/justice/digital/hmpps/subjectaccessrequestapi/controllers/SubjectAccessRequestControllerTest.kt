@@ -21,8 +21,15 @@ import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.RequestServiceDetailResponseEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.SubjectAccessRequestResponseEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RenderStatus
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RequestServiceDetail
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.io.ByteArrayInputStream
@@ -52,7 +59,7 @@ class SubjectAccessRequestControllerTest {
       val ndeliusRequest = CreateSubjectAccessRequestEntity(
         nomisId = null,
         ndeliusId = "1",
-        services = "{1,2,4}",
+        services = listOf("1", "2", "4"),
         sarCaseReferenceNumber = "1234abc",
         dateFrom = LocalDate.of(2023, 12, 1),
         dateTo = LocalDate.of(2024, 12, 3),
@@ -82,7 +89,7 @@ class SubjectAccessRequestControllerTest {
       val ndeliusAndNomisRequest = CreateSubjectAccessRequestEntity(
         nomisId = "1",
         ndeliusId = "1",
-        services = "{1,2,4}",
+        services = listOf("1", "2", "4"),
         sarCaseReferenceNumber = "1234abc",
         dateFrom = LocalDate.of(2023, 12, 1),
         dateTo = LocalDate.of(2024, 12, 3),
@@ -112,7 +119,7 @@ class SubjectAccessRequestControllerTest {
       val noIDRequest = CreateSubjectAccessRequestEntity(
         nomisId = null,
         ndeliusId = null,
-        services = "{1,2,4}",
+        services = listOf("1", "2", "4"),
         sarCaseReferenceNumber = "1234abc",
         dateFrom = LocalDate.of(2023, 12, 1),
         dateTo = LocalDate.of(2024, 12, 3),
@@ -143,7 +150,7 @@ class SubjectAccessRequestControllerTest {
   inner class GetSubjectAccessRequests {
     @Test
     fun `getSubjectAccessRequests is called with unclaimedOnly, search and pagination parameters if specified in controller and returns list`() {
-      val result: List<SubjectAccessRequest?> =
+      val result: List<SubjectAccessRequestResponseEntity?> =
         subjectAccessRequestController
           .getSubjectAccessRequests(unclaimed = true, search = "testSearchString", pageNumber = 1, pageSize = 1)
 
@@ -185,14 +192,87 @@ class SubjectAccessRequestControllerTest {
 
     @Test
     fun `getSubjectAccessRequest should return status 200 when ID found`() {
-      val subjectAccessRequest: SubjectAccessRequest = mock()
-      whenever(subjectAccessRequestService.findSubjectAccessRequest(any())).thenReturn(Optional.of(subjectAccessRequest))
+      val subjectAccessRequest = SubjectAccessRequest(
+        status = Status.Completed,
+        dateFrom = LocalDate.parse("2025-03-04"),
+        dateTo = LocalDate.parse("2026-02-24"),
+        sarCaseReferenceNumber = "1234abc",
+        nomisId = "12445",
+        requestedBy = "USER",
+        requestDateTime = LocalDateTime.parse("2026-03-04T09:33:53"),
+        claimDateTime = LocalDateTime.parse("2026-03-06T15:04:34"),
+        claimAttempts = 1,
+        objectUrl = "http://url",
+        lastDownloaded = LocalDateTime.parse("2026-03-08T12:32:18"),
+      )
+      subjectAccessRequest.services.add(
+        RequestServiceDetail(
+          subjectAccessRequest = subjectAccessRequest,
+          serviceConfiguration = ServiceConfiguration(
+            serviceName = "service-one",
+            label = "Service One",
+            url = "http://one",
+            enabled = true,
+            templateMigrated = false,
+            category = ServiceCategory.PRISON,
+          ),
+          renderStatus = RenderStatus.COMPLETE,
+          templateVersion = "2",
+          renderedAt = LocalDateTime.parse("2026-03-04T09:33:53"),
+        ),
+      )
+      subjectAccessRequest.services.add(
+        RequestServiceDetail(
+          subjectAccessRequest = subjectAccessRequest,
+          serviceConfiguration = ServiceConfiguration(
+            serviceName = "service-two",
+            label = "Service Two",
+            url = "http://two",
+            enabled = true,
+            templateMigrated = false,
+            category = ServiceCategory.PROBATION,
+          ),
+          renderStatus = RenderStatus.ERRORED,
+          templateVersion = "4",
+          renderedAt = LocalDateTime.parse("2026-03-02T11:05:02"),
+        ),
+      )
+      whenever(subjectAccessRequestService.findSubjectAccessRequest(subjectAccessRequest.id)).thenReturn(Optional.of(subjectAccessRequest))
 
-      val response = subjectAccessRequestController.getSubjectAccessRequest(UUID.randomUUID())
+      val response = subjectAccessRequestController.getSubjectAccessRequest(subjectAccessRequest.id)
 
       assertThat(response).isNotNull
       assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-      assertThat(response.body).isEqualTo(subjectAccessRequest)
+      assertThat(response.body).isEqualTo(
+        SubjectAccessRequestResponseEntity(
+          id = subjectAccessRequest.id,
+          status = Status.Completed,
+          dateFrom = LocalDate.parse("2025-03-04"),
+          dateTo = LocalDate.parse("2026-02-24"),
+          sarCaseReferenceNumber = "1234abc",
+          services = listOf(
+            RequestServiceDetailResponseEntity(
+              serviceName = "service-one",
+              renderStatus = RenderStatus.COMPLETE,
+              templateVersion = "2",
+              renderedAt = LocalDateTime.parse("2026-03-04T09:33:53"),
+            ),
+            RequestServiceDetailResponseEntity(
+              serviceName = "service-two",
+              renderStatus = RenderStatus.ERRORED,
+              templateVersion = "4",
+              renderedAt = LocalDateTime.parse("2026-03-02T11:05:02"),
+            ),
+          ),
+          nomisId = "12445",
+          requestedBy = "USER",
+          requestDateTime = LocalDateTime.parse("2026-03-04T09:33:53"),
+          claimDateTime = LocalDateTime.parse("2026-03-06T15:04:34"),
+          claimAttempts = 1,
+          objectUrl = "http://url",
+          lastDownloaded = LocalDateTime.parse("2026-03-08T12:32:18"),
+        ),
+      )
     }
 
     @Test

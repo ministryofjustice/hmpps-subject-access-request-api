@@ -27,14 +27,12 @@ class RemoveOldRequestsAndReportsTest {
       id = UUID.fromString("f8615d62-3d8c-4eae-bb85-57f2ae29b88e"),
       status = Status.Completed,
       sarCaseReferenceNumber = "a",
-      services = "bob",
       claimAttempts = 5,
     ),
     SubjectAccessRequest(
       id = UUID.fromString("136d9411-21e5-4180-86b0-a561b8752127"),
       status = Status.Pending,
       sarCaseReferenceNumber = "b",
-      services = "bob",
       claimAttempts = 5,
     ),
   )
