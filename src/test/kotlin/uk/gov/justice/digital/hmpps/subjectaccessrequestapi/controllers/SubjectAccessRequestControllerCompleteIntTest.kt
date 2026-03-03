@@ -110,7 +110,7 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
 
       val expected = subjectAccessRequestRepository.findById(sar.id)
       assertThat(expected.isPresent).isTrue()
-      assertThat(expected.get()).isEqualTo(sar)
+      assertThat(expected.get()).usingRecursiveComparison().ignoringFieldsMatchingRegexes(".*id").isEqualTo(sar)
 
       webTestClient.patch()
         .uri("/api/subjectAccessRequests/${sar.id}/complete")
@@ -174,7 +174,6 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
     dateFrom = dateFrom,
     dateTo = dateTo,
     sarCaseReferenceNumber = "666xzy",
-    services = "{1,2,4}",
     nomisId = "",
     ndeliusCaseReferenceId = "hansGruber99",
     requestedBy = "Hans Gruber",

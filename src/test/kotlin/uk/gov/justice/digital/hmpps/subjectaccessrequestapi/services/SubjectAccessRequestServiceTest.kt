@@ -17,6 +17,7 @@ import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.firstValue
@@ -45,11 +46,16 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.C
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ExtendedSubjectAccessRequestDetail
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RenderStatus
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RequestServiceDetail
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PRISON
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequestAdminSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.io.ByteArrayInputStream
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -67,6 +73,7 @@ class SubjectAccessRequestServiceTest {
   private val requestTimeoutAlertConfig: RequestTimeoutAlertConfiguration = mock()
   private val overdueAlertConfig: OverdueAlertConfiguration = mock()
   private val appInsightsQueryConfig: ApplicationInsightsQueryConfiguration = mock()
+  private val serviceConfigurationService: ServiceConfigurationService = mock()
 
   @Captor
   private lateinit var sarIdCaptor: ArgumentCaptor<UUID>
@@ -74,6 +81,7 @@ class SubjectAccessRequestServiceTest {
   private val subjectAccessRequestService = SubjectAccessRequestService(
     documentStorageClient,
     subjectAccessRequestRepository,
+    serviceConfigurationService,
     alertConfiguration,
     telemetryClient,
     appInsightsQueryConfig,
@@ -84,15 +92,28 @@ class SubjectAccessRequestServiceTest {
 
   @Nested
   inner class CreateSubjectAccessRequest {
+
+    @BeforeEach
+    fun setup() {
+      whenever(serviceConfigurationService.getByServiceName("1")).thenReturn(serviceConfigOne)
+      whenever(serviceConfigurationService.getByServiceName("2")).thenReturn(serviceConfigTwo)
+      whenever(serviceConfigurationService.getByServiceName("4")).thenReturn(serviceConfigFour)
+    }
+
     @Test
     fun `createSubjectAccessRequest returns empty string`() {
       whenever(authentication.name).thenReturn("UserName")
+      val sarCaptor = argumentCaptor<SubjectAccessRequest>()
 
       val result: String = subjectAccessRequestService
         .createSubjectAccessRequest(nDeliusRequest, "UserName", requestTime, sampleSAR.id)
 
       assertThat(result).isEqualTo(sampleSAR.id.toString())
-      verify(subjectAccessRequestRepository, times(1)).save(sampleSAR)
+      verify(subjectAccessRequestRepository, times(1)).save(sarCaptor.capture())
+      assertThat(sarCaptor.firstValue)
+        .usingRecursiveComparison()
+        .ignoringFieldsMatchingRegexes(".*id")
+        .isEqualTo(sampleSAR)
     }
 
     @Test
@@ -154,7 +175,7 @@ class SubjectAccessRequestServiceTest {
       assertThat(savedSar.dateFrom).isEqualTo(sampleSAR.dateFrom)
       assertThat(savedSar.dateTo).isEqualTo(LocalDate.now())
       assertThat(savedSar.sarCaseReferenceNumber).isEqualTo(sampleSAR.sarCaseReferenceNumber)
-      assertThat(savedSar.services).isEqualTo(sampleSAR.services)
+      assertThat(savedSar.services).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id", "serviceConfiguration.id", "subjectAccessRequest").containsExactlyElementsOf(sampleSAR.services)
       assertThat(savedSar.nomisId).isEqualTo(sampleSAR.nomisId)
       assertThat(savedSar.ndeliusCaseReferenceId).isEqualTo(sampleSAR.ndeliusCaseReferenceId)
       assertThat(savedSar.requestedBy).isEqualTo(sampleSAR.requestedBy)
@@ -186,7 +207,7 @@ class SubjectAccessRequestServiceTest {
       assertThat(savedSar.dateFrom).isNull()
       assertThat(savedSar.dateTo).isEqualTo(savedSar.dateTo)
       assertThat(savedSar.sarCaseReferenceNumber).isEqualTo(sampleSAR.sarCaseReferenceNumber)
-      assertThat(savedSar.services).isEqualTo(sampleSAR.services)
+      assertThat(savedSar.services).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id", "serviceConfiguration.id", "subjectAccessRequest").containsExactlyElementsOf(sampleSAR.services)
       assertThat(savedSar.nomisId).isEqualTo(sampleSAR.nomisId)
       assertThat(savedSar.ndeliusCaseReferenceId).isEqualTo(sampleSAR.ndeliusCaseReferenceId)
       assertThat(savedSar.requestedBy).isEqualTo(sampleSAR.requestedBy)
@@ -548,7 +569,6 @@ class SubjectAccessRequestServiceTest {
       dateFrom = LocalDate.parse("2025-01-01"),
       dateTo = LocalDate.parse("2025-03-01"),
       sarCaseReferenceNumber = "123",
-      services = "",
       nomisId = "",
       ndeliusCaseReferenceId = "",
       requestedBy = "user",
@@ -567,7 +587,7 @@ class SubjectAccessRequestServiceTest {
       dateFrom = LocalDate.parse("2025-01-01"),
       dateTo = LocalDate.parse("2025-03-01"),
       sarCaseReferenceNumber = "123",
-      services = "",
+      services = mutableListOf(),
       nomisId = "",
       ndeliusCaseReferenceId = "",
       requestedBy = "user",
@@ -762,7 +782,6 @@ class SubjectAccessRequestServiceTest {
       dateFrom = dateFromFormatted,
       dateTo = dateToFormatted,
       sarCaseReferenceNumber = "1234abc",
-      services = "{1,2,4}",
       nomisId = null,
       ndeliusCaseReferenceId = "1",
       requestedBy = "UserName",
@@ -896,7 +915,6 @@ class SubjectAccessRequestServiceTest {
       dateFrom = LocalDate.now().minusYears(1),
       dateTo = LocalDate.now(),
       sarCaseReferenceNumber = "1234567890",
-      services = "service1",
       nomisId = "1",
       ndeliusCaseReferenceId = null,
       requestedBy = "Bob",
@@ -917,7 +935,7 @@ class SubjectAccessRequestServiceTest {
 
       verify(subjectAccessRequestRepository).updateStatusToPendingAndRequestDateTime(
         eq(uuid),
-        argThat { it -> java.time.Duration.between(it, LocalDateTime.now()).abs().seconds <= 5 },
+        argThat { it -> Duration.between(it, LocalDateTime.now()).abs().seconds <= 5 },
       )
     }
 
@@ -936,7 +954,7 @@ class SubjectAccessRequestServiceTest {
 
       verify(subjectAccessRequestRepository).updateStatusToPendingAndRequestDateTime(
         eq(uuid),
-        argThat { it -> java.time.Duration.between(it, LocalDateTime.now()).abs().seconds <= 5 },
+        argThat { it -> Duration.between(it, LocalDateTime.now()).abs().seconds <= 5 },
       )
     }
 
@@ -976,7 +994,7 @@ class SubjectAccessRequestServiceTest {
     nomisId = null,
     ndeliusId = "1",
     sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
+    services = listOf("1", "2", "4"),
     dateFrom = LocalDate.of(2023, 12, 1),
     dateTo = LocalDate.of(2024, 1, 3),
   )
@@ -985,7 +1003,7 @@ class SubjectAccessRequestServiceTest {
     nomisId = "1",
     ndeliusId = "1",
     sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
+    services = listOf("1", "2", "4"),
     dateFrom = LocalDate.of(2023, 12, 1),
     dateTo = LocalDate.of(2024, 1, 3),
   )
@@ -994,7 +1012,7 @@ class SubjectAccessRequestServiceTest {
     nomisId = null,
     ndeliusId = null,
     sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
+    services = listOf("1", "2", "4"),
     dateFrom = LocalDate.of(2023, 12, 1),
     dateTo = LocalDate.of(2024, 1, 3),
   )
@@ -1003,7 +1021,7 @@ class SubjectAccessRequestServiceTest {
     nomisId = null,
     ndeliusId = "1",
     sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
+    services = listOf("1", "2", "4"),
     dateFrom = LocalDate.of(2023, 12, 1),
     dateTo = null,
   )
@@ -1012,7 +1030,7 @@ class SubjectAccessRequestServiceTest {
     nomisId = null,
     ndeliusId = "1",
     sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
+    services = listOf("1", "2", "4"),
     dateFrom = null,
     dateTo = LocalDate.of(2024, 1, 3),
   )
@@ -1020,17 +1038,23 @@ class SubjectAccessRequestServiceTest {
   private val dateFromFormatted = nDeliusRequest.dateFrom
   private val dateToFormatted = nDeliusRequest.dateTo
   private val requestTime = LocalDateTime.now()
+  private val serviceConfigOne = ServiceConfiguration(UUID.randomUUID(), "1", "One", "http://one", true, true, PRISON)
+  private val serviceConfigTwo = ServiceConfiguration(UUID.randomUUID(), "2", "Two", "http://two", true, true, PRISON)
+  private val serviceConfigFour = ServiceConfiguration(UUID.randomUUID(), "4", "Four", "http://four", true, true, PRISON)
   private val sampleSAR = SubjectAccessRequest(
     id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
     status = Status.Pending,
     dateFrom = dateFromFormatted,
     dateTo = dateToFormatted,
     sarCaseReferenceNumber = "1234abc",
-    services = "{1,2,4}",
     nomisId = null,
     ndeliusCaseReferenceId = "1",
     requestedBy = "UserName",
     requestDateTime = requestTime,
     claimAttempts = 0,
-  )
+  ).also {
+    it.services.add(RequestServiceDetail(subjectAccessRequest = it, serviceConfiguration = serviceConfigOne, renderStatus = RenderStatus.PENDING))
+    it.services.add(RequestServiceDetail(subjectAccessRequest = it, serviceConfiguration = serviceConfigTwo, renderStatus = RenderStatus.PENDING))
+    it.services.add(RequestServiceDetail(subjectAccessRequest = it, serviceConfiguration = serviceConfigFour, renderStatus = RenderStatus.PENDING))
+  }
 }

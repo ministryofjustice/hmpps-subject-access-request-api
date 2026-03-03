@@ -34,7 +34,6 @@ class AdminControllerRestartRequestIntTest : IntegrationTestBase() {
       dateFrom = LocalDate.parse("2020-01-01"),
       dateTo = LocalDate.parse("2025-01-01"),
       sarCaseReferenceNumber = "666xzy",
-      services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "hansGruber99",
       requestedBy = "Hans Gruber",

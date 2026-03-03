@@ -7,7 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.DuplicateRequestResponseEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -18,6 +21,9 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
   @Autowired
   private lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
 
+  @Autowired
+  private lateinit var serviceConfigurationRepository: ServiceConfigurationRepository
+
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
   private val nomisId = "NomisId123"
@@ -25,13 +31,21 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
   private val dateFrom = LocalDate.now().minusYears(1)
   private val dateTo = LocalDate.now().minusYears(1)
   private val sarCaseReferenceNumber = "sarCaseReferenceNumber6662"
-  private val services = "[service1,service2,service3]"
+  private val services = listOf("service1", "service2", "service3")
   private val sarUser = "SAR_USER"
   private val sarAdminUser = "SAR_ADMIN_USER"
 
   @BeforeEach
   internal fun setup() {
     subjectAccessRequestRepository.deleteAll()
+    serviceConfigurationRepository.deleteAll()
+    serviceConfigurationRepository.saveAll(
+      listOf(
+        ServiceConfiguration(UUID.randomUUID(), "service1", "Service One", "http://service-one", true, true, ServiceCategory.PRISON),
+        ServiceConfiguration(UUID.randomUUID(), "service2", "Service Two", "http://service-two", true, true, ServiceCategory.PRISON),
+        ServiceConfiguration(UUID.randomUUID(), "service3", "Service Three", "http://service-three", true, true, ServiceCategory.PRISON),
+      ),
+    )
   }
 
   @Test
@@ -50,17 +64,17 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
       originalRequest.sarCaseReferenceNumber,
     )
 
-    val resubmittedRequest = subjectAccessRequestRepository.findById(UUID.fromString(resubmitResponse!!.id))
+    val resubmittedRequest = subjectAccessRequestRepository.findById(UUID.fromString(resubmitResponse!!.id)).get()
 
     assertSubjectAccessRequestMatchesExpected(
-      actual = resubmittedRequest.get(),
-      expectedId = originalRequest.id,
+      actual = resubmittedRequest,
+      expectedId = resubmittedRequest.id,
       expectedNomisId = originalRequest.nomisId,
       expectedNdeliusId = originalRequest.ndeliusCaseReferenceId,
       expectedDateFrom = originalRequest.dateFrom,
       expectedDateTo = originalRequest.dateTo,
       expectedSarCaseReferenceNumber = originalRequest.sarCaseReferenceNumber,
-      expectedServices = originalRequest.services,
+      expectedServices = originalRequest.services.map { it.serviceConfiguration.serviceName },
       expectedRequestedBy = sarAdminUser,
     )
   }
@@ -121,16 +135,17 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
     expectedDateFrom: LocalDate?,
     expectedDateTo: LocalDate?,
     expectedSarCaseReferenceNumber: String?,
-    expectedServices: String?,
+    expectedServices: List<String>,
     expectedRequestedBy: String?,
   ) {
     assertThat(actual).isNotNull
-    assertThat(actual!!.nomisId).isEqualTo(expectedNomisId)
+    assertThat(actual!!.id).isEqualTo(expectedId)
+    assertThat(actual.nomisId).isEqualTo(expectedNomisId)
     assertThat(actual.ndeliusCaseReferenceId).isEqualTo(expectedNdeliusId)
     assertThat(actual.dateFrom).isEqualTo(expectedDateFrom)
     assertThat(actual.dateTo).isEqualTo(expectedDateTo)
     assertThat(actual.sarCaseReferenceNumber).isEqualTo(expectedSarCaseReferenceNumber)
-    assertThat(actual.services).isEqualTo(expectedServices)
+    assertThat(actual.services).extracting<String> { it.serviceConfiguration.serviceName }.containsExactlyElementsOf(expectedServices)
     assertThat(actual.requestedBy).isEqualTo(expectedRequestedBy)
   }
 
@@ -154,7 +169,7 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
             "dateFrom": "${dateFormatter.format(dateFrom)}",
             "dateTo": "${dateFormatter.format(dateTo)}",
             "sarCaseReferenceNumber": "$sarCaseReferenceNumber",
-            "services": "$services"
+            "services": ${services.map {"\"$it\""}}
           }
         """.trimIndent(),
       ).exchange()

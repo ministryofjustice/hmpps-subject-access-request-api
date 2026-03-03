@@ -24,7 +24,9 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSub
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ExtendedSubjectAccessRequestDetail
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueSubjectAccessRequests
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RenderStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ReportsOverdueSummary
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RequestServiceDetail
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequestAdminSummary
@@ -44,6 +46,7 @@ import java.util.zip.GZIPOutputStream
 class SubjectAccessRequestService(
   val documentStorageClient: DocumentStorageClient,
   val subjectAccessRequestRepository: SubjectAccessRequestRepository,
+  val serviceConfigurationService: ServiceConfigurationService,
   val alertsConfiguration: AlertsConfiguration,
   private val telemetryClient: TelemetryClient,
   private val appInsightsQueryConfig: ApplicationInsightsQueryConfiguration,
@@ -78,12 +81,21 @@ class SubjectAccessRequestService(
       dateFrom = request.dateFrom,
       dateTo = request.dateTo ?: LocalDate.now(),
       sarCaseReferenceNumber = request.sarCaseReferenceNumber!!,
-      services = request.services!!,
       nomisId = request.nomisId,
       ndeliusCaseReferenceId = request.ndeliusId,
       requestedBy = requestedBy,
       requestDateTime = requestTime ?: LocalDateTime.now(),
     )
+    request.services.forEach {
+      subjectAccessRequest.services.add(
+        RequestServiceDetail(
+          subjectAccessRequest = subjectAccessRequest,
+          serviceConfiguration = serviceConfigurationService.getByServiceName(it)
+            ?: throw SubjectAccessRequestApiException("Service configuration for service $it not found", HttpStatus.BAD_REQUEST),
+          renderStatus = RenderStatus.PENDING,
+        ),
+      )
+    }
 
     subjectAccessRequestRepository.save(subjectAccessRequest)
     return subjectAccessRequest.id.toString()
@@ -162,7 +174,7 @@ class SubjectAccessRequestService(
           dateFrom = it.dateFrom,
           dateTo = it.dateTo,
           sarCaseReferenceNumber = it.sarCaseReferenceNumber,
-          services = it.services,
+          services = it.services.map { it.serviceConfiguration.serviceName },
           nomisId = it.nomisId,
           ndeliusCaseReferenceId = it.ndeliusCaseReferenceId,
           requestedBy = it.requestedBy,

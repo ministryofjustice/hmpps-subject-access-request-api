@@ -47,7 +47,6 @@ class SubjectAccessRequestRepositoryTest {
       dateFrom = dateFrom,
       dateTo = dateTo,
       sarCaseReferenceNumber = "1234abc",
-      services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "1",
       requestedBy = "Test",
@@ -60,7 +59,6 @@ class SubjectAccessRequestRepositoryTest {
       dateFrom = dateFrom,
       dateTo = dateTo,
       sarCaseReferenceNumber = "1234abc",
-      services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "1",
       requestedBy = "Test",
@@ -74,7 +72,6 @@ class SubjectAccessRequestRepositoryTest {
       dateFrom = dateFrom,
       dateTo = dateTo,
       sarCaseReferenceNumber = "1234abc",
-      services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "1",
       requestedBy = "Test",
@@ -89,7 +86,6 @@ class SubjectAccessRequestRepositoryTest {
       dateFrom = dateFrom,
       dateTo = dateTo,
       sarCaseReferenceNumber = "1234abc",
-      services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "1",
       requestedBy = "Test",
@@ -103,7 +99,6 @@ class SubjectAccessRequestRepositoryTest {
       dateFrom = dateFrom,
       dateTo = dateTo,
       sarCaseReferenceNumber = "test1ForSearch",
-      services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "1",
       requestedBy = "Test",
@@ -117,7 +112,6 @@ class SubjectAccessRequestRepositoryTest {
       dateFrom = dateFrom,
       dateTo = dateTo,
       sarCaseReferenceNumber = "1234abc",
-      services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "test1ForSearch",
       requestedBy = "Test",
@@ -131,7 +125,6 @@ class SubjectAccessRequestRepositoryTest {
       dateFrom = dateFrom,
       dateTo = dateTo,
       sarCaseReferenceNumber = "1234abc",
-      services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "testForSearch",
       requestedBy = "Test",
@@ -145,7 +138,6 @@ class SubjectAccessRequestRepositoryTest {
       dateFrom = dateFrom,
       dateTo = dateTo,
       sarCaseReferenceNumber = "1234abc",
-      services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "testForSearch",
       requestedBy = "Test",
@@ -239,7 +231,7 @@ class SubjectAccessRequestRepositoryTest {
         subjectAccessRequestRepository.findUnclaimed(
           claimDateTime,
         ),
-      ).isEqualTo(expectedUnclaimed)
+      ).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").isEqualTo(expectedUnclaimed)
     }
   }
 
@@ -258,7 +250,6 @@ class SubjectAccessRequestRepositoryTest {
         dateFrom = dateFrom,
         dateTo = dateTo,
         sarCaseReferenceNumber = "1234abc",
-        services = "{1,2,4}",
         nomisId = "",
         ndeliusCaseReferenceId = "1",
         requestedBy = "Test",
@@ -277,7 +268,7 @@ class SubjectAccessRequestRepositoryTest {
       assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
       assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(8)
       assertThat(subjectAccessRequestRepository.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
-        .isEqualTo(expectedUpdatedRecord)
+        .usingRecursiveComparison().ignoringFields("id").isEqualTo(expectedUpdatedRecord)
     }
 
     @Test
@@ -293,7 +284,6 @@ class SubjectAccessRequestRepositoryTest {
         dateFrom = dateFrom,
         dateTo = dateTo,
         sarCaseReferenceNumber = "1234abc",
-        services = "{1,2,4}",
         nomisId = "",
         ndeliusCaseReferenceId = "1",
         requestedBy = "Test",
@@ -312,7 +302,7 @@ class SubjectAccessRequestRepositoryTest {
       assertThat(numberOfDbRecordsUpdated).isEqualTo(0)
       assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(8)
       assertThat(subjectAccessRequestRepository.getReferenceById(claimedSarWithPendingStatus.id))
-        .isEqualTo(expectedUpdatedRecord)
+        .usingRecursiveComparison().ignoringFields("id").isEqualTo(expectedUpdatedRecord)
     }
 
     @Test
@@ -328,7 +318,6 @@ class SubjectAccessRequestRepositoryTest {
         dateFrom = dateFrom,
         dateTo = dateTo,
         sarCaseReferenceNumber = "x957312",
-        services = "{1,2,4}",
         nomisId = "",
         ndeliusCaseReferenceId = "wibble",
         requestedBy = "Rupert Bear",
@@ -368,7 +357,6 @@ class SubjectAccessRequestRepositoryTest {
         dateFrom = dateFrom,
         dateTo = dateTo,
         sarCaseReferenceNumber = "1234abc",
-        services = "{1,2,4}",
         nomisId = "",
         ndeliusCaseReferenceId = "1",
         requestedBy = "Test",
@@ -385,7 +373,7 @@ class SubjectAccessRequestRepositoryTest {
       assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
       assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(8)
       assertThat(subjectAccessRequestRepository.getReferenceById(sarWithPendingStatusClaimedEarlier.id))
-        .isEqualTo(expectedUpdatedRecord)
+        .usingRecursiveComparison().ignoringFields("id").isEqualTo(expectedUpdatedRecord)
     }
   }
 
@@ -405,8 +393,8 @@ class SubjectAccessRequestRepositoryTest {
           PageRequest.of(1, 1, Sort.by("RequestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
 
     @Test
@@ -424,8 +412,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("RequestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
 
     @Test
@@ -442,8 +430,8 @@ class SubjectAccessRequestRepositoryTest {
           ),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).containsAll(allSars)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyInAnyOrderElementsOf(allSars)
     }
 
     @Test
@@ -461,8 +449,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("RequestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
   }
 
@@ -481,8 +469,8 @@ class SubjectAccessRequestRepositoryTest {
           PageRequest.of(1, 1, Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
 
     @Test
@@ -499,8 +487,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
 
     @Test
@@ -514,8 +502,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).containsAll(allSars)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyInAnyOrderElementsOf(allSars)
     }
 
     @Test
@@ -532,8 +520,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
 
     @ParameterizedTest
@@ -548,8 +536,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
   }
 
@@ -569,8 +557,8 @@ class SubjectAccessRequestRepositoryTest {
           PageRequest.of(1, 1, Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
 
     @Test
@@ -588,8 +576,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
 
     @Test
@@ -606,8 +594,8 @@ class SubjectAccessRequestRepositoryTest {
           ),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).containsAll(allSars)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyInAnyOrderElementsOf(allSars)
     }
 
     @Test
@@ -625,8 +613,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
 
     @ParameterizedTest
@@ -642,8 +630,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
   }
 
@@ -663,8 +651,8 @@ class SubjectAccessRequestRepositoryTest {
           PageRequest.of(1, 1, Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
 
     @Test
@@ -682,8 +670,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
 
     @Test
@@ -700,8 +688,8 @@ class SubjectAccessRequestRepositoryTest {
           ),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).containsAll(allSars)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyInAnyOrderElementsOf(allSars)
     }
 
     @Test
@@ -719,8 +707,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
 
     @ParameterizedTest
@@ -736,8 +724,8 @@ class SubjectAccessRequestRepositoryTest {
           Pageable.unpaged(Sort.by("requestDateTime").descending()),
         ).content
 
-      assertThat(subjectAccessRequestRepository.findAll()).isEqualTo(allSars)
-      assertThat(result).isEqualTo(expectedSearchResult)
+      assertThat(subjectAccessRequestRepository.findAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(allSars)
+      assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").containsExactlyElementsOf(expectedSearchResult)
     }
   }
 
@@ -750,7 +738,6 @@ class SubjectAccessRequestRepositoryTest {
       dateFrom = dateFrom,
       dateTo = dateTo,
       sarCaseReferenceNumber = "1234abc",
-      services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "1",
       requestedBy = "Test",
@@ -770,7 +757,6 @@ class SubjectAccessRequestRepositoryTest {
         dateFrom = dateFrom,
         dateTo = dateTo,
         sarCaseReferenceNumber = "1234abc",
-        services = "{1,2,4}",
         nomisId = "",
         ndeliusCaseReferenceId = "1",
         requestedBy = "Test",
@@ -788,7 +774,7 @@ class SubjectAccessRequestRepositoryTest {
       assertThat(subjectAccessRequestRepository.findAll().size).isEqualTo(8)
       assertThat(numberOfDbRecordsUpdated).isEqualTo(1)
       assertThat(subjectAccessRequestRepository.getReferenceById(completedSar.id))
-        .isEqualTo(expectedUpdatedRecord)
+        .usingRecursiveComparison().ignoringFields("id").isEqualTo(expectedUpdatedRecord)
     }
   }
 
@@ -817,7 +803,7 @@ class SubjectAccessRequestRepositoryTest {
       val actual = subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(threshold12Hours)
       assertThat(actual).isNotNull
       assertThat(actual).hasSize(1)
-      assertThat(actual[0]).isEqualTo(request)
+      assertThat(actual[0]).usingRecursiveComparison().ignoringFields("id").isEqualTo(request)
     }
 
     @Test
@@ -970,7 +956,6 @@ class SubjectAccessRequestRepositoryTest {
     dateFrom = dateFrom,
     dateTo = dateTo,
     sarCaseReferenceNumber = "666xzy",
-    services = "{1,2,4}",
     nomisId = "",
     ndeliusCaseReferenceId = "hansGruber99",
     requestedBy = "Hans Gruber",
