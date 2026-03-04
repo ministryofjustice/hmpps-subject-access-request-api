@@ -36,7 +36,7 @@ class AdminControllerTest {
           dateFrom = LocalDate.parse("2025-01-01"),
           dateTo = LocalDate.parse("2025-03-01"),
           sarCaseReferenceNumber = "123",
-          services = mutableListOf(),
+          services = emptyList(),
           nomisId = "",
           ndeliusCaseReferenceId = "",
           requestedBy = "user",
