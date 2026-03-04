@@ -7,8 +7,6 @@ import java.util.UUID
 
 @Repository
 interface ServiceConfigurationRepository : JpaRepository<ServiceConfiguration, UUID> {
-  fun findByOrderByServiceNameAsc(): List<ServiceConfiguration>?
-
   fun findAllByEnabledAndTemplateMigrated(
     enabled: Boolean = true,
     templateMigrated: Boolean = true,
@@ -19,5 +17,4 @@ interface ServiceConfigurationRepository : JpaRepository<ServiceConfiguration, U
   fun deleteByServiceName(serviceName: String)
 
   fun findByServiceNameAndIdNot(serviceName: String, id: UUID): ServiceConfiguration?
-  fun url(url: String): MutableList<ServiceConfiguration>
 }
