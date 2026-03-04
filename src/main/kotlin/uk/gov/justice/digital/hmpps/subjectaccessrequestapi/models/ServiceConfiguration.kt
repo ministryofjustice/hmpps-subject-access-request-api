@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.time.Instant
 import java.util.UUID
 
 @Entity
@@ -33,6 +34,12 @@ data class ServiceConfiguration(
   @Enumerated(EnumType.STRING)
   @Column(name = "category", nullable = false)
   var category: ServiceCategory,
+
+  @Column(name = "suspended", nullable = false)
+  var suspended: Boolean = false,
+
+  @Column(name = "suspended_at", nullable = true)
+  var suspendedAt: Instant? = null,
 )
 
 enum class ServiceCategory {

@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCatego
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.utils.ServiceConfigurationComparator
+import java.time.Instant
 import java.util.UUID
 
 @Service
@@ -62,6 +63,7 @@ class ServiceConfigurationService(private val serviceConfigurationRepository: Se
       .orElseThrow { ServiceConfigurationNotFoundException(update.id) }
       .let { entity ->
         log.info("updating service configuration id: {}", entity.id)
+        // Suspended field intentionally ignored and updated separately.
         entity.apply {
           serviceName = update.serviceName
           label = update.label
@@ -73,6 +75,18 @@ class ServiceConfigurationService(private val serviceConfigurationRepository: Se
         serviceConfigurationRepository.saveAndFlush(entity)
       }
   }
+
+  @Transactional
+  fun updateSuspended(
+    id: UUID,
+    suspended: Boolean,
+  ): ServiceConfiguration = serviceConfigurationRepository.findByIdOrNull(id)?.let {
+    log.info("updating service configuration id: {} suspended={}", id, suspended)
+    it.suspended = suspended
+    it.suspendedAt = if (suspended) Instant.now() else null
+
+    serviceConfigurationRepository.saveAndFlush(it)
+  } ?: throw ServiceConfigurationNotFoundException(id)
 
   private fun serviceInUseValidationException(
     serviceName: String,
