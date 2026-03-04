@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -9,6 +10,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCatego
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionRepository
 import java.time.LocalDate
 
 class SubjectAccessRequestControllerIntTest : IntegrationTestBase() {
@@ -19,6 +21,9 @@ class SubjectAccessRequestControllerIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var serviceConfigurationRepository: ServiceConfigurationRepository
 
+  @Autowired
+  private lateinit var templateVersionRepository: TemplateVersionRepository
+
   private val createSubjectAccessRequest = CreateSubjectAccessRequestEntity(
     nomisId = "A1111AA",
     ndeliusId = null,
@@ -28,22 +33,27 @@ class SubjectAccessRequestControllerIntTest : IntegrationTestBase() {
     dateFrom = LocalDate.of(2001, 1, 1),
   )
 
+  private val serviceConfigOne = ServiceConfiguration(
+    serviceName = "service1",
+    label = "Service One",
+    url = "http://service-one",
+    enabled = true,
+    templateMigrated = true,
+    category = ServiceCategory.PRISON,
+  )
+
   @BeforeEach
   fun setup() {
     subjectAccessRequestRepository.deleteAll()
-    serviceConfigurationRepository.deleteAll()
-    serviceConfigurationRepository.saveAll(
-      listOf(
-        ServiceConfiguration(
-          serviceName = "service1",
-          label = "Service One",
-          url = "http://service-one",
-          enabled = true,
-          templateMigrated = true,
-          category = ServiceCategory.PRISON,
-        ),
-      ),
-    )
+    templateVersionRepository.deleteAll()
+    serviceConfigurationRepository.saveAll(listOf(serviceConfigOne))
+  }
+
+  @AfterEach
+  fun tearDown() {
+    subjectAccessRequestRepository.deleteAll()
+    templateVersionRepository.deleteAll()
+    serviceConfigurationRepository.deleteAllById(listOf(serviceConfigOne.id))
   }
 
   @Test

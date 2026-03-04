@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,6 +13,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfig
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionRepository
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -24,6 +26,9 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
   @Autowired
   private lateinit var serviceConfigurationRepository: ServiceConfigurationRepository
 
+  @Autowired
+  private lateinit var templateVersionRepository: TemplateVersionRepository
+
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
   private val nomisId = "NomisId123"
@@ -35,17 +40,46 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
   private val sarUser = "SAR_USER"
   private val sarAdminUser = "SAR_ADMIN_USER"
 
+  private val serviceConfigOne = ServiceConfiguration(
+    UUID.randomUUID(),
+    "service1",
+    "Service One",
+    "http://service-one",
+    true,
+    true,
+    ServiceCategory.PRISON,
+  )
+  private val serviceConfigTwo = ServiceConfiguration(
+    UUID.randomUUID(),
+    "service2",
+    "Service Two",
+    "http://service-two",
+    true,
+    true,
+    ServiceCategory.PRISON,
+  )
+  private val serviceConfigThree = ServiceConfiguration(
+    UUID.randomUUID(),
+    "service3",
+    "Service Three",
+    "http://service-three",
+    true,
+    true,
+    ServiceCategory.PRISON,
+  )
+
   @BeforeEach
   internal fun setup() {
     subjectAccessRequestRepository.deleteAll()
-    serviceConfigurationRepository.deleteAll()
-    serviceConfigurationRepository.saveAll(
-      listOf(
-        ServiceConfiguration(UUID.randomUUID(), "service1", "Service One", "http://service-one", true, true, ServiceCategory.PRISON),
-        ServiceConfiguration(UUID.randomUUID(), "service2", "Service Two", "http://service-two", true, true, ServiceCategory.PRISON),
-        ServiceConfiguration(UUID.randomUUID(), "service3", "Service Three", "http://service-three", true, true, ServiceCategory.PRISON),
-      ),
-    )
+    templateVersionRepository.deleteAll()
+    serviceConfigurationRepository.saveAll(listOf(serviceConfigOne, serviceConfigTwo, serviceConfigThree))
+  }
+
+  @AfterEach
+  fun tearDown() {
+    subjectAccessRequestRepository.deleteAll()
+    templateVersionRepository.deleteAll()
+    serviceConfigurationRepository.deleteAllById(listOf(serviceConfigOne.id, serviceConfigTwo.id, serviceConfigThree.id))
   }
 
   @Test

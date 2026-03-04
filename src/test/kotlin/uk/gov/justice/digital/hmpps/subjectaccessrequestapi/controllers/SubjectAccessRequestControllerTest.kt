@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCatego
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.io.ByteArrayInputStream
 import java.time.LocalDate
@@ -217,7 +218,7 @@ class SubjectAccessRequestControllerTest {
             category = ServiceCategory.PRISON,
           ),
           renderStatus = RenderStatus.COMPLETE,
-          templateVersion = "2",
+          templateVersion = TemplateVersion(version = 2),
           renderedAt = LocalDateTime.parse("2026-03-04T09:33:53"),
         ),
       )
@@ -233,7 +234,7 @@ class SubjectAccessRequestControllerTest {
             category = ServiceCategory.PROBATION,
           ),
           renderStatus = RenderStatus.ERRORED,
-          templateVersion = "4",
+          templateVersion = TemplateVersion(version = 4),
           renderedAt = LocalDateTime.parse("2026-03-02T11:05:02"),
         ),
       )
@@ -254,13 +255,13 @@ class SubjectAccessRequestControllerTest {
             RequestServiceDetailResponseEntity(
               serviceName = "service-one",
               renderStatus = RenderStatus.COMPLETE,
-              templateVersion = "2",
+              templateVersion = 2,
               renderedAt = LocalDateTime.parse("2026-03-04T09:33:53"),
             ),
             RequestServiceDetailResponseEntity(
               serviceName = "service-two",
               renderStatus = RenderStatus.ERRORED,
-              templateVersion = "4",
+              templateVersion = 4,
               renderedAt = LocalDateTime.parse("2026-03-02T11:05:02"),
             ),
           ),
