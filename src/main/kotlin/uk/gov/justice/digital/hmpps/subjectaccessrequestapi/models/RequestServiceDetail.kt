@@ -30,8 +30,9 @@ data class RequestServiceDetail(
   @Column(name = "render_status", nullable = false)
   val renderStatus: RenderStatus,
 
-  @Column(name = "template_version")
-  val templateVersion: String? = null,
+  @OneToOne
+  @JoinColumn(name = "template_version_id", referencedColumnName = "id", nullable = false)
+  val templateVersion: TemplateVersion? = null,
 
   @Column(name = "rendered_at")
   val renderedAt: LocalDateTime? = null,

@@ -11,8 +11,11 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCatego
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.Status
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionRepository
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -26,11 +29,14 @@ class ServicesControllerGetRequestByIdIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var serviceConfigurationRepository: ServiceConfigurationRepository
 
+  @Autowired
+  private lateinit var templateVersionRepository: TemplateVersionRepository
+
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   private val dateFrom = LocalDate.parse("30/12/2023", dateFormatter)
   private val dateTo = LocalDate.parse("30/01/2024", dateFormatter)
 
-  val serviceConfigurationOne = ServiceConfiguration(
+  val serviceConfigOne = ServiceConfiguration(
     serviceName = "service-one",
     label = "Service One",
     url = "http://service-one",
@@ -38,7 +44,7 @@ class ServicesControllerGetRequestByIdIntTest : IntegrationTestBase() {
     templateMigrated = true,
     category = ServiceCategory.PRISON,
   )
-  val serviceConfigurationTwo = ServiceConfiguration(
+  val serviceConfigTwo = ServiceConfiguration(
     serviceName = "service-two",
     label = "Service Two",
     url = "http://service-two",
@@ -46,6 +52,8 @@ class ServicesControllerGetRequestByIdIntTest : IntegrationTestBase() {
     templateMigrated = true,
     category = ServiceCategory.PRISON,
   )
+  val templateVersionOne = TemplateVersion(version = 2, serviceConfiguration = serviceConfigOne, status = TemplateVersionStatus.PENDING, fileHash = "123")
+  val templateVersionTwo = TemplateVersion(version = 4, serviceConfiguration = serviceConfigTwo, status = TemplateVersionStatus.PENDING, fileHash = "456")
   private val sar = SubjectAccessRequest(
     id = UUID.randomUUID(),
     status = Status.Pending,
@@ -62,18 +70,18 @@ class ServicesControllerGetRequestByIdIntTest : IntegrationTestBase() {
     it.services.add(
       RequestServiceDetail(
         subjectAccessRequest = it,
-        serviceConfiguration = serviceConfigurationOne,
+        serviceConfiguration = serviceConfigOne,
         renderStatus = RenderStatus.PENDING,
-        templateVersion = "2",
+        templateVersion = templateVersionOne,
         renderedAt = LocalDateTime.parse("2026-02-28T12:14:34"),
       ),
     )
     it.services.add(
       RequestServiceDetail(
         subjectAccessRequest = it,
-        serviceConfiguration = serviceConfigurationTwo,
+        serviceConfiguration = serviceConfigTwo,
         renderStatus = RenderStatus.COMPLETE,
-        templateVersion = "6",
+        templateVersion = templateVersionTwo,
         renderedAt = LocalDateTime.parse("2026-03-01T09:46:04"),
       ),
     )
@@ -81,15 +89,18 @@ class ServicesControllerGetRequestByIdIntTest : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    serviceConfigurationRepository.deleteAll()
-    serviceConfigurationRepository.saveAll(listOf(serviceConfigurationOne, serviceConfigurationTwo))
     subjectAccessRequestRepository.deleteAll()
+    templateVersionRepository.deleteAll()
+    serviceConfigurationRepository.saveAll(listOf(serviceConfigOne, serviceConfigTwo))
+    templateVersionRepository.saveAll(listOf(templateVersionOne, templateVersionTwo))
     subjectAccessRequestRepository.save(sar)
   }
 
   @AfterEach
   fun tearDown() {
     subjectAccessRequestRepository.deleteAll()
+    templateVersionRepository.deleteAll()
+    serviceConfigurationRepository.deleteAllById(listOf(serviceConfigOne.id, serviceConfigTwo.id))
   }
 
   @Test
@@ -110,12 +121,12 @@ class ServicesControllerGetRequestByIdIntTest : IntegrationTestBase() {
       .jsonPath(".services[0]").exists()
       .jsonPath(".services[0].serviceName").isEqualTo("service-one")
       .jsonPath(".services[0].renderStatus").isEqualTo("PENDING")
-      .jsonPath(".services[0].templateVersion").isEqualTo("2")
+      .jsonPath(".services[0].templateVersion").isEqualTo(2)
       .jsonPath(".services[0].renderedAt").isEqualTo("2026-02-28T12:14:34")
       .jsonPath(".services[1]").exists()
       .jsonPath(".services[1].serviceName").isEqualTo("service-two")
       .jsonPath(".services[1].renderStatus").isEqualTo("COMPLETE")
-      .jsonPath(".services[1].templateVersion").isEqualTo("6")
+      .jsonPath(".services[1].templateVersion").isEqualTo(4)
       .jsonPath(".services[1].renderedAt").isEqualTo("2026-03-01T09:46:04")
       .jsonPath(".nomisId").isEqualTo("")
       .jsonPath(".ndeliusCaseReferenceId").isEqualTo("hansGruber99")

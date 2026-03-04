@@ -125,13 +125,13 @@ data class SubjectAccessRequestResponseEntity(
 data class RequestServiceDetailResponseEntity(
   val serviceName: String,
   val renderStatus: RenderStatus,
-  val templateVersion: String? = null,
+  val templateVersion: Int? = null,
   val renderedAt: LocalDateTime? = null,
 ) {
   constructor(requestServiceDetail: RequestServiceDetail) : this(
     serviceName = requestServiceDetail.serviceConfiguration.serviceName,
     renderStatus = requestServiceDetail.renderStatus,
-    templateVersion = requestServiceDetail.templateVersion,
+    templateVersion = requestServiceDetail.templateVersion?.version,
     renderedAt = requestServiceDetail.renderedAt,
   )
 }
