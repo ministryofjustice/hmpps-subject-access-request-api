@@ -7,8 +7,6 @@ import java.util.UUID
 
 @Repository
 interface ServiceConfigurationRepository : JpaRepository<ServiceConfiguration, UUID> {
-  fun findByOrderByServiceNameAsc(): List<ServiceConfiguration>?
-
   fun findAllByEnabledAndTemplateMigrated(
     enabled: Boolean = true,
     templateMigrated: Boolean = true,

@@ -59,7 +59,6 @@ class SubjectAccessRequestControllerGetOverdueIntTest : IntegrationTestBase() {
       dateFrom = dateFrom,
       dateTo = dateTo,
       sarCaseReferenceNumber = "666xzy",
-      services = "{1,2,4}",
       nomisId = "",
       ndeliusCaseReferenceId = "hansGruber99",
       requestedBy = "Hans Gruber",

@@ -24,7 +24,7 @@ data class ExtendedSubjectAccessRequestDetail(
   val dateFrom: LocalDate?,
   var dateTo: LocalDate?,
   val sarCaseReferenceNumber: String,
-  val services: String,
+  val services: List<String>,
   val nomisId: String?,
   val ndeliusCaseReferenceId: String?,
   val requestedBy: String,

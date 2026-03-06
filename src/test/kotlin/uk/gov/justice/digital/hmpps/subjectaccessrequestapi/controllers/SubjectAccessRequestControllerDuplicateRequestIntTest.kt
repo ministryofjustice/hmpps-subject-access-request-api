@@ -1,14 +1,19 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.DuplicateRequestResponseEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.ServiceConfigurationRepository
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.SubjectAccessRequestRepository
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionRepository
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -18,6 +23,12 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
   @Autowired
   private lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
 
+  @Autowired
+  private lateinit var serviceConfigurationRepository: ServiceConfigurationRepository
+
+  @Autowired
+  private lateinit var templateVersionRepository: TemplateVersionRepository
+
   private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
   private val nomisId = "NomisId123"
@@ -25,13 +36,50 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
   private val dateFrom = LocalDate.now().minusYears(1)
   private val dateTo = LocalDate.now().minusYears(1)
   private val sarCaseReferenceNumber = "sarCaseReferenceNumber6662"
-  private val services = "[service1,service2,service3]"
+  private val services = listOf("service1", "service2", "service3")
   private val sarUser = "SAR_USER"
   private val sarAdminUser = "SAR_ADMIN_USER"
+
+  private val serviceConfigOne = ServiceConfiguration(
+    UUID.randomUUID(),
+    "service1",
+    "Service One",
+    "http://service-one",
+    true,
+    true,
+    ServiceCategory.PRISON,
+  )
+  private val serviceConfigTwo = ServiceConfiguration(
+    UUID.randomUUID(),
+    "service2",
+    "Service Two",
+    "http://service-two",
+    true,
+    true,
+    ServiceCategory.PRISON,
+  )
+  private val serviceConfigThree = ServiceConfiguration(
+    UUID.randomUUID(),
+    "service3",
+    "Service Three",
+    "http://service-three",
+    true,
+    true,
+    ServiceCategory.PRISON,
+  )
 
   @BeforeEach
   internal fun setup() {
     subjectAccessRequestRepository.deleteAll()
+    templateVersionRepository.deleteAll()
+    serviceConfigurationRepository.saveAll(listOf(serviceConfigOne, serviceConfigTwo, serviceConfigThree))
+  }
+
+  @AfterEach
+  fun tearDown() {
+    subjectAccessRequestRepository.deleteAll()
+    templateVersionRepository.deleteAll()
+    serviceConfigurationRepository.deleteAllById(listOf(serviceConfigOne.id, serviceConfigTwo.id, serviceConfigThree.id))
   }
 
   @Test
@@ -50,17 +98,17 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
       originalRequest.sarCaseReferenceNumber,
     )
 
-    val resubmittedRequest = subjectAccessRequestRepository.findById(UUID.fromString(resubmitResponse!!.id))
+    val resubmittedRequest = subjectAccessRequestRepository.findById(UUID.fromString(resubmitResponse!!.id)).get()
 
     assertSubjectAccessRequestMatchesExpected(
-      actual = resubmittedRequest.get(),
-      expectedId = originalRequest.id,
+      actual = resubmittedRequest,
+      expectedId = resubmittedRequest.id,
       expectedNomisId = originalRequest.nomisId,
       expectedNdeliusId = originalRequest.ndeliusCaseReferenceId,
       expectedDateFrom = originalRequest.dateFrom,
       expectedDateTo = originalRequest.dateTo,
       expectedSarCaseReferenceNumber = originalRequest.sarCaseReferenceNumber,
-      expectedServices = originalRequest.services,
+      expectedServices = originalRequest.services.map { it.serviceConfiguration.serviceName },
       expectedRequestedBy = sarAdminUser,
     )
   }
@@ -121,16 +169,17 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
     expectedDateFrom: LocalDate?,
     expectedDateTo: LocalDate?,
     expectedSarCaseReferenceNumber: String?,
-    expectedServices: String?,
+    expectedServices: List<String>,
     expectedRequestedBy: String?,
   ) {
     assertThat(actual).isNotNull
-    assertThat(actual!!.nomisId).isEqualTo(expectedNomisId)
+    assertThat(actual!!.id).isEqualTo(expectedId)
+    assertThat(actual.nomisId).isEqualTo(expectedNomisId)
     assertThat(actual.ndeliusCaseReferenceId).isEqualTo(expectedNdeliusId)
     assertThat(actual.dateFrom).isEqualTo(expectedDateFrom)
     assertThat(actual.dateTo).isEqualTo(expectedDateTo)
     assertThat(actual.sarCaseReferenceNumber).isEqualTo(expectedSarCaseReferenceNumber)
-    assertThat(actual.services).isEqualTo(expectedServices)
+    assertThat(actual.services).extracting<String> { it.serviceConfiguration.serviceName }.containsExactlyElementsOf(expectedServices)
     assertThat(actual.requestedBy).isEqualTo(expectedRequestedBy)
   }
 
@@ -154,7 +203,7 @@ class SubjectAccessRequestControllerDuplicateRequestIntTest : IntegrationTestBas
             "dateFrom": "${dateFormatter.format(dateFrom)}",
             "dateTo": "${dateFormatter.format(dateTo)}",
             "sarCaseReferenceNumber": "$sarCaseReferenceNumber",
-            "services": "$services"
+            "services": ${services.map {"\"$it\""}}
           }
         """.trimIndent(),
       ).exchange()
