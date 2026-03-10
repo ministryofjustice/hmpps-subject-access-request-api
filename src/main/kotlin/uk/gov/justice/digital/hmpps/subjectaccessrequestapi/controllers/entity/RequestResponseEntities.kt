@@ -57,6 +57,8 @@ data class ServiceInfo(
   val templateMigrated: Boolean,
   val category: ServiceCategory,
   val suspended: Boolean,
+
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "UTC")
   val suspendedAt: Instant? = null,
 ) {
 
