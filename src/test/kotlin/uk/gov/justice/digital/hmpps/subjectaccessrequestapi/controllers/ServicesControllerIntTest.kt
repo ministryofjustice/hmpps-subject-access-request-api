@@ -514,14 +514,17 @@ class ServicesControllerIntTest : IntegrationTestBase() {
       assertServiceConfigurationIsNotSuspended(s1.id)
       val start = Instant.now()
 
-      webTestClient
+      val response = webTestClient
         .patch()
         .uri("/api/services/${s1.id}/suspend?suspended=true")
         .headers(setAuthorisation(roles = listOf(role)))
         .exchange()
         .expectStatus().isOk
+        .expectBody<Map<String, Any>>()
+        .returnResult()
 
       assertServiceConfigurationIsSuspended(id = s1.id, suspendedAfter = start)
+      assertSuspendedAtFormat(response.responseBody)
     }
 
     @ParameterizedTest
@@ -606,6 +609,13 @@ class ServicesControllerIntTest : IntegrationTestBase() {
       assertThat(it.suspendedAt).isAfter(suspendedAfter)
       assertThat(it.suspendedAt).isBefore(Instant.now())
     } ?: fail { "expected service $id did not exist" }
+  }
+
+  private fun assertSuspendedAtFormat(body: Map<String, Any>?) {
+    assertThat(body!!.contains("suspendedAt")).isTrue
+    assertThat(body["suspendedAt"]).isInstanceOf(String::class.java)
+    // expected format: dd/MM/yyyy HH:mm:ss
+    assertThat(body["suspendedAt"] as String).matches("""^\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}$""")
   }
 
   companion object {
