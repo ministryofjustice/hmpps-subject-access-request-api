@@ -1,8 +1,8 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.4"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.5"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.3.10"
-  kotlin("plugin.spring") version "2.3.0"
-  kotlin("plugin.jpa") version "2.3.0"
+  kotlin("plugin.spring") version "2.3.10"
+  kotlin("plugin.jpa") version "2.3.10"
 }
 
 configurations {
@@ -17,15 +17,15 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.0.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.0.2")
   implementation("org.json:json:20251224")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
-  implementation("io.sentry:sentry-spring-boot-4:8.33.0")
-  implementation("io.sentry:sentry-logback:8.33.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
+  implementation("io.sentry:sentry-spring-boot-4:8.34.1")
+  implementation("io.sentry:sentry-logback:8.34.1")
   implementation("uk.gov.service.notify:notifications-java-client:6.0.0-RELEASE")
   implementation("net.javacrumbs.shedlock:shedlock-spring:7.6.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.5.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.6.0")
   implementation("com.slack.api:slack-api-client:1.47.0")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
 
