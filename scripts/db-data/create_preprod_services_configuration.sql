@@ -16,7 +16,7 @@ VALUES
     ('hmpps-hdc-api', 'Home detention curfew', 'https://hdc-api-preprod.hmpps.service.justice.gov.uk', 12, 'PRISON'),
     ('hmpps-incentives-api', 'Incentives', 'https://incentives-api-preprod.hmpps.service.justice.gov.uk', 13, 'PRISON'),
     ('launchpad-auth', 'Launchpad', 'https://launchpad-auth-preprod.hmpps.service.justice.gov.uk', 14, 'PRISON'),
-    ('hmpps-education-and-work-plan-api', 'Learning and work progress', 'https://learningandworkprogress-api-preprod.hmpps.service.justice.gov.uk', 15, 'PRISON'),
+    ('hmpps-education-and-work-plan-api', 'Learning Work Progress (Personal Learning Plan)', 'https://learningandworkprogress-api-preprod.hmpps.service.justice.gov.uk', 15, 'PRISON'),
     ('hmpps-activities-management-api', 'Manage activities and appointments', 'https://activities-api-preprod.prison.service.justice.gov.uk', 16, 'PRISON'),
     ('offender-management-allocation-manager', 'Manage Prison Offender Manager cases', 'https://preprod.moic.service.justice.gov.uk', 17, 'PRISON'),
     ('hmpps-managing-prisoner-apps-api', 'Managing prisoner applications', 'https://managing-prisoner-apps-api-preprod.hmpps.service.justice.gov.uk', 18, 'PRISON'),
