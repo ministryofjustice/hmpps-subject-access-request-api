@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.hmpps.kotlin.health.HealthPingCheck
 
 @Service
@@ -36,30 +35,6 @@ class DynamicServicesClient(
     }
     .onErrorResume(Exception::class.java) { Mono.just(Health.down(it).build()) }
     .block() ?: Health.down().build()
-
-  fun getServiceTemplate(serviceConfiguration: ServiceConfiguration): String? = dynamicWebClient
-    .mutate().baseUrl(serviceConfiguration.url).build()
-    .get()
-    .uri("/subject-access-request/template")
-    .exchangeToMono { resp ->
-      if (resp.statusCode().is2xxSuccessful) {
-        resp.bodyToMono(String::class.java)
-      } else {
-        resp.bodyToMono(String::class.java)
-          .defaultIfEmpty("")
-          .flatMap { _ ->
-            log.error(
-              "Problem retrieving template for {} - status {}",
-              serviceConfiguration.serviceName,
-              resp.statusCode(),
-            )
-            Mono.empty()
-          }
-      }
-    }
-    .doOnError { ex -> log.error("Problem retrieving template for {}", serviceConfiguration.serviceName, ex) }
-    .onErrorResume { Mono.empty() }
-    .block()
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)

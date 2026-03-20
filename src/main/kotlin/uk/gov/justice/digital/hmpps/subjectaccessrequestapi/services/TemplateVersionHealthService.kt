@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DynamicServicesClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DynamicTemplateClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
@@ -20,7 +20,7 @@ import java.util.UUID
 class TemplateVersionHealthService(
   private val templateVersionHealthStatusRepository: TemplateVersionHealthStatusRepository,
   private val templateVersionService: TemplateVersionService,
-  private val dynamicServicesClient: DynamicServicesClient,
+  private val dynamicTemplateClient: DynamicTemplateClient,
   private val clock: Clock,
   private val telemetryClient: TelemetryClient,
   @param:Value("\${application.alerts.template-health.unhealthy-threshold-minutes:30}") private val unhealthyStatusThreshold: Long,
@@ -42,15 +42,19 @@ class TemplateVersionHealthService(
   fun updateTemplateVersionHealthData(serviceConfiguration: ServiceConfiguration) {
     log.info("Updating template version health status in database for {}", serviceConfiguration.serviceName)
 
-    dynamicServicesClient.getServiceTemplate(serviceConfiguration)?.let { template ->
+    dynamicTemplateClient.getServiceTemplate(serviceConfiguration)?.let { template ->
       val actualServiceHash = getSha256HashValue(template)
-      val hashValid = templateVersionService.isTemplateHashValid(serviceConfiguration.id, actualServiceHash)
+      val hashValid = templateVersionService.isTemplateHashValid(
+        serviceConfigurationId = serviceConfiguration.id,
+        templateHash = actualServiceHash,
+      )
       val health = if (hashValid) HealthStatusType.HEALTHY else HealthStatusType.UNHEALTHY
+
       templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfiguration.id)?.let {
         templateVersionHealthStatusRepository.updateStatusWhenChanged(
-          serviceConfiguration.id,
-          health,
-          clock.instant(),
+          serviceConfigurationId = serviceConfiguration.id,
+          newStatus = health,
+          currentTime = clock.instant(),
         ).also { updateCount ->
           updateCount.takeIf { updateCount > 0 }?.let {
             telemetryClient.trackHealthStatusChange(health, serviceConfiguration)

@@ -3,15 +3,19 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremoc
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.matching
 import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import com.github.tomakehurst.wiremock.http.HttpHeaders
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthApiExtension.Companion.AUTH_TEST_TOKEN_VALUE
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -20,6 +24,8 @@ class HmppsAuthApiExtension :
   AfterAllCallback,
   BeforeEachCallback {
   companion object {
+    const val AUTH_TEST_TOKEN_VALUE = "ABCDE"
+
     @JvmField
     val hmppsAuth = HmppsAuthMockServer()
   }
@@ -45,6 +51,7 @@ class HmppsAuthMockServer : WireMockServer(WIREMOCK_PORT) {
   fun stubGrantToken() {
     stubFor(
       post(urlEqualTo("/auth/oauth/token"))
+        .withHeader("Authorization", matching("Basic .+"))
         .willReturn(
           aResponse()
             .withHeaders(HttpHeaders(HttpHeader("Content-Type", "application/json")))
@@ -52,7 +59,7 @@ class HmppsAuthMockServer : WireMockServer(WIREMOCK_PORT) {
               """
                 {
                   "token_type": "bearer",
-                  "access_token": "ABCDE",
+                  "access_token": "$AUTH_TEST_TOKEN_VALUE",
                   "expires_in": ${LocalDateTime.now().plusHours(2).toEpochSecond(ZoneOffset.UTC)}
                 }
               """.trimIndent(),
@@ -60,6 +67,11 @@ class HmppsAuthMockServer : WireMockServer(WIREMOCK_PORT) {
         ),
     )
   }
+
+  fun verifyGrantTokenIsCalled(times: Int) = verify(
+    times,
+    postRequestedFor(urlPathEqualTo("/auth/oauth/token")),
+  )
 
   fun stubGrantTokenError() {
     stubFor(post(urlEqualTo("/auth/oauth/token")).willReturn(serverError()))

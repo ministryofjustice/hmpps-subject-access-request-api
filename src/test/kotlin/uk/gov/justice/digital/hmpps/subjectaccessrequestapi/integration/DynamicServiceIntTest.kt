@@ -9,10 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.health.contributor.Status
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DynamicServicesClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DynamicTemplateClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DYNAMIC_SERVICE_ALT_PORT
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DYNAMIC_SERVICE_PORT
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DynamicServiceAltHealthExtension.Companion.dynamicServiceAlt
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DynamicServiceExtension.Companion.dynamicService
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthApiExtension.Companion.hmppsAuth
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import java.util.UUID
@@ -22,6 +24,9 @@ class DynamicServiceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var dynamicServicesClient: DynamicServicesClient
+
+  @Autowired
+  private lateinit var dynamicTemplateClient: DynamicTemplateClient
 
   private val serviceConfiguration = ServiceConfiguration(
     id = UUID.randomUUID(),
@@ -87,11 +92,13 @@ class DynamicServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `Can get template for service`() {
+    hmppsAuth.stubGrantToken()
     dynamicService.stubGetTemplate(200)
 
-    val response = dynamicServicesClient.getServiceTemplate(serviceConfiguration)
+    val response = dynamicTemplateClient.getServiceTemplate(serviceConfiguration)
 
     assertThat(response).isNotNull.isEqualTo("<h1>Template one</h2>")
+    hmppsAuth.verifyGrantTokenIsCalled(1)
   }
 
   @ParameterizedTest
@@ -101,7 +108,7 @@ class DynamicServiceIntTest : IntegrationTestBase() {
   fun `Returns null when get template for service and error status`(status: Int) {
     dynamicService.stubGetTemplate(status)
 
-    val response = dynamicServicesClient.getServiceTemplate(serviceConfiguration)
+    val response = dynamicTemplateClient.getServiceTemplate(serviceConfiguration)
 
     assertThat(response).isNull()
   }
