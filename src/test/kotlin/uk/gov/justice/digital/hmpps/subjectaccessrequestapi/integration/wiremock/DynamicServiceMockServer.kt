@@ -3,10 +3,12 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremoc
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.matching
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthApiExtension.Companion.AUTH_TEST_TOKEN_VALUE
 
 const val DYNAMIC_SERVICE_PORT = 8090
 
@@ -25,12 +27,14 @@ class DynamicServiceMockServer : WireMockServer(DYNAMIC_SERVICE_PORT) {
 
   fun stubGetTemplate(status: Int, body: String? = "<h1>Template one</h2>") {
     stubFor(
-      get("/subject-access-request/template").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "text/plain")
-          .withBody(body)
-          .withStatus(status),
-      ),
+      get("/subject-access-request/template")
+        .withHeader("Authorization", matching("Bearer $AUTH_TEST_TOKEN_VALUE"))
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "text/plain")
+            .withBody(body)
+            .withStatus(status),
+        ),
     )
   }
 }

@@ -76,6 +76,17 @@ class WebClientConfiguration(
 
   @Bean
   fun dynamicHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient("", healthTimeout)
+
+  @Bean("dynamicTemplateWebClient")
+  fun dynamicTemplateWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    builder: WebClient.Builder,
+  ): WebClient = builder.authorisedWebClient(
+    authorizedClientManager,
+    registrationId = "sar-client",
+    url = "", // set at request time.
+    timeout,
+  )
 }
 
 data class WebClientWrapper(val baseUrl: String, val webClient: WebClient)

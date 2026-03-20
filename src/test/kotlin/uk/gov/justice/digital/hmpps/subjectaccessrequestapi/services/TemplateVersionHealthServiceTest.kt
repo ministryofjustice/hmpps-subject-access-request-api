@@ -15,7 +15,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DynamicServicesClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DynamicTemplateClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
@@ -56,14 +56,14 @@ class TemplateVersionHealthServiceTest {
 
   private val templateVersionHealthStatusRepository: TemplateVersionHealthStatusRepository = mock()
   private val templateVersionService: TemplateVersionService = mock()
-  private val dynamicServicesClient: DynamicServicesClient = mock()
+  private val dynamicTemplateClient: DynamicTemplateClient = mock()
   private val telemetryClient: TelemetryClient = mock()
   private val clock: Clock = Clock.fixed(NOW, ZoneOffset.UTC)
 
   private val updateTemplateVersionHealthService = TemplateVersionHealthService(
     templateVersionHealthStatusRepository,
     templateVersionService,
-    dynamicServicesClient,
+    dynamicTemplateClient,
     clock,
     telemetryClient,
     10L,
@@ -77,7 +77,7 @@ class TemplateVersionHealthServiceTest {
 
   @Test
   fun `should not update status when template not found`() {
-    whenever(dynamicServicesClient.getServiceTemplate(serviceConfig1)).thenReturn(null)
+    whenever(dynamicTemplateClient.getServiceTemplate(serviceConfig1)).thenReturn(null)
 
     updateTemplateVersionHealthService.updateTemplateVersionHealthData(serviceConfig1)
 
@@ -95,7 +95,7 @@ class TemplateVersionHealthServiceTest {
     fileHashValid: Boolean,
     expectedHealthStatus: HealthStatusType,
   ) {
-    whenever(dynamicServicesClient.getServiceTemplate(serviceConfig1)).thenReturn(TEMPLATE_ONE)
+    whenever(dynamicTemplateClient.getServiceTemplate(serviceConfig1)).thenReturn(TEMPLATE_ONE)
     whenever(
       templateVersionService.isTemplateHashValid(
         serviceConfig1.id,
@@ -128,7 +128,7 @@ class TemplateVersionHealthServiceTest {
     fileHashValid: Boolean,
     expectedHealthStatus: HealthStatusType,
   ) {
-    whenever(dynamicServicesClient.getServiceTemplate(serviceConfig1)).thenReturn(TEMPLATE_ONE)
+    whenever(dynamicTemplateClient.getServiceTemplate(serviceConfig1)).thenReturn(TEMPLATE_ONE)
     whenever(
       templateVersionService.isTemplateHashValid(
         serviceConfig1.id,
@@ -162,7 +162,7 @@ class TemplateVersionHealthServiceTest {
 
   @Test
   fun `should not create new record if one already exists for service configuration even if update is unsuccessful`() {
-    whenever(dynamicServicesClient.getServiceTemplate(serviceConfig1)).thenReturn(TEMPLATE_ONE)
+    whenever(dynamicTemplateClient.getServiceTemplate(serviceConfig1)).thenReturn(TEMPLATE_ONE)
     whenever(
       templateVersionService.isTemplateHashValid(
         serviceConfig1.id,
