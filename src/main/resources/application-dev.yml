@@ -65,3 +65,9 @@ slack:
     auth: "some_value"
     template-error-recipients: "some_value"
     dev-help-channel-id: "some_value"
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
