@@ -77,7 +77,7 @@ class WebClientConfiguration(
   @Bean
   fun dynamicHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient("", healthTimeout)
 
-  // Dynamic client will the URL at request time depending on which service its calling.
+  // Dynamic client will set the URL at request time depending on which service its calling.
   @Bean("dynamicTemplateWebClient")
   fun dynamicTemplateWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder.authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = "", timeout)
 }
