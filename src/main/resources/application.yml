@@ -168,3 +168,10 @@ slack:
     auth: ${SAR_SLACK_BOT_AUTH_TOKEN}
     template-error-recipients: ${TEMPLATE_ALERT_SLACK_CHANNEL_IDS}
     dev-help-channel-id: ${DEV_HELP_SLACK_CHANNEL_ID}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+    version: 5.32.1

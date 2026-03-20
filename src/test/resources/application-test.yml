@@ -76,3 +76,9 @@ slack:
     auth: "FAKE_AUTH_TOKEN"
     template-error-recipients: "CHANNEL_ID1"
     dev-help-channel-id: "CHANNEL_ID2"
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
