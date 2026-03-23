@@ -6,10 +6,18 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.ManageUsersApiClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AuthenticationFacade
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.NotifyConfigDetails
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.NotifyConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.NotificationType.NEW_TEMPLATE_VERSION
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.NotificationType.SUSPEND_PRODUCT
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.NotificationType.UNSUSPEND_PRODUCT
 import uk.gov.service.notify.NotificationClientApi
 import uk.gov.service.notify.NotificationClientException
+import java.time.Clock
+import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
 
 @Service
@@ -19,35 +27,71 @@ class NotificationService(
   private val telemetryClient: TelemetryClient,
   private val authenticationFacade: AuthenticationFacade,
   private val notifyConfiguration: NotifyConfiguration,
+  private val clock: Clock,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val dataTimeFmt = DateTimeFormatter.ofPattern("dd MMMM yyyy HH:mm:ss")
+    private val dataTimeFmt = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm:ss")
   }
 
   fun sendNewTemplateVersionNotification(templateVersion: TemplateVersion) {
-    if (isNotBlank(notifyConfiguration.newTemplateVersionEmailAddresses)) {
-      val product = templateVersion.serviceConfiguration?.label
-      val user = authenticationFacade.currentUsername
-      val parameters = mapOf(
-        "product" to product,
+    sendNotification(
+      NEW_TEMPLATE_VERSION,
+      templateVersion.serviceConfiguration,
+      notifyConfiguration.newTemplateVersion,
+      mutableMapOf(
         "version" to templateVersion.version.toString(),
-        "user" to user?.let { manageUsersApiClient.getUserFullName(it) },
         "datetime" to templateVersion.createdAt.format(dataTimeFmt),
-      )
+      ),
+    )
+  }
+
+  fun sendSuspendProductNotification(serviceConfiguration: ServiceConfiguration) {
+    sendNotification(
+      SUSPEND_PRODUCT,
+      serviceConfiguration,
+      notifyConfiguration.suspendProduct,
+      mutableMapOf(
+        "datetime" to LocalDateTime.ofInstant(serviceConfiguration.suspendedAt, UTC).format(dataTimeFmt),
+      ),
+    )
+  }
+
+  fun sendUnsuspendProductNotification(serviceConfiguration: ServiceConfiguration) {
+    sendNotification(
+      UNSUSPEND_PRODUCT,
+      serviceConfiguration,
+      notifyConfiguration.unsuspendProduct,
+      mutableMapOf(
+        "datetime" to LocalDateTime.now(clock).format(dataTimeFmt),
+      ),
+    )
+  }
+
+  private fun sendNotification(
+    notificationType: NotificationType,
+    serviceConfiguration: ServiceConfiguration?,
+    notifyDetails: NotifyConfigDetails,
+    parameters: MutableMap<String, String?>,
+  ) {
+    if (isNotBlank(notifyDetails.emailAddresses)) {
+      val product = serviceConfiguration?.label
+      val user = authenticationFacade.currentUsername
+      parameters["product"] = product
+      parameters["user"] = user?.let { manageUsersApiClient.getUserFullName(it) }
       try {
-        log.info("Sending new template version notification for product {}", product)
+        log.info("Sending {} notification for product {}", notificationType.label, product)
         notificationClient.sendEmail(
-          notifyConfiguration.newTemplateVersionTemplateId,
-          notifyConfiguration.newTemplateVersionEmailAddresses,
+          notifyDetails.templateId,
+          notifyDetails.emailAddresses,
           parameters,
           null,
         )
       } catch (e: NotificationClientException) {
         val reason = (e.cause?.let { e.cause } ?: e).javaClass.simpleName
-        log.warn("Failed to send new template version notification for product {}", product, e)
+        log.warn("Failed to send {} notification for product {}", notificationType.label, product, e)
         telemetryClient.trackEvent(
-          "newTemplateVersionNotificationFailure",
+          notificationType.failureEventName,
           mapOf("product" to product, "reason" to reason, "user" to user),
           null,
         )
@@ -55,4 +99,10 @@ class NotificationService(
       }
     }
   }
+}
+
+enum class NotificationType(val label: String, val failureEventName: String) {
+  NEW_TEMPLATE_VERSION("new template version", "newTemplateVersionNotificationFailure"),
+  SUSPEND_PRODUCT("suspend product", "suspendProductNotificationFailure"),
+  UNSUSPEND_PRODUCT("unsuspend product", "unsuspendProductNotificationFailure"),
 }
