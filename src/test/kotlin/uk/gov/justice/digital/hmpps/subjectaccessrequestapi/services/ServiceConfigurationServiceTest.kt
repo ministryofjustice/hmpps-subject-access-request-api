@@ -33,7 +33,8 @@ class ServiceConfigurationServiceTest {
   private val g3 = ServiceConfiguration(serviceName = "G3", label = "G3", url = "G3", enabled = true, templateMigrated = false, category = PRISON)
 
   private val serviceConfigurationRepository: ServiceConfigurationRepository = mock()
-  private val service = ServiceConfigurationService(serviceConfigurationRepository)
+  private val notificationService: NotificationService = mock()
+  private val service = ServiceConfigurationService(serviceConfigurationRepository, notificationService)
 
   @Nested
   inner class GetServiceConfigurationSanitised {
@@ -240,7 +241,7 @@ class ServiceConfigurationServiceTest {
       assertThat(actual.message).isEqualTo("Service configuration service not found for id: ${s.id}")
 
       verify(serviceConfigurationRepository, times(1)).findById(s.id)
-      verifyNoMoreInteractions(serviceConfigurationRepository)
+      verifyNoMoreInteractions(serviceConfigurationRepository, notificationService)
     }
 
     @Test
@@ -267,6 +268,8 @@ class ServiceConfigurationServiceTest {
       assertThat(actual.suspended).isTrue
       assertThat(actual.suspendedAt).isNotNull
       assertThat(actual.suspendedAt).isBetween(start, Instant.now())
+
+      verify(notificationService).sendSuspendProductNotification(actual)
     }
 
     @Test
@@ -291,6 +294,8 @@ class ServiceConfigurationServiceTest {
       assertThat(actual.templateMigrated).isFalse
       assertThat(actual.suspended).isFalse
       assertThat(actual.suspendedAt).isNull()
+
+      verify(notificationService).sendUnsuspendProductNotification(actual)
     }
 
     @Test
@@ -323,6 +328,8 @@ class ServiceConfigurationServiceTest {
       assertThat(actual.suspended).isTrue
       assertThat(actual.suspendedAt).isNotNull()
       assertThat(actual.suspendedAt).isBetween(start, Instant.now())
+
+      verify(notificationService).sendSuspendProductNotification(actual)
     }
   }
 }

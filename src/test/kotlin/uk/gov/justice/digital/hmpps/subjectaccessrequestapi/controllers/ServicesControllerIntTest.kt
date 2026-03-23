@@ -9,21 +9,53 @@ import org.junit.jupiter.api.fail
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
+import org.mockito.Mockito
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpHeaders
+import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.test.web.reactive.server.expectBodyList
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.ServiceConfigurationEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.ServiceInfo
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthApiExtension.Companion.hmppsAuth
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.ManageUsersApiExtension.Companion.manageUsersApi
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PRISON
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory.PROBATION
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.ServiceConfigurationService
+import uk.gov.service.notify.NotificationClientApi
+import java.time.Clock
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+@TestPropertySource(
+  properties = [
+    "application.notify.suspend-product.email-addresses=suspend@test.com",
+    "application.notify.unsuspend-product.email-addresses=unsuspend@test.com",
+  ],
+)
+@Import(ServicesControllerIntTest.TestClockConfig::class)
 class ServicesControllerIntTest : IntegrationTestBase() {
+
+  @TestConfiguration
+  class TestClockConfig {
+    @Bean
+    @Primary
+    fun testClock(): Clock = Clock.fixed(Instant.parse("2026-03-20T09:45:23Z"), UTC)
+  }
+
+  @MockitoBean
+  private lateinit var notificationClient: NotificationClientApi
 
   @Autowired
   private lateinit var serviceConfigurationService: ServiceConfigurationService
@@ -51,6 +83,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
   @BeforeEach
   fun setUp() {
     serviceNamesToCleanUp.forEach { serviceConfigurationService.deleteByServiceName(it) }
+    Mockito.reset(notificationClient)
   }
 
   @AfterEach
@@ -509,6 +542,8 @@ class ServicesControllerIntTest : IntegrationTestBase() {
     @ParameterizedTest
     @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.ServicesControllerIntTest#createAndUpdateServiceRoles")
     fun `should update service configuration to suspended true`(role: String) {
+      hmppsAuth.stubGrantToken()
+      manageUsersApi.stubGetUserDetails("AUTH_ADM")
       ensureServiceConfigurationExists(s1)
 
       assertServiceConfigurationIsNotSuspended(s1.id)
@@ -523,14 +558,29 @@ class ServicesControllerIntTest : IntegrationTestBase() {
         .expectBody<Map<String, Any>>()
         .returnResult()
 
-      assertServiceConfigurationIsSuspended(id = s1.id, suspendedAfter = start)
+      val actual = assertServiceConfigurationIsSuspended(id = s1.id, suspendedAfter = start)
       assertSuspendedAtFormat(response.responseBody)
+      val expectedParameters = mapOf(
+        "product" to "A",
+        "user" to "John Smith",
+        "datetime" to LocalDateTime.ofInstant(actual.suspendedAt, UTC)
+          .format(DateTimeFormatter.ofPattern("dd MMMM yyyy HH:mm:ss")),
+      )
+      verify(notificationClient).sendEmail(
+        "81c6f1d3-f0c3-40f8-97d1-6cd29c023bfe",
+        "suspend@test.com",
+        expectedParameters,
+        null,
+      )
+      manageUsersApi.verifyGetUserDetailsApiCalled("AUTH_ADM")
     }
 
     @ParameterizedTest
     @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.ServicesControllerIntTest#createAndUpdateServiceRoles")
     fun `should update service configuration to suspendedAt when suspending an already suspended service`(role: String) {
       val start = Instant.now()
+      hmppsAuth.stubGrantToken()
+      manageUsersApi.stubGetUserDetails("AUTH_ADM")
       serviceConfigurationService.createServiceConfiguration(s1)
       serviceConfigurationService.updateSuspended(id = s1.id, suspended = true)
       assertServiceConfigurationIsSuspended(id = s1.id, suspendedAfter = start)
@@ -542,16 +592,34 @@ class ServicesControllerIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf(role)))
         .exchange()
         .expectStatus().isOk
-
-      assertServiceConfigurationIsSuspended(id = s1.id, suspendedAfter = startUpdate)
+      val actual = assertServiceConfigurationIsSuspended(id = s1.id, suspendedAfter = startUpdate)
+      val expectedParameters = mapOf(
+        "product" to "A",
+        "user" to "John Smith",
+        "datetime" to LocalDateTime.ofInstant(actual.suspendedAt, UTC)
+          .format(DateTimeFormatter.ofPattern("dd MMMM yyyy HH:mm:ss")),
+      )
+      verify(notificationClient).sendEmail(
+        "81c6f1d3-f0c3-40f8-97d1-6cd29c023bfe",
+        "suspend@test.com",
+        expectedParameters,
+        null,
+      )
+      manageUsersApi.verifyGetUserDetailsApiCalled("AUTH_ADM")
     }
 
     @ParameterizedTest
     @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.ServicesControllerIntTest#createAndUpdateServiceRoles")
     fun `should update service configuration to suspended false`(role: String) {
       val start = Instant.now()
-      serviceConfigurationService.createServiceConfiguration(s1)
-      serviceConfigurationService.updateSuspended(id = s1.id, suspended = true)
+      hmppsAuth.stubGrantToken()
+      manageUsersApi.stubGetUserDetails("AUTH_ADM")
+      serviceConfigurationService.createServiceConfiguration(
+        s1.also {
+          it.suspended = true
+          it.suspendedAt = Instant.now()
+        },
+      )
       assertServiceConfigurationIsSuspended(id = s1.id, suspendedAfter = start)
 
       webTestClient
@@ -562,6 +630,18 @@ class ServicesControllerIntTest : IntegrationTestBase() {
         .expectStatus().isOk
 
       assertServiceConfigurationIsNotSuspended(id = s1.id)
+      val expectedParameters = mapOf(
+        "product" to "A",
+        "user" to "John Smith",
+        "datetime" to "20 March 2026 09:45:23",
+      )
+      verify(notificationClient).sendEmail(
+        "07a8f1fd-2ca9-49a3-b7b7-53ae05b15c11",
+        "unsuspend@test.com",
+        expectedParameters,
+        null,
+      )
+      manageUsersApi.verifyGetUserDetailsApiCalled("AUTH_ADM")
     }
   }
 
@@ -601,15 +681,15 @@ class ServicesControllerIntTest : IntegrationTestBase() {
     } ?: fail { "expected service $id did not exist" }
   }
 
-  private fun assertServiceConfigurationIsSuspended(id: UUID, suspendedAfter: Instant) {
-    serviceConfigurationService.getById(id)?.let {
+  private fun assertServiceConfigurationIsSuspended(id: UUID, suspendedAfter: Instant): ServiceConfiguration = serviceConfigurationService
+    .getById(id)?.let {
       assertThat(it).isNotNull
       assertThat(it.suspended).isTrue()
       assertThat(it.suspendedAt).isNotNull
       assertThat(it.suspendedAt).isAfter(suspendedAfter)
       assertThat(it.suspendedAt).isBefore(Instant.now())
+      it
     } ?: fail { "expected service $id did not exist" }
-  }
 
   private fun assertSuspendedAtFormat(body: Map<String, Any>?) {
     assertThat(body!!.contains("suspendedAt")).isTrue

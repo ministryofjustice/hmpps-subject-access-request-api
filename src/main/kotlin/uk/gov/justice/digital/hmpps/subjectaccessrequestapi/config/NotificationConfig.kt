@@ -15,10 +15,24 @@ class NotificationConfig {
   fun emailConfiguration(
     @Value("\${application.notify.new-template-version.template}") newTemplateVersionTemplateId: String,
     @Value("\${application.notify.new-template-version.email-addresses:}") newTemplateVersionEmailAddresses: String,
-  ) = NotifyConfiguration(newTemplateVersionTemplateId, newTemplateVersionEmailAddresses)
+    @Value("\${application.notify.suspend-product.template}") suspendProductTemplateId: String,
+    @Value("\${application.notify.suspend-product.email-addresses:}") suspendProductEmailAddresses: String,
+    @Value("\${application.notify.unsuspend-product.template}") unsuspendProductTemplateId: String,
+    @Value("\${application.notify.unsuspend-product.email-addresses:}") unsuspendProductEmailAddresses: String,
+  ) = NotifyConfiguration(
+    newTemplateVersion = NotifyConfigDetails(newTemplateVersionTemplateId, newTemplateVersionEmailAddresses),
+    suspendProduct = NotifyConfigDetails(suspendProductTemplateId, suspendProductEmailAddresses),
+    unsuspendProduct = NotifyConfigDetails(unsuspendProductTemplateId, unsuspendProductEmailAddresses),
+  )
 }
 
 data class NotifyConfiguration(
-  val newTemplateVersionTemplateId: String,
-  val newTemplateVersionEmailAddresses: String,
+  val newTemplateVersion: NotifyConfigDetails,
+  val suspendProduct: NotifyConfigDetails,
+  val unsuspendProduct: NotifyConfigDetails,
+)
+
+data class NotifyConfigDetails(
+  val templateId: String,
+  val emailAddresses: String,
 )

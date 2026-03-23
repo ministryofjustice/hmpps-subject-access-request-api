@@ -14,7 +14,10 @@ import java.time.Instant
 import java.util.UUID
 
 @Service
-class ServiceConfigurationService(private val serviceConfigurationRepository: ServiceConfigurationRepository) {
+class ServiceConfigurationService(
+  private val serviceConfigurationRepository: ServiceConfigurationRepository,
+  private val notificationService: NotificationService,
+) {
 
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -80,12 +83,17 @@ class ServiceConfigurationService(private val serviceConfigurationRepository: Se
   fun updateSuspended(
     id: UUID,
     suspended: Boolean,
-  ): ServiceConfiguration = serviceConfigurationRepository.findByIdOrNull(id)?.let {
+  ): ServiceConfiguration = serviceConfigurationRepository.findByIdOrNull(id)?.let { serviceConfiguration ->
     log.info("updating service configuration id: {} suspended={}", id, suspended)
-    it.suspended = suspended
-    it.suspendedAt = if (suspended) Instant.now() else null
+    serviceConfiguration.suspended = suspended
+    serviceConfiguration.suspendedAt = if (suspended) Instant.now() else null
 
-    serviceConfigurationRepository.saveAndFlush(it)
+    serviceConfigurationRepository.saveAndFlush(serviceConfiguration).also {
+      when (suspended) {
+        true -> notificationService.sendSuspendProductNotification(it)
+        else -> notificationService.sendUnsuspendProductNotification(it)
+      }
+    }
   } ?: throw ServiceConfigurationNotFoundException(id)
 
   private fun serviceInUseValidationException(

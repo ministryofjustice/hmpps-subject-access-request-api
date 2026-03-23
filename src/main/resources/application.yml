@@ -116,6 +116,10 @@ application:
   notify:
     new-template-version:
       template: 126055c3-fff0-469d-b62a-cf0f44c26618
+    suspend-product:
+      template: 81c6f1d3-f0c3-40f8-97d1-6cd29c023bfe
+    unsuspend-product:
+      template: 07a8f1fd-2ca9-49a3-b7b7-53ae05b15c11
 
 management:
   endpoints:
