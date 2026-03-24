@@ -5,8 +5,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.data.repository.findByIdOrNull
@@ -103,75 +101,177 @@ class TemplateVersionHealthStatusRepositoryTest {
       .isNull()
   }
 
-  @ParameterizedTest
-  @CsvSource(
-    value = [
-      "HEALTHY, UNHEALTHY",
-      "UNHEALTHY, HEALTHY",
-    ],
-  )
-  fun `should update record when change in status`(existingStatus: HealthStatusType, newStatus: HealthStatusType) {
+  @Test
+  fun `should update record to status HEALTHY when current status UNHEALTHY`() {
     val savedTemplateVersionHealthStatus = templateVersionHealthStatusRepository.save(
       TemplateVersionHealthStatus(
         id = UUID.randomUUID(),
-        status = existingStatus,
+        status = HealthStatusType.UNHEALTHY,
         serviceConfiguration = serviceConfig1,
         lastModified = now,
       ),
     )
     val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
 
-    val changedRecords =
-      templateVersionHealthStatusRepository.updateStatusWhenChanged(serviceConfig1.id, newStatus, newModifiedTime)
+    val changedRecords = templateVersionHealthStatusRepository.updateStatusToHealthyWhereUnhealthy(
+      serviceConfigurationId = serviceConfig1.id,
+      currentTime = newModifiedTime,
+    )
 
     assertThat(changedRecords).isEqualTo(1)
     assertThat(templateVersionHealthStatusRepository.findByIdOrNull(savedTemplateVersionHealthStatus.id)).isEqualTo(
       TemplateVersionHealthStatus(
         id = savedTemplateVersionHealthStatus.id,
-        status = newStatus,
+        status = HealthStatusType.HEALTHY,
+        serviceConfiguration = serviceConfig1,
+        lastModified = newModifiedTime,
+        lastNotified = null,
+      ),
+    )
+  }
+
+  @Test
+  fun `should set lastNotified to NULL when status changes from UNHEALTHY to HEALTHY`() {
+    val savedTemplateVersionHealthStatus = templateVersionHealthStatusRepository.save(
+      TemplateVersionHealthStatus(
+        id = UUID.randomUUID(),
+        status = HealthStatusType.UNHEALTHY,
+        serviceConfiguration = serviceConfig1,
+        lastModified = now,
+        lastNotified = now,
+      ),
+    )
+    val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
+
+    val changedRecords = templateVersionHealthStatusRepository.updateStatusToHealthyWhereUnhealthy(
+      serviceConfigurationId = serviceConfig1.id,
+      currentTime = newModifiedTime,
+    )
+
+    assertThat(changedRecords).isEqualTo(1)
+    val actual = templateVersionHealthStatusRepository.findByIdOrNull(savedTemplateVersionHealthStatus.id)
+    assertThat(actual).isNotNull
+    assertThat(actual!!.lastNotified).isNull()
+  }
+
+  @Test
+  fun `should not update status to HEALTHY when status is already HEALTHY`() {
+    val savedTemplateVersionHealthStatus = templateVersionHealthStatusRepository.save(
+      TemplateVersionHealthStatus(
+        id = UUID.randomUUID(),
+        status = HealthStatusType.HEALTHY,
+        serviceConfiguration = serviceConfig1,
+        lastModified = now,
+      ),
+    )
+    val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
+
+    val changedRecords = templateVersionHealthStatusRepository.updateStatusToHealthyWhereUnhealthy(
+      serviceConfigurationId = serviceConfig1.id,
+      currentTime = newModifiedTime,
+    )
+
+    assertThat(changedRecords).isEqualTo(0)
+    assertThat(templateVersionHealthStatusRepository.findByIdOrNull(savedTemplateVersionHealthStatus.id)).isEqualTo(
+      TemplateVersionHealthStatus(
+        id = savedTemplateVersionHealthStatus.id,
+        status = HealthStatusType.HEALTHY,
+        serviceConfiguration = serviceConfig1,
+        lastModified = savedTemplateVersionHealthStatus.lastModified,
+        lastNotified = null,
+      ),
+    )
+  }
+
+  @Test
+  fun `should not update to status HEALTHY when no matching service`() {
+    val savedTemplateVersionHealthStatus = templateVersionHealthStatusRepository.save(
+      TemplateVersionHealthStatus(
+        id = UUID.randomUUID(),
+        status = HealthStatusType.HEALTHY,
+        serviceConfiguration = serviceConfig1,
+        lastModified = now,
+      ),
+    )
+    val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
+
+    val changedRecords = templateVersionHealthStatusRepository.updateStatusToHealthyWhereUnhealthy(
+      serviceConfigurationId = UUID.randomUUID(),
+      currentTime = newModifiedTime,
+    )
+
+    assertThat(changedRecords).isEqualTo(0)
+    assertThat(templateVersionHealthStatusRepository.findByIdOrNull(savedTemplateVersionHealthStatus.id)).isEqualTo(
+      TemplateVersionHealthStatus(
+        id = savedTemplateVersionHealthStatus.id,
+        status = HealthStatusType.HEALTHY,
+        serviceConfiguration = serviceConfig1,
+        lastModified = now,
+        lastNotified = null,
+      ),
+    )
+  }
+
+  @Test
+  fun `should update record to status UNHEALTHY when current status HEALTHY`() {
+    val savedTemplateVersionHealthStatus = templateVersionHealthStatusRepository.save(
+      TemplateVersionHealthStatus(
+        id = UUID.randomUUID(),
+        status = HealthStatusType.HEALTHY,
+        serviceConfiguration = serviceConfig1,
+        lastModified = now,
+        lastNotified = null,
+      ),
+    )
+    val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
+
+    val changedRecords = templateVersionHealthStatusRepository.updateStatusToUnhealthyWhereHealthy(
+      serviceConfigurationId = serviceConfig1.id,
+      currentTime = newModifiedTime,
+    )
+
+    assertThat(changedRecords).isEqualTo(1)
+    assertThat(templateVersionHealthStatusRepository.findByIdOrNull(savedTemplateVersionHealthStatus.id)).isEqualTo(
+      TemplateVersionHealthStatus(
+        id = savedTemplateVersionHealthStatus.id,
+        status = HealthStatusType.UNHEALTHY,
         serviceConfiguration = serviceConfig1,
         lastModified = newModifiedTime,
       ),
     )
   }
 
-  @ParameterizedTest
-  @CsvSource(
-    value = [
-      "HEALTHY, HEALTHY",
-      "UNHEALTHY, UNHEALTHY",
-    ],
-  )
-  fun `should not update record when no change in status`(
-    existingStatus: HealthStatusType,
-    newStatus: HealthStatusType,
-  ) {
+  @Test
+  fun `should not update status to UNHEALTHY when status is already UNHEALTHY`() {
     val savedTemplateVersionHealthStatus = templateVersionHealthStatusRepository.save(
       TemplateVersionHealthStatus(
         id = UUID.randomUUID(),
-        status = existingStatus,
+        status = HealthStatusType.UNHEALTHY,
         serviceConfiguration = serviceConfig1,
         lastModified = now,
       ),
     )
     val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
 
-    val changedRecords =
-      templateVersionHealthStatusRepository.updateStatusWhenChanged(serviceConfig1.id, newStatus, newModifiedTime)
+    val changedRecords = templateVersionHealthStatusRepository.updateStatusToUnhealthyWhereHealthy(
+      serviceConfigurationId = serviceConfig1.id,
+      currentTime = newModifiedTime,
+    )
 
     assertThat(changedRecords).isEqualTo(0)
     assertThat(templateVersionHealthStatusRepository.findByIdOrNull(savedTemplateVersionHealthStatus.id)).isEqualTo(
       TemplateVersionHealthStatus(
         id = savedTemplateVersionHealthStatus.id,
-        status = existingStatus,
+        status = HealthStatusType.UNHEALTHY,
         serviceConfiguration = serviceConfig1,
-        lastModified = now,
+        lastModified = savedTemplateVersionHealthStatus.lastModified,
+        lastNotified = null,
       ),
     )
   }
 
   @Test
-  fun `should not update record when no matching service`() {
+  fun `should not update to status UNHEALTHY when no matching service`() {
     val savedTemplateVersionHealthStatus = templateVersionHealthStatusRepository.save(
       TemplateVersionHealthStatus(
         id = UUID.randomUUID(),
@@ -182,12 +282,10 @@ class TemplateVersionHealthStatusRepositoryTest {
     )
     val newModifiedTime = Instant.parse("2099-11-04T14:33:45Z")
 
-    val changedRecords =
-      templateVersionHealthStatusRepository.updateStatusWhenChanged(
-        UUID.randomUUID(),
-        HealthStatusType.UNHEALTHY,
-        newModifiedTime,
-      )
+    val changedRecords = templateVersionHealthStatusRepository.updateStatusToUnhealthyWhereHealthy(
+      serviceConfigurationId = UUID.randomUUID(),
+      currentTime = newModifiedTime,
+    )
 
     assertThat(changedRecords).isEqualTo(0)
     assertThat(templateVersionHealthStatusRepository.findByIdOrNull(savedTemplateVersionHealthStatus.id)).isEqualTo(
@@ -196,6 +294,7 @@ class TemplateVersionHealthStatusRepositoryTest {
         status = HealthStatusType.HEALTHY,
         serviceConfiguration = serviceConfig1,
         lastModified = now,
+        lastNotified = null,
       ),
     )
   }

@@ -117,24 +117,15 @@ class TemplateVersionHealthServiceTest {
     )
   }
 
-  @ParameterizedTest
-  @CsvSource(
-    value = [
-      "true, HEALTHY",
-      "false, UNHEALTHY",
-    ],
-  )
-  fun `should update status when template found and existing health status`(
-    fileHashValid: Boolean,
-    expectedHealthStatus: HealthStatusType,
-  ) {
+  @Test
+  fun `should update existing records with status healthy when template found that matches the expected template hash`() {
     whenever(dynamicTemplateClient.getServiceTemplate(serviceConfig1)).thenReturn(TEMPLATE_ONE)
     whenever(
       templateVersionService.isTemplateHashValid(
         serviceConfig1.id,
         "0a1bf7a8b5b414b50e3b9a0c746e1b493dadddaf74ba3861ff4f663ea65938d2",
       ),
-    ).thenReturn(fileHashValid)
+    ).thenReturn(true)
     whenever(templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfig1.id))
       .thenReturn(
         TemplateVersionHealthStatus(
@@ -143,9 +134,8 @@ class TemplateVersionHealthServiceTest {
         ),
       )
     whenever(
-      templateVersionHealthStatusRepository.updateStatusWhenChanged(
+      templateVersionHealthStatusRepository.updateStatusToHealthyWhereUnhealthy(
         serviceConfig1.id,
-        expectedHealthStatus,
         NOW,
       ),
     ).thenReturn(1)
@@ -153,9 +143,40 @@ class TemplateVersionHealthServiceTest {
     updateTemplateVersionHealthService.updateTemplateVersionHealthData(serviceConfig1)
 
     verify(templateVersionHealthStatusRepository).findByServiceConfigurationId(serviceConfig1.id)
-    verify(templateVersionHealthStatusRepository).updateStatusWhenChanged(
+    verify(templateVersionHealthStatusRepository).updateStatusToHealthyWhereUnhealthy(
       serviceConfig1.id,
-      expectedHealthStatus,
+      NOW,
+    )
+  }
+
+  @Test
+  fun `should update existing records with status unhealthy when template found that does not match the expected template hash`() {
+    whenever(dynamicTemplateClient.getServiceTemplate(serviceConfig1)).thenReturn(TEMPLATE_ONE)
+    whenever(
+      templateVersionService.isTemplateHashValid(
+        serviceConfig1.id,
+        "0a1bf7a8b5b414b50e3b9a0c746e1b493dadddaf74ba3861ff4f663ea65938d2",
+      ),
+    ).thenReturn(false)
+    whenever(templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfig1.id))
+      .thenReturn(
+        TemplateVersionHealthStatus(
+          serviceConfiguration = serviceConfig1,
+          lastModified = Instant.now(clock),
+        ),
+      )
+    whenever(
+      templateVersionHealthStatusRepository.updateStatusToUnhealthyWhereHealthy(
+        serviceConfig1.id,
+        NOW,
+      ),
+    ).thenReturn(1)
+
+    updateTemplateVersionHealthService.updateTemplateVersionHealthData(serviceConfig1)
+
+    verify(templateVersionHealthStatusRepository).findByServiceConfigurationId(serviceConfig1.id)
+    verify(templateVersionHealthStatusRepository).updateStatusToUnhealthyWhereHealthy(
+      serviceConfig1.id,
       NOW,
     )
   }
@@ -177,9 +198,8 @@ class TemplateVersionHealthServiceTest {
         ),
       )
     whenever(
-      templateVersionHealthStatusRepository.updateStatusWhenChanged(
+      templateVersionHealthStatusRepository.updateStatusToHealthyWhereUnhealthy(
         serviceConfig1.id,
-        HealthStatusType.HEALTHY,
         NOW,
       ),
     ).thenReturn(0) // return 0 to indicate update not successful
@@ -187,9 +207,8 @@ class TemplateVersionHealthServiceTest {
     updateTemplateVersionHealthService.updateTemplateVersionHealthData(serviceConfig1)
 
     verify(templateVersionHealthStatusRepository).findByServiceConfigurationId(serviceConfig1.id)
-    verify(templateVersionHealthStatusRepository).updateStatusWhenChanged(
+    verify(templateVersionHealthStatusRepository).updateStatusToHealthyWhereUnhealthy(
       serviceConfig1.id,
-      HealthStatusType.HEALTHY,
       NOW,
     )
     verify(templateVersionHealthStatusRepository, never())
