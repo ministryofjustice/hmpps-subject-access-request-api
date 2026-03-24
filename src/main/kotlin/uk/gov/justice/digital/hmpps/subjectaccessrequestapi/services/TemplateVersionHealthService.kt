@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DynamicTemplateClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType.HEALTHY
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType.NOT_MIGRATED
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType.UNHEALTHY
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository.TemplateVersionHealthStatusRepository
@@ -40,7 +43,7 @@ class TemplateVersionHealthService(
 
   @Transactional
   fun updateTemplateVersionHealthData(serviceConfiguration: ServiceConfiguration) {
-    log.info("Updating template version health status in database for {}", serviceConfiguration.serviceName)
+    log.info("updating template version health status for {}", serviceConfiguration.serviceName)
 
     dynamicTemplateClient.getServiceTemplate(serviceConfiguration)?.let { template ->
       val actualServiceHash = getSha256HashValue(template)
@@ -48,18 +51,10 @@ class TemplateVersionHealthService(
         serviceConfigurationId = serviceConfiguration.id,
         templateHash = actualServiceHash,
       )
-      val health = if (hashValid) HealthStatusType.HEALTHY else HealthStatusType.UNHEALTHY
+      val health = if (hashValid) HEALTHY else UNHEALTHY
 
       templateVersionHealthStatusRepository.findByServiceConfigurationId(serviceConfiguration.id)?.let {
-        templateVersionHealthStatusRepository.updateStatusWhenChanged(
-          serviceConfigurationId = serviceConfiguration.id,
-          newStatus = health,
-          currentTime = clock.instant(),
-        ).also { updateCount ->
-          updateCount.takeIf { updateCount > 0 }?.let {
-            telemetryClient.trackHealthStatusChange(health, serviceConfiguration)
-          }
-        }
+        updateHealthStatusIfChanged(serviceConfiguration = serviceConfiguration, newHealthStatus = health)
       } ?: run {
         templateVersionHealthStatusRepository.save(
           TemplateVersionHealthStatus(
@@ -70,10 +65,14 @@ class TemplateVersionHealthService(
           ),
         ).let { telemetryClient.trackHealthStatusChange(health, serviceConfiguration) }
       }
-      log.info("Updated template version health status in database for {}", serviceConfiguration.serviceName)
+      log.info(
+        "updated template version health status service={}, healthy={}",
+        serviceConfiguration.serviceName,
+        health,
+      )
     } ?: run {
       log.info(
-        "Could not update template version health status in database for {} as no template was found",
+        "could not update template version health status in database for {} as no template was found",
         serviceConfiguration.serviceName,
       )
     }
@@ -83,6 +82,37 @@ class TemplateVersionHealthService(
     unhealthyStatusThreshold = Instant.now(clock).minusMinutes(unhealthyStatusThreshold),
     lastNotifiedThreshold = Instant.now(clock).minusMinutes(lastNotifiedThreshold),
   )
+
+  private fun updateHealthStatusIfChanged(
+    serviceConfiguration: ServiceConfiguration,
+    newHealthStatus: HealthStatusType,
+  ) {
+    val updateCount = when (newHealthStatus) {
+      HEALTHY -> {
+        log.info("updating service {} template version health status to HEALTHY, ", serviceConfiguration.serviceName)
+
+        templateVersionHealthStatusRepository.updateStatusToHealthyWhereUnhealthy(
+          serviceConfigurationId = serviceConfiguration.id,
+          currentTime = clock.instant(),
+        )
+      }
+
+      UNHEALTHY -> {
+        log.info("updating service {} template version health status to UNHEALTHY, ", serviceConfiguration.serviceName)
+
+        templateVersionHealthStatusRepository.updateStatusToUnhealthyWhereHealthy(
+          serviceConfigurationId = serviceConfiguration.id,
+          currentTime = clock.instant(),
+        )
+      }
+
+      NOT_MIGRATED -> 0
+    }
+
+    updateCount.takeIf { updateCount > 0 }?.let {
+      telemetryClient.trackHealthStatusChange(newStatus = newHealthStatus, serviceConfiguration = serviceConfiguration)
+    }
+  }
 
   @Transactional
   fun updateLastNotified(

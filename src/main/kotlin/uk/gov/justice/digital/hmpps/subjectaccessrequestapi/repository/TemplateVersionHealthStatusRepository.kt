@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
 import java.time.Instant
 import java.util.UUID
@@ -26,12 +25,22 @@ interface TemplateVersionHealthStatusRepository : JpaRepository<TemplateVersionH
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
     "UPDATE TemplateVersionHealthStatus templateVersionHealthStatus " +
-      "SET templateVersionHealthStatus.status = :newStatus, templateVersionHealthStatus.lastModified = :currentTime " +
-      "WHERE templateVersionHealthStatus.serviceConfiguration.id = :serviceConfigurationId AND templateVersionHealthStatus.status != :newStatus",
+      "SET templateVersionHealthStatus.status = 'HEALTHY', templateVersionHealthStatus.lastModified = :currentTime, templateVersionHealthStatus.lastNotified = NULL " +
+      "WHERE templateVersionHealthStatus.serviceConfiguration.id = :serviceConfigurationId AND templateVersionHealthStatus.status = 'UNHEALTHY'",
   )
-  fun updateStatusWhenChanged(
+  fun updateStatusToHealthyWhereUnhealthy(
     @Param("serviceConfigurationId") serviceConfigurationId: UUID,
-    @Param("newStatus") newStatus: HealthStatusType,
+    @Param("currentTime") currentTime: Instant,
+  ): Int
+
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query(
+    "UPDATE TemplateVersionHealthStatus templateVersionHealthStatus " +
+      "SET templateVersionHealthStatus.status = 'UNHEALTHY', templateVersionHealthStatus.lastModified = :currentTime " +
+      "WHERE templateVersionHealthStatus.serviceConfiguration.id = :serviceConfigurationId AND templateVersionHealthStatus.status = 'HEALTHY'",
+  )
+  fun updateStatusToUnhealthyWhereHealthy(
+    @Param("serviceConfigurationId") serviceConfigurationId: UUID,
     @Param("currentTime") currentTime: Instant,
   ): Int
 
