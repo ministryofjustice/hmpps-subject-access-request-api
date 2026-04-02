@@ -254,12 +254,14 @@ class SubjectAccessRequestControllerTest {
           services = listOf(
             RequestServiceDetailResponseEntity(
               serviceName = "service-one",
+              serviceLabel = "Service One",
               renderStatus = RenderStatus.COMPLETE,
               templateVersion = 2,
               renderedAt = LocalDateTime.parse("2026-03-04T09:33:53"),
             ),
             RequestServiceDetailResponseEntity(
               serviceName = "service-two",
+              serviceLabel = "Service Two",
               renderStatus = RenderStatus.ERRORED,
               templateVersion = 4,
               renderedAt = LocalDateTime.parse("2026-03-02T11:05:02"),
