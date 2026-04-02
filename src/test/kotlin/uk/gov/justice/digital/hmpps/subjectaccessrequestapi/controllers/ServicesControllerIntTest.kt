@@ -564,7 +564,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
         "product" to "A",
         "user" to "John Smith",
         "datetime" to LocalDateTime.ofInstant(actual.suspendedAt, UTC)
-          .format(DateTimeFormatter.ofPattern("dd MMMM yyyy HH:mm:ss")),
+          .format(DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm:ss")),
       )
       verify(notificationClient).sendEmail(
         "81c6f1d3-f0c3-40f8-97d1-6cd29c023bfe",
@@ -597,7 +597,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
         "product" to "A",
         "user" to "John Smith",
         "datetime" to LocalDateTime.ofInstant(actual.suspendedAt, UTC)
-          .format(DateTimeFormatter.ofPattern("dd MMMM yyyy HH:mm:ss")),
+          .format(DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm:ss")),
       )
       verify(notificationClient).sendEmail(
         "81c6f1d3-f0c3-40f8-97d1-6cd29c023bfe",
