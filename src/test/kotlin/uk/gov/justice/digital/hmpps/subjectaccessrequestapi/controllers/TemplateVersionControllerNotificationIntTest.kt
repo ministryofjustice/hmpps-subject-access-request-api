@@ -59,7 +59,7 @@ class TemplateVersionControllerNotificationIntTest : TemplateVersionIntTestBase(
       "product" to "HMPPS Example Service",
       "version" to "1",
       "user" to "John Smith",
-      "datetime" to actual.createdAt.format(DateTimeFormatter.ofPattern("dd MMMM yyyy HH:mm:ss")),
+      "datetime" to actual.createdAt.format(DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm:ss")),
     )
     verify(notificationClient).sendEmail("126055c3-fff0-469d-b62a-cf0f44c26618", "myemail@test.com", expectedParameters, null)
     manageUsersApi.verifyGetUserDetailsApiCalled("AUTH_ADM")
@@ -93,7 +93,7 @@ class TemplateVersionControllerNotificationIntTest : TemplateVersionIntTestBase(
       "product" to "HMPPS Example Service",
       "version" to "1",
       "user" to "AUTH_ADM",
-      "datetime" to actual.createdAt.format(DateTimeFormatter.ofPattern("dd MMMM yyyy HH:mm:ss")),
+      "datetime" to actual.createdAt.format(DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm:ss")),
     )
     verify(notificationClient).sendEmail("126055c3-fff0-469d-b62a-cf0f44c26618", "myemail@test.com", expectedParameters, null)
     manageUsersApi.verifyGetUserDetailsApiCalled("AUTH_ADM")
