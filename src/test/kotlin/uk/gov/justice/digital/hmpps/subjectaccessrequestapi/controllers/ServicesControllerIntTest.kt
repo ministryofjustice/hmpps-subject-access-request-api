@@ -134,7 +134,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
         .jsonPath("$[3].id").isNotEmpty
         .jsonPath("$[3].name").isEqualTo("hmpps-manage-adjudications-api")
         .jsonPath("$[3].label").isEqualTo("Adjudications")
-        .jsonPath("$[3].url").isEqualTo("https://manage-adjudications-api-dev.hmpps.service.justice.gov.uk")
+        .jsonPath("$[3].url").isEqualTo("http://localhost:8090")
         .jsonPath("$[3].templateMigrated").isEqualTo(false)
         .jsonPath("$[3].category").isEqualTo(PRISON.name)
         .jsonPath("$[3].enabled").isEqualTo(true)
@@ -143,7 +143,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
         .jsonPath("$[13].id").isNotEmpty
         .jsonPath("$[13].name").isEqualTo("hmpps-hdc-api")
         .jsonPath("$[13].label").isEqualTo("Home detention curfew")
-        .jsonPath("$[13].url").isEqualTo("https://hdc-api-dev.hmpps.service.justice.gov.uk")
+        .jsonPath("$[13].url").isEqualTo("http://localhost:8090")
         .jsonPath("$[13].templateMigrated").isEqualTo(false)
         .jsonPath("$[13].category").isEqualTo(PRISON.name)
         .jsonPath("$[13].enabled").isEqualTo(true)
@@ -152,7 +152,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
         .jsonPath("$[25].id").isNotEmpty
         .jsonPath("$[25].name").isEqualTo("hmpps-support-additional-needs-api")
         .jsonPath("$[25].label").isEqualTo("Support for additional needs")
-        .jsonPath("$[25].url").isEqualTo("https://support-for-additional-needs-api-dev.hmpps.service.justice.gov.uk")
+        .jsonPath("$[25].url").isEqualTo("http://localhost:8090")
         .jsonPath("$[25].templateMigrated").isEqualTo(false)
         .jsonPath("$[25].category").isEqualTo(PRISON.name)
         .jsonPath("$[25].enabled").isEqualTo(true)
@@ -161,7 +161,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
         .jsonPath("$[30].id").isNotEmpty
         .jsonPath("$[30].name").isEqualTo("make-recall-decision-api")
         .jsonPath("$[30].label").isEqualTo("Consider a recall")
-        .jsonPath("$[30].url").isEqualTo("https://make-recall-decision-api-dev.hmpps.service.justice.gov.uk")
+        .jsonPath("$[30].url").isEqualTo("http://localhost:8090")
         .jsonPath("$[30].templateMigrated").isEqualTo(false)
         .jsonPath("$[30].category").isEqualTo(PROBATION.name)
         .jsonPath("$[30].enabled").isEqualTo(true)

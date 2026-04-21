@@ -28,6 +28,7 @@ dependencies {
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.7.0")
   implementation("com.slack.api:slack-api-client:1.48.0")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
+  implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.2.1")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.4.240")

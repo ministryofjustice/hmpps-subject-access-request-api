@@ -1,0 +1,27 @@
+{{#.}}
+    <h2>Test Service Data</h2>
+
+    <table>
+        <!-- Unknown helper-->
+        <tr><td>Test Key:</td><td>{{fibonacci userId}}</td></tr>
+        <!-- Unknown helper-->
+
+        <tr><td>Test Key:</td><td>{{testKey}}</td></tr>
+        <tr><td>Username: </td><td>{{getUserLastName userId}}</td></tr>
+        <tr><td>Prison: </td><td>{{ getPrisonName prisonCode }}</td></tr>
+        <tr><td>DPS Location: </td><td>{{ getLocationNameByDpsId dpsLocationId }}</td></tr>
+        <tr><td>Nomis Location: </td><td>{{ getLocationNameByNomisId nomisLocationId }}</td></tr>
+        <tr><td>Boolean Value: </td><td>{{ convertBoolean booleanVal }}</td></tr>
+        <tr><td>Camel Case: </td><td>{{ convertCamelCase camelCaseVal }}</td></tr>
+        <tr><td>String Equality: </td><td>{{ eq testKey testKey2 }}</td></tr>
+        <tr><td>Nested Data: </td><td>{{moreData.nestedKey}}</td></tr>
+        <tr><td>Array Data: </td><td><ul>{{#arrayData}}<li>{{.}}</li>{{/arrayData}}</ul></td></tr>
+        <tr>
+            <td>Array Data Indexed: </td>
+            <td>
+                <ul>{{#arrayData}}<li>Array data {{ getIndexPlusOne @index }} - {{.}}{{/arrayData}}</li></ul>
+            </td>
+        </tr>
+        <tr><td>Formatted Date field: </td><td>{{optionalValue (formatDate dateField) }}</td></tr>
+    </table>
+{{/.}}

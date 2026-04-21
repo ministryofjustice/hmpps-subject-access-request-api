@@ -7,6 +7,11 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionStatus
 import java.time.LocalDateTime
@@ -75,6 +80,26 @@ class TemplateVersionControllerIntTest : TemplateVersionIntTestBase() {
         templateBody = templateV1Body,
         authRoles = listOf("ROLE_WRONG"),
       ).expectStatus().isForbidden
+    }
+
+
+    @Test
+    fun `validate template endpoint returns UNAUTHORIZED when no auth header provided`() {
+      webTestClient.post().uri("/api/templates/validate")
+        .contentType(MediaType.MULTIPART_FORM_DATA)
+        .body(BodyInserters.fromMultipartData(createTemplateMultipartFile("valid-template.mustache")))
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `validate template endpoint returns FORBIDDEN when wrong auth header provided`() {
+      webTestClient.post().uri("/api/templates/validate")
+        .headers(setAuthorisation(roles = listOf("WRONG_ROLE")))
+        .contentType(MediaType.MULTIPART_FORM_DATA)
+        .body(BodyInserters.fromMultipartData(createTemplateMultipartFile("valid-template.mustache")))
+        .exchange()
+        .expectStatus().isForbidden
     }
   }
 
@@ -251,4 +276,71 @@ class TemplateVersionControllerIntTest : TemplateVersionIntTestBase() {
       assertThat(existingTemplateVersions[1].status).isEqualTo(TemplateVersionStatus.PUBLISHED)
     }
   }
+
+  @Nested
+  inner class ValidateTemplate {
+
+    @Test
+    fun `should successfully validate valid template`() {
+      postTemplateBody("valid-template.mustache")
+        .expectStatus().isOk
+    }
+
+    @Test
+    fun `should reject template that is not a mustache file`() {
+      postTemplateBody("text-template.txt")
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("status").isEqualTo(400)
+        .jsonPath("userMessage").isEqualTo("template must have .mustache extension")
+    }
+
+    @Test
+    fun `should reject template that is not valid mustache syntax`() {
+      postTemplateBody("invalid-template.mustache")
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("status").isEqualTo(400)
+        .jsonPath("userMessage")
+        .value { value: String ->
+          assertThat(value).contains("SAR template failed validation check:")
+          assertThat(value).contains("<tr><td>Test Key:</td><td>{{testKey}</td></tr>")
+        }
+    }
+
+    @Test
+    fun `should reject template that contains unknown helper`() {
+      postTemplateBody("unknown-helper-template.mustache")
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("status").isEqualTo(400)
+        .jsonPath("userMessage")
+        .value { value: String ->
+          assertThat(value).contains("SAR template failed validation check:")
+          assertThat(value).contains("could not find helper: 'fibonacci'")
+        }
+    }
+  }
+
+  private fun postTemplateBody(filename: String): WebTestClient.ResponseSpec {
+    return webTestClient.post().uri("/api/templates/validate")
+      .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
+      .contentType(MediaType.MULTIPART_FORM_DATA)
+      .body(BodyInserters.fromMultipartData(createTemplateMultipartFile(filename)))
+      .exchange()
+  }
+
+  private fun createTemplateMultipartFile(filename: String): LinkedMultiValueMap<String, Any> {
+    val file1 = object : ByteArrayResource(getTemplateBody(filename)) {
+      override fun getFilename() = filename
+    }
+
+    val multipartData = LinkedMultiValueMap<String, Any>()
+    multipartData.add("file", file1)
+    return multipartData
+  }
+
+  private fun getTemplateBody(
+    filename: String,
+  ): ByteArray = this::class.java.getResourceAsStream("/templates/$filename").readAllBytes()
 }
