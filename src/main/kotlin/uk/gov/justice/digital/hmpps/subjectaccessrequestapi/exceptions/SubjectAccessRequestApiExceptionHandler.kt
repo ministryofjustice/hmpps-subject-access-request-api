@@ -13,6 +13,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.exception.SubjectAccessRequestTemplateValidationException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestControllerAdvice
@@ -119,6 +120,19 @@ class SubjectAccessRequestApiExceptionHandler {
       ),
     ).also { log.error("Template version exception:", e) }
     .also { logAndCapture("Template version exception:", e) }
+
+  @ExceptionHandler(SubjectAccessRequestTemplateValidationException::class)
+  fun handleTemplateValidationException(
+    e: SubjectAccessRequestTemplateValidationException,
+  ): ResponseEntity<ErrorResponse> = ResponseEntity.status(BAD_REQUEST)
+    .body(
+      ErrorResponse(
+        status = BAD_REQUEST,
+        userMessage = e.message,
+        developerMessage = e.message,
+      ),
+    ).also { log.error("Template validation exception:", e) }
+    .also { logAndCapture("Template validation exception:", e) }
 
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
