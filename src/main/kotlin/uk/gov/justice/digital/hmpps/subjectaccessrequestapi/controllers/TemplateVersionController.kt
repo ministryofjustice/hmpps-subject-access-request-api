@@ -200,16 +200,10 @@ class TemplateVersionController(
       ApiResponse(
         responseCode = "200",
         description = "Template validation successful",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = String::class),
-          ),
-        ],
       ),
       ApiResponse(
         responseCode = "401",
-        description = "Unauthorised - user not authorised to get service template versions.",
+        description = "Unauthorised - user not authorised to get validate template",
         content = [
           Content(
             mediaType = "application/json",
@@ -219,7 +213,7 @@ class TemplateVersionController(
       ),
       ApiResponse(
         responseCode = "403",
-        description = "Forbidden - user not authorised to get service template versions.",
+        description = "Forbidden - user not authorised to get validate template",
         content = [
           Content(
             mediaType = "application/json",
@@ -251,7 +245,7 @@ class TemplateVersionController(
   }
 
   private fun MultipartFile.bodyToString(): String = this.bytes.takeIf { it.isNotEmpty() }
-    ?.let { String(it) }
+    ?.let { String(it, Charsets.UTF_8) }
     ?: ""
 
   protected fun TemplateVersion.toEntity(): TemplateVersionEntity = TemplateVersionEntity(

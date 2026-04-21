@@ -1907,7 +1907,7 @@
                     <td>{{ optionalValue (formatDate created_at) }}</td>
                 </tr>
             </table>
-            <table class="summarty-list">
+            <table class="summary-list">
                 <tr><td>Notes</td><td>{{ optionalValue notes }}</td></tr>
             </table>
         {{/BookingExtensions}}
@@ -2619,7 +2619,7 @@
                     <p>No Data Held</p>
                 {{/attach-required-documents}}
 
-                <p><b>Type of Approve Premises</b></p>
+                <p><b>Type of Approved Premises</b></p>
                 {{#type-of-ap}}
                     <table class="summary-list">{{#each .}}<tr><td class="data-column-75">{{ @key }}</td><td class="data-column-25">{{ optionalValue this }}</td></tr>{{/each}}</table><br/>
                 {{/type-of-ap}}

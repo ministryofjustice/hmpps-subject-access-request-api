@@ -340,5 +340,6 @@ class TemplateVersionControllerIntTest : TemplateVersionIntTestBase() {
 
   private fun getTemplateBody(
     filename: String,
-  ): ByteArray = this::class.java.getResourceAsStream("/templates/$filename").readAllBytes()
+  ): ByteArray = this::class.java.getResourceAsStream("/templates/$filename")
+    ?.use { it.readAllBytes() } ?: ByteArray(0)
 }
