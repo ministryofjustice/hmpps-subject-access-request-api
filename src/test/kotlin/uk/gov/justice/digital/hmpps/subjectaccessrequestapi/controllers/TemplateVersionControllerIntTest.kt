@@ -82,7 +82,6 @@ class TemplateVersionControllerIntTest : TemplateVersionIntTestBase() {
       ).expectStatus().isForbidden
     }
 
-
     @Test
     fun `validate template endpoint returns UNAUTHORIZED when no auth header provided`() {
       webTestClient.post().uri("/api/templates/validate")
@@ -322,13 +321,12 @@ class TemplateVersionControllerIntTest : TemplateVersionIntTestBase() {
     }
   }
 
-  private fun postTemplateBody(filename: String): WebTestClient.ResponseSpec {
-    return webTestClient.post().uri("/api/templates/validate")
-      .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-      .contentType(MediaType.MULTIPART_FORM_DATA)
-      .body(BodyInserters.fromMultipartData(createTemplateMultipartFile(filename)))
-      .exchange()
-  }
+  private fun postTemplateBody(filename: String): WebTestClient.ResponseSpec = webTestClient.post()
+    .uri("/api/templates/validate")
+    .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
+    .contentType(MediaType.MULTIPART_FORM_DATA)
+    .body(BodyInserters.fromMultipartData(createTemplateMultipartFile(filename)))
+    .exchange()
 
   private fun createTemplateMultipartFile(filename: String): LinkedMultiValueMap<String, Any> {
     val file1 = object : ByteArrayResource(getTemplateBody(filename)) {
