@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import org.apache.commons.io.FilenameUtils
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -18,10 +19,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.exception.SubjectAccessRequestTemplateValidationException
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateValidator
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.ServiceConfigurationService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.TemplateVersionService
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -31,6 +35,7 @@ import java.util.UUID
 class TemplateVersionController(
   private val templateVersionService: TemplateVersionService,
   private val serviceConfigurationService: ServiceConfigurationService,
+  private val templateValidator: TemplateValidator,
 ) {
 
   private companion object {
@@ -188,6 +193,60 @@ class TemplateVersionController(
     log.error("create template version unsuccessful: service configuration not found for ID: {}", serviceId)
     ResponseEntity.notFound().build()
   }
+
+  @PostMapping("/validate")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Template validation successful",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorised - user not authorised to get validate template",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden - user not authorised to get validate template",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Template validation unsuccessful",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  fun validateTemplateSyntax(
+    @RequestParam("file") file: MultipartFile,
+  ): ResponseEntity<Void> = FilenameUtils.getExtension(file.originalFilename)
+    .takeIf { it != "mustache" }
+    ?.let {
+      throw SubjectAccessRequestTemplateValidationException(message = "template must have .mustache extension")
+    } ?: run {
+    templateValidator.validateSyntax(file.bodyToString())
+    ResponseEntity.ok().build()
+  }
+
+  private fun MultipartFile.bodyToString(): String = this.bytes.takeIf { it.isNotEmpty() }
+    ?.let { String(it, Charsets.UTF_8) }
+    ?: ""
 
   protected fun TemplateVersion.toEntity(): TemplateVersionEntity = TemplateVersionEntity(
     id = this.id,
