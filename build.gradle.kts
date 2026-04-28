@@ -21,8 +21,12 @@ dependencies {
   implementation("org.json:json:20251224")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
+  constraints {
+    implementation("org.webjars:swagger-ui:5.32.2")
+  }
   implementation("io.sentry:sentry-spring-boot-4:8.40.0")
   implementation("io.sentry:sentry-logback:8.40.0")
+
   implementation("uk.gov.service.notify:notifications-java-client:6.0.0-RELEASE")
   implementation("net.javacrumbs.shedlock:shedlock-spring:7.7.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.7.0")
