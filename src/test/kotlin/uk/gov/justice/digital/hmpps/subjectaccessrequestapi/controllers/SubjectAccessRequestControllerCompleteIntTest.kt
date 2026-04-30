@@ -34,9 +34,6 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
 
-  @Autowired
-  private lateinit var oAuth2AuthorizedClientService: OAuth2AuthorizedClientService
-
   @MockitoBean
   private lateinit var telemetryClient: TelemetryClient
 
@@ -47,9 +44,7 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     subjectAccessRequestRepository.deleteAll()
-
-    // Remove the cache client token to force each test to obtain an Auth token before calling the documentStore API.
-    oAuth2AuthorizedClientService.removeAuthorizedClient("sar-client", "AUTH_ADM")
+    ensureExistingAuthClientRemovedFromCache()
   }
 
   @Test

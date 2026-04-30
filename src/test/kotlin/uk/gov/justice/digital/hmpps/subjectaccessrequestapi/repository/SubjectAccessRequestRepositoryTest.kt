@@ -785,7 +785,7 @@ class SubjectAccessRequestRepositoryTest {
     fun `finds old subjectAccessRequests`() {
       databaseInsert()
       val thresholdTime = LocalDateTime.parse("30/02/2024 00:00", dateTimeFormatter)
-      val oldSars = subjectAccessRequestRepository.findByRequestDateTimeBefore(thresholdTime)
+      val oldSars = subjectAccessRequestRepository.findByRequestDateTimeBefore(thresholdTime, PageRequest.of(0, 100))
       assertThat(oldSars.size).isEqualTo(5)
     }
   }

@@ -64,6 +64,8 @@ class DocumentStorageClientIntTest {
     assertThat(response).isNull()
   }
 
+  // TODO add test cases for delete
+
   @Test
   fun `should return null if 500 returned from document storage api`() {
     val uuid = UUID.fromString("11111111-1111-1111-1111-111111111113")
