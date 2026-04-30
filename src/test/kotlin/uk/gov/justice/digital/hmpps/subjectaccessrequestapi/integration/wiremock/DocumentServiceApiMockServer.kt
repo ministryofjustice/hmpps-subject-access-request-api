@@ -63,6 +63,12 @@ class DocumentServiceApiMockServer : WireMockServer(4040) {
     )
   }
 
+  fun deleteDocument(id: UUID, status: Int) {
+    stubFor(
+      delete(urlEqualTo("/documents/$id")).willReturn(aResponse().withStatus(status)),
+    )
+  }
+
   fun deleteDocumentIsCalled(times: Int, id: UUID) {
     this.verify(
       times,
