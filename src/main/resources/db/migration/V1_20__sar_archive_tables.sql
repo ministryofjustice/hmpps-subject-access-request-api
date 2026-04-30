@@ -33,4 +33,8 @@ CREATE TABLE IF NOT EXISTS subject_access_request_archive
     template_version_file_hash    TEXT                     NOT NULL
 );
 
-/*TODO add constraints and indexes etc to columns*/
+CREATE INDEX sar_id_index ON subject_access_request_archive (sar_id);
+CREATE INDEX service_id_index ON subject_access_request_archive (service_id);
+CREATE INDEX service_name_index ON subject_access_request_archive (service_name);
+
+ALTER TABLE subject_access_request_archive ADD CONSTRAINT sar_id_service_id_unique UNIQUE(sar_id, service_id);

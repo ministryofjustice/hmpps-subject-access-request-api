@@ -138,8 +138,8 @@ class ArchiveExpiredRequestsIntTest : IntegrationTestBase() {
       assertThat(actual.sarNomisId).isEqualTo(nomisId)
       assertThat(actual.sarNdeliusCaseReferenceId).isEqualTo(ndeliusCaseReferenceId)
       assertThat(actual.sarRequestedBy).isEqualTo(requestedBy)
-      assertThat(actual.sarRequestDateTime).isEqualTo(requestDateTime)
-      assertThat(actual.sarClaimDateTime).isEqualTo(claimDateTime)
+      assertThat(actual.sarRequestDateTime).isEqualToIgnoringNanos(requestDateTime)
+      assertThat(actual.sarClaimDateTime).isEqualToIgnoringNanos(claimDateTime)
       assertThat(actual.sarClaimAttempts).isEqualTo(claimAttempts)
       assertThat(actual.sarObjectUrl).isNull()
       assertThat(actual.sarLastDownloaded).isNull()
@@ -162,8 +162,8 @@ class ArchiveExpiredRequestsIntTest : IntegrationTestBase() {
       assertThat(actual.templateVersionId).isEqualTo(templateVersion!!.id)
       assertThat(actual.templateVersionStatus).isEqualTo(templateVersionStatus)
       assertThat(actual.templateVersion).isEqualTo(templateVersionVersion)
-      assertThat(actual.templateVersionCreatedAt).isEqualTo(templateVersionCreatedAt)
-      assertThat(actual.templateVersionPublishedAt).isEqualTo(templateVersionPublishedAt)
+      assertThat(actual.templateVersionCreatedAt).isEqualToIgnoringNanos(templateVersionCreatedAt)
+      assertThat(actual.templateVersionPublishedAt).isEqualToIgnoringNanos(templateVersionPublishedAt)
       assertThat(actual.templateVersionFileHash).isEqualTo(templateVersionFileHash)
     }
   }
