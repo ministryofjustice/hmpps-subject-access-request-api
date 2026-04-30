@@ -199,7 +199,7 @@ class ArchiveExpiredRequestsServiceTest : ArchiveExpiredRequestsTestFixture() {
       name = "DocumentStorageClientError",
       id = sar1.id.toString(),
       "action" to "deleteExpiredRequestData",
-      "responseStatus" to "500"
+      "responseStatus" to "500",
     )
   }
 

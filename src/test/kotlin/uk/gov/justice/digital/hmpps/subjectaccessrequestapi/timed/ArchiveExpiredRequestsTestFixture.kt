@@ -152,7 +152,7 @@ abstract class ArchiveExpiredRequestsTestFixture {
           fileHash = "26c2ae538-93be-4191-8ed0-6f1bc638a6fa",
         ),
         renderedAt = null,
-      )
+      ),
     )
   }
 
@@ -187,10 +187,11 @@ abstract class ArchiveExpiredRequestsTestFixture {
           fileHash = "84f82630-4e8f-45fc-8864-5c41266f01bd",
         ),
         renderedAt = null,
-      )
+      ),
     )
   }
 
+  @Suppress("ktlint:standard:property-naming")
   protected val archivedSAR_1_1 = ArchivedSubjectAccessRequest(
     id = UUID.randomUUID(),
     sarId = UUID.fromString("f8615d62-3d8c-4eae-bb85-57f2ae29b88e"),
@@ -225,6 +226,7 @@ abstract class ArchiveExpiredRequestsTestFixture {
     templateVersionFileHash = "2eedacba-48fb-4237-b9ad-26d74f2e9d05",
   )
 
+  @Suppress("ktlint:standard:property-naming")
   protected val archivedSAR_1_2 = ArchivedSubjectAccessRequest(
     id = UUID.randomUUID(),
     sarId = UUID.fromString("f8615d62-3d8c-4eae-bb85-57f2ae29b88e"),
@@ -259,6 +261,7 @@ abstract class ArchiveExpiredRequestsTestFixture {
     templateVersionFileHash = "ccb9e341-58aa-4f52-b8a5-e9fe5512c8ac",
   )
 
+  @Suppress("ktlint:standard:property-naming")
   protected val archivedSAR_1_3 = ArchivedSubjectAccessRequest(
     id = UUID.randomUUID(),
     sarId = UUID.fromString("f8615d62-3d8c-4eae-bb85-57f2ae29b88e"),
@@ -293,6 +296,7 @@ abstract class ArchiveExpiredRequestsTestFixture {
     templateVersionFileHash = "2e56a44c-d70e-4c13-92bb-e46e7b293118",
   )
 
+  @Suppress("ktlint:standard:property-naming")
   protected val archivedSAR_2_1 = ArchivedSubjectAccessRequest(
     id = UUID.randomUUID(),
     sarId = UUID.fromString("1776d596-cc13-4060-a836-fe94be951615"),
@@ -327,6 +331,7 @@ abstract class ArchiveExpiredRequestsTestFixture {
     templateVersionFileHash = "26c2ae538-93be-4191-8ed0-6f1bc638a6fa",
   )
 
+  @Suppress("ktlint:standard:property-naming")
   protected val archivedSAR_3_1 = ArchivedSubjectAccessRequest(
     id = UUID.randomUUID(),
     sarId = UUID.fromString("88f20a4d-1642-4ff8-8736-3cabc21309f2"),

@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ArchivedSubje
 import java.util.UUID
 
 @Repository
-interface SubjectAccessRequestArchiveRepository: JpaRepository<ArchivedSubjectAccessRequest, UUID> {
+interface SubjectAccessRequestArchiveRepository : JpaRepository<ArchivedSubjectAccessRequest, UUID> {
 
   fun findBySarIdAndServiceName(sarId: UUID, serviceName: String): ArchivedSubjectAccessRequest?
 }

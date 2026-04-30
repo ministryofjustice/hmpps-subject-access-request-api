@@ -59,7 +59,6 @@ data class ArchivedSubjectAccessRequest(
   @Column(name = "sar_last_downloaded", nullable = false)
   val sarLastDownloaded: LocalDateTime? = null,
 
-
   // Service config fields
   @Column(name = "service_id", nullable = false)
   val serviceId: UUID,
@@ -89,7 +88,6 @@ data class ArchivedSubjectAccessRequest(
   @Column(name = "service_suspended_at", nullable = false)
   var serviceSuspendedAt: Instant? = null,
 
-
   // Request service detail
   @Enumerated(EnumType.STRING)
   @Column(name = "request_render_status", nullable = false)
@@ -97,7 +95,6 @@ data class ArchivedSubjectAccessRequest(
 
   @Column(name = "request_rendered_at")
   val requestRenderedAt: LocalDateTime? = null,
-
 
   // templateVersion
   @Column(name = "template_version_id", nullable = false)

@@ -13,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase

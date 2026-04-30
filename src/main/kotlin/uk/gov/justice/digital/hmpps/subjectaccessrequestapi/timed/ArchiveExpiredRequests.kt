@@ -72,14 +72,14 @@ class ArchiveExpiredRequestsService(
     }.takeWhile {
       it.isNotEmpty()
     }.forEach { batch ->
-        log.info("archive legacy requests task: processing batch {}", pageIndex)
+      log.info("archive legacy requests task: processing batch {}", pageIndex)
 
-        val successfulDeletions = deleteFromDocumentStore(batch)
-        archiveExpiredSubjectAccessRequests(successfulDeletions)
+      val successfulDeletions = deleteFromDocumentStore(batch)
+      archiveExpiredSubjectAccessRequests(successfulDeletions)
 
-        log.info("archive legacy requests task: batch {} completed", pageIndex)
-        pageIndex++
-      }
+      log.info("archive legacy requests task: batch {} completed", pageIndex)
+      pageIndex++
+    }
     log.info("archive legacy requests task: complete")
   }
 
@@ -126,10 +126,10 @@ class ArchiveExpiredRequestsService(
   }
 
   private fun List<SubjectAccessRequest>.mapToArchivedSubjectAccessRequest(): List<ArchivedSubjectAccessRequest> = this.flatMap { expiredRequest ->
-      expiredRequest.services.map {
-        ArchivedSubjectAccessRequest(it)
-      }
+    expiredRequest.services.map {
+      ArchivedSubjectAccessRequest(it)
     }
+  }
 
   private fun List<ArchivedSubjectAccessRequest>.getUniqueSarIds(): List<UUID> = this.distinctBy { it.sarId }.map { it.sarId }
 }

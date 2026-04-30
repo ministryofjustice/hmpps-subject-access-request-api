@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client
 
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -37,7 +36,8 @@ class DocumentStorageClient(
   fun deleteDocument(documentId: UUID): HttpStatusCode? {
     val response = documentStorageWebClient.delete().uri("/documents/$documentId")
       .header(SERVICE_NAME_HEADER, SERVICE_NAME_HEADER_VALUE)
-      .exchangeToMono { response -> Mono.just(response.statusCode())
+      .exchangeToMono { response ->
+        Mono.just(response.statusCode())
       }.block()
     log.info("response status from document storage service: $response")
     return response

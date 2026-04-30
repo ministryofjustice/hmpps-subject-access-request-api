@@ -85,7 +85,7 @@ abstract class IntegrationTestBase {
   /**
    * Ensure any existing client auth token is removed from the client cache. Ensures test consistently request an auth
    * token before making any outbound requests.
-    */
+   */
   protected fun ensureExistingAuthClientRemovedFromCache(
     clientId: String = "sar-client",
     principalName: String = "AUTH_ADM",
