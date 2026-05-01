@@ -25,8 +25,8 @@ import java.util.UUID
 class ArchiveExpiredRequests(private val service: ArchiveExpiredRequestsService) {
 
   @Scheduled(
-    fixedDelayString = "\${application.remove-reports.frequency}",
-    initialDelayString = "\${random.int[600000,\${application.remove-reports.frequency}]}",
+    fixedDelayString = "\${application.archive-requests.frequency}",
+    initialDelayString = "\${random.int[600000,\${application.archive-requests.frequency}]}",
   )
   fun removeExpiredReports() {
     try {
@@ -48,7 +48,7 @@ class ArchiveExpiredRequestsService(
   private val subjectAccessRequestRepository: SubjectAccessRequestRepository,
   private val subjectAccessRequestArchiveRepository: SubjectAccessRequestArchiveRepository,
   private val telemetryClient: TelemetryClient,
-  @param:Value("\${application.remove-reports.age : 7}") private val removeReportsOver: Long,
+  @param:Value($$"${application.archive-requests.after:7}") private val archiveRequestAfter: Long,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -64,11 +64,11 @@ class ArchiveExpiredRequestsService(
    */
   @Transactional
   fun removeExpiredDocumentsAndArchiveRequests() {
-    val removeDateTime = LocalDateTime.now().minusDays(removeReportsOver)
+    val cutoffDateTime = LocalDateTime.now().minusDays(archiveRequestAfter)
     var pageIndex = 0
 
     generateSequence {
-      getExpiredRequestsPage(pageIndex, removeDateTime)
+      getRequestsOlderThan(pageIndex, cutoffDateTime)
     }.takeWhile {
       it.isNotEmpty()
     }.forEach { batch ->
@@ -83,11 +83,11 @@ class ArchiveExpiredRequestsService(
     log.info("archive legacy requests task: complete")
   }
 
-  private fun getExpiredRequestsPage(
+  private fun getRequestsOlderThan(
     pageIndex: Int,
-    removeDateTime: LocalDateTime,
+    cutoffDateTime: LocalDateTime,
   ): List<SubjectAccessRequest> = subjectAccessRequestRepository.findByRequestDateTimeBefore(
-    thresholdTime = removeDateTime,
+    thresholdTime = cutoffDateTime,
     page = PageRequest.of(pageIndex, PAGE_SIZE),
   )
 
