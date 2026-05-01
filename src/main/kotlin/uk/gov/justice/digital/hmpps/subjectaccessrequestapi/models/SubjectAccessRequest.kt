@@ -37,4 +37,10 @@ data class SubjectAccessRequest(
   val claimAttempts: Int = 0,
   val objectUrl: String? = null,
   val lastDownloaded: LocalDateTime? = null,
-)
+) {
+
+  fun addServices(vararg services: RequestServiceDetail): SubjectAccessRequest {
+    this.services.addAll(services)
+    return this
+  }
+}

@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.http.HttpHeaders
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DocumentServiceApiExtension
@@ -56,6 +57,9 @@ abstract class IntegrationTestBase {
   @Autowired
   protected lateinit var jwtAuthHelper: JwtAuthorisationHelper
 
+  @Autowired
+  protected lateinit var oAuth2AuthorizedClientService: OAuth2AuthorizedClientService
+
   internal fun setAuthorisation(
     username: String? = "AUTH_ADM",
     roles: List<String>? = listOf(),
@@ -77,4 +81,13 @@ abstract class IntegrationTestBase {
     dynamicService.stubHealthPing(status)
     dynamicServiceAlt.stubAltHealth(status)
   }
+
+  /**
+   * Ensure any existing client auth token is removed from the client cache. Ensures test consistently request an auth
+   * token before making any outbound requests.
+   */
+  protected fun ensureExistingAuthClientRemovedFromCache(
+    clientId: String = "sar-client",
+    principalName: String = "AUTH_ADM",
+  ) = oAuth2AuthorizedClientService.removeAuthorizedClient(clientId, principalName)
 }

@@ -13,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.IntegrationTestBase
@@ -34,9 +33,6 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var subjectAccessRequestRepository: SubjectAccessRequestRepository
 
-  @Autowired
-  private lateinit var oAuth2AuthorizedClientService: OAuth2AuthorizedClientService
-
   @MockitoBean
   private lateinit var telemetryClient: TelemetryClient
 
@@ -47,9 +43,7 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     subjectAccessRequestRepository.deleteAll()
-
-    // Remove the cache client token to force each test to obtain an Auth token before calling the documentStore API.
-    oAuth2AuthorizedClientService.removeAuthorizedClient("sar-client", "AUTH_ADM")
+    ensureExistingAuthClientRemovedFromCache()
   }
 
   @Test

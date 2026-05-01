@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -37,6 +38,11 @@ class DynamicServiceIntTest : IntegrationTestBase() {
     templateMigrated = true,
     category = ServiceCategory.PRISON,
   )
+
+  @BeforeEach
+  fun setup() {
+    ensureExistingAuthClientRemovedFromCache()
+  }
 
   @Test
   fun `Can successfully get health ping for dynamic service when up`() {

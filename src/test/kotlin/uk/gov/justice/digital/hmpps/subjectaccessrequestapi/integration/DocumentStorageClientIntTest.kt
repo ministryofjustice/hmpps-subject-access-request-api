@@ -3,7 +3,10 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration
 import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
@@ -41,35 +44,54 @@ class DocumentStorageClientIntTest {
   @Autowired
   private lateinit var documentStorageClient: DocumentStorageClient
 
-  @Test
-  fun `should return report if found`() {
-    val uuid = UUID.fromString("11111111-1111-1111-1111-111111111111")
-    documentServiceApiMockServer.getDocument(uuid)
+  @Nested
+  inner class GetDocument {
 
-    val response = documentStorageClient.retrieveDocument(uuid)
+    @Test
+    fun `should return report if found`() {
+      val uuid = UUID.fromString("11111111-1111-1111-1111-111111111111")
+      documentServiceApiMockServer.getDocument(uuid)
 
-    assertThat(response!!.statusCode).isEqualTo(HttpStatus.OK)
-    assertThat(response.body).isNotNull
+      val response = documentStorageClient.retrieveDocument(uuid)
 
-    val byteArray = response.body?.blockFirst()?.inputStream?.readAllBytes()
-    val pdfBytes: ByteArray = File("dummy.pdf").inputStream().readAllBytes()
-    assertThat(byteArray).isEqualTo(pdfBytes)
+      assertThat(response!!.statusCode).isEqualTo(HttpStatus.OK)
+      assertThat(response.body).isNotNull
+
+      val byteArray = response.body?.blockFirst()?.inputStream?.readAllBytes()
+      val pdfBytes: ByteArray = File("dummy.pdf").inputStream().readAllBytes()
+      assertThat(byteArray).isEqualTo(pdfBytes)
+    }
+
+    @Test
+    fun `should return null if no report found`() {
+      val uuid = UUID.fromString("11111111-1111-1111-1111-111111111112")
+
+      val response = documentStorageClient.retrieveDocument(uuid)
+      assertThat(response).isNull()
+    }
+
+    @Test
+    fun `should return null if 500 returned from document storage api`() {
+      val uuid = UUID.fromString("11111111-1111-1111-1111-111111111113")
+
+      val response = documentStorageClient.retrieveDocument(uuid)
+      assertThat(response).isNull()
+    }
   }
 
-  @Test
-  fun `should return null if no report found`() {
-    val uuid = UUID.fromString("11111111-1111-1111-1111-111111111112")
+  @Nested
+  inner class DeleteDocument {
 
-    val response = documentStorageClient.retrieveDocument(uuid)
-    assertThat(response).isNull()
-  }
+    @ParameterizedTest
+    @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.DocumentStorageClientIntTest#deleteResponseStatuses")
+    fun `should return the expected response status`(status: Int) {
+      val documentId = UUID.randomUUID()
+      documentServiceApiMockServer.deleteDocument(documentId, status)
 
-  @Test
-  fun `should return null if 500 returned from document storage api`() {
-    val uuid = UUID.fromString("11111111-1111-1111-1111-111111111113")
-
-    val response = documentStorageClient.retrieveDocument(uuid)
-    assertThat(response).isNull()
+      val response = documentStorageClient.deleteDocument(documentId)
+      assertThat(response).isNotNull
+      assertThat(response).isEqualTo(HttpStatus.valueOf(status))
+    }
   }
 
   companion object {
@@ -93,6 +115,9 @@ class DocumentStorageClientIntTest {
       documentServiceApiMockServer.stop()
       hmppsAuthMockServer.stop()
     }
+
+    @JvmStatic
+    fun deleteResponseStatuses() = listOf(204, 400, 401, 403, 404, 409, 500, 501, 502, 503, 504)
   }
 }
 
@@ -101,5 +126,8 @@ class OAuth2TestConfig {
   fun authorizedClientManager(
     clientRegistrationRepository: ClientRegistrationRepository,
     authorizedClientService: OAuth2AuthorizedClientService,
-  ): OAuth2AuthorizedClientManager = AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientService)
+  ): OAuth2AuthorizedClientManager = AuthorizedClientServiceOAuth2AuthorizedClientManager(
+    clientRegistrationRepository,
+    authorizedClientService,
+  )
 }

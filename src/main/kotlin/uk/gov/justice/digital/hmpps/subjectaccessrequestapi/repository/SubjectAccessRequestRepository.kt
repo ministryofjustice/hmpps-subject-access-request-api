@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.repository
 import jakarta.persistence.LockModeType
 import jakarta.persistence.QueryHint
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
@@ -129,7 +130,7 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
   )
   fun updateLastDownloaded(@Param("id") id: UUID, @Param("downloadDateTime") downloadDateTime: LocalDateTime): Int
 
-  fun findByRequestDateTimeBefore(thresholdTime: LocalDateTime): List<SubjectAccessRequest?>
+  fun findByRequestDateTimeBefore(thresholdTime: LocalDateTime, page: PageRequest): List<SubjectAccessRequest>
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])

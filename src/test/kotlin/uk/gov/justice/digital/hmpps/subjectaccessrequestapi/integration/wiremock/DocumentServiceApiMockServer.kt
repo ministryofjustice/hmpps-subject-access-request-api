@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremoc
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.delete
+import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.junit.jupiter.api.extension.AfterAllCallback
@@ -59,6 +60,19 @@ class DocumentServiceApiMockServer : WireMockServer(4040) {
   fun deleteDocumentSuccess(id: UUID) {
     stubFor(
       delete(urlEqualTo("/documents/$id")).willReturn(aResponse().withStatus(204)),
+    )
+  }
+
+  fun deleteDocument(id: UUID, status: Int) {
+    stubFor(
+      delete(urlEqualTo("/documents/$id")).willReturn(aResponse().withStatus(status)),
+    )
+  }
+
+  fun deleteDocumentIsCalled(times: Int, id: UUID) {
+    this.verify(
+      times,
+      deleteRequestedFor(urlEqualTo("/documents/$id")),
     )
   }
 
