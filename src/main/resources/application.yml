@@ -81,8 +81,11 @@ application:
     frequency: 604800000 # 1 week
   locations-request:
     page-size: 50 # maximum is 200
-  remove-reports:
-    age: 7
+  archive-requests:
+    after: 7
+    frequency: 3600000
+  delete-archives:
+    after: 365 # days
     frequency: 3600000
   template-version-health:
     enabled: ${APPLICATION_TEMPLATE_VERSION_HEALTH_ENABLED:true}
