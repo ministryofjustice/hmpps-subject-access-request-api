@@ -72,12 +72,13 @@ class SubjectAccessRequestArchiveRepositoryTest : ArchiveExpiredRequestsTestFixt
 
     @Test
     fun `should not delete archived requests created is less than or equal to cut off`() {
-      val archivedRequest = archiveRequestWithRequestDateTime(dateTimeNow.minusDays(365))
+      val requestedAt = LocalDateTime.now().minusDays(365)
+      val archivedRequest = archiveRequestWithRequestDateTime(requestedAt)
 
       repository.saveAndFlush(archivedRequest)
       assertThat(repository.findByIdOrNull(archivedRequest.id)).isNotNull
 
-      repository.deleteBySarRequestDateTimeBefore(dateTimeNow.minusDays(365))
+      repository.deleteBySarRequestDateTimeBefore(requestedAt)
 
       assertThat(repository.findByIdOrNull(archivedRequest.id)).isNotNull
     }
