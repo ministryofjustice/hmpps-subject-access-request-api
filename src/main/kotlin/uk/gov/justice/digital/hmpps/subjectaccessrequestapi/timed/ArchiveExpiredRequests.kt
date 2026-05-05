@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed
 
 import com.microsoft.applicationinsights.TelemetryClient
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
@@ -27,6 +28,10 @@ class ArchiveExpiredRequests(private val service: ArchiveExpiredRequestsService)
   @Scheduled(
     fixedDelayString = "\${application.archive-requests.frequency}",
     initialDelayString = "\${random.int[600000,\${application.archive-requests.frequency}]}",
+  )
+  @SchedulerLock(
+    name = "archiveExpiredRequests",
+    lockAtMostFor = $$"${application.archive-requests.lock-limit}",
   )
   fun removeExpiredReports() {
     try {

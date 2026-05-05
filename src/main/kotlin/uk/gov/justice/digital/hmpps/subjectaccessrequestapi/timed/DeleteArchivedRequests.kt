@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed
 
 import com.microsoft.applicationinsights.TelemetryClient
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -23,6 +24,10 @@ class DeleteArchivedRequests(
   @Scheduled(
     fixedRateString = $$"${application.delete-archives.frequency}",
     initialDelayString = $$"${random.int[300000,${application.delete-archives.frequency}]}",
+  )
+  @SchedulerLock(
+    name = "deleteArchivedRequests",
+    lockAtMostFor = $$"${application.delete-archives.lock-limit}",
   )
   fun execute() {
     try {
