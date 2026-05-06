@@ -31,7 +31,9 @@ class DeleteArchivedRequests(
   )
   fun execute() {
     try {
+      log.info("executing delete expired archive requests task")
       deleteArchivedRequestsService.removeExpiredArchiveEntries()
+      log.info("execute delete expired archive requests task completed")
     } catch (e: Exception) {
       // Non-fatal error but have to catch the exception otherwise scheduling will stop
       telemetryClient.trackException(e, mapOf("action" to "deleteExpiredArchivedRequests"), null)
