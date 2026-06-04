@@ -88,4 +88,37 @@ class SlackNotificationService(
   }
 
   private fun Instant.prettyFormat(): String = this.atZone(ZoneId.of("UTC")).format(dateTimeFormatter)
+
+  fun sendDiagnosticMessage() {
+    val message = asBlocks(
+      header { it.text(plainText("Subject Access Request: Test notification :hammer_and_wrench:")) },
+      section { s ->
+        s.text(
+          markdownText("Test notification"),
+        )
+      },
+      divider(),
+      context { c ->
+        c.elements(
+          listOf(
+            markdownText(
+              "This is a test notification no action is required.",
+            ),
+          ),
+        )
+      },
+    )
+    templateErrorRecipients.takeIf { it.isNotEmpty() }?.forEach {
+      val resp = slackApiClient.chatPostMessage(
+        ChatPostMessageRequest.builder()
+          .channel(it)
+          .blocks(message)
+          .build(),
+      )
+
+      if (!resp.isOk) {
+        LOG.error("error sending test slack alert: {}", resp.error)
+      }
+    }
+  }
 }

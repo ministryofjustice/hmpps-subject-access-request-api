@@ -34,6 +34,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-flyway")
   implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.4.1")
   implementation("commons-io:commons-io:2.22.0")
+  implementation("com.google.guava:guava:33.2.0-jre")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.4.240")
