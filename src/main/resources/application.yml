@@ -73,6 +73,8 @@ server:
     include-message: always
 
 application:
+  dev-tools:
+    enabled: ${APPLICATION_DEV_TOOLS_ENABLED:false}
   user-details-refresh:
     frequency: 86400000
   prison-refresh:
