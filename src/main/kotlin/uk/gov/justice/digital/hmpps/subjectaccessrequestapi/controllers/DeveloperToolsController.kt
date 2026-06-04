@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers
 
+import com.google.common.util.concurrent.RateLimiter
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -9,8 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SlackNotificationService
-import com.google.common.util.concurrent.RateLimiter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import java.util.concurrent.TimeUnit
 
 @ConditionalOnExpression($$"${application.dev-tools.enabled:false}")
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 @PreAuthorize("hasAnyRole('ROLE_SAR_ADMIN_ACCESS')")
 @RequestMapping("/api/developer-tools")
 class DeveloperToolsController(
-  val slackNotificationService: SlackNotificationService
+  val slackNotificationService: SlackNotificationService,
 ) {
   private companion object {
     private val LOG = LoggerFactory.getLogger(this::class.java)
