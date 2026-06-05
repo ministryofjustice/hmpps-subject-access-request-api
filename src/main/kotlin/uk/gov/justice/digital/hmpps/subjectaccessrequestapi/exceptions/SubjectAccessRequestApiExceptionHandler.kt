@@ -27,8 +27,7 @@ class SubjectAccessRequestApiExceptionHandler {
         userMessage = "Validation failure: ${e.message}",
         developerMessage = e.message,
       ),
-    ).also { log.info("Validation exception: {}", e.message) }
-    .also { logAndCapture("Validation exception:", e) }
+    ).also { log.error("Validation exception: {}", e.message) }
 
   @ExceptionHandler(NoResourceFoundException::class)
   fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
@@ -39,8 +38,7 @@ class SubjectAccessRequestApiExceptionHandler {
         userMessage = "No resource found failure: ${e.message}",
         developerMessage = e.message,
       ),
-    ).also { log.info("No resource found exception: {}", e.message) }
-    .also { logAndCapture("No resource found exception:", e) }
+    ).also { log.error("No resource found exception: {}", e.message) }
 
   @ExceptionHandler(ServiceConfigurationNotFoundException::class)
   fun handleServiceConfigurationNotFoundException(
@@ -53,8 +51,7 @@ class SubjectAccessRequestApiExceptionHandler {
         userMessage = e.message,
         developerMessage = e.message,
       ),
-    ).also { log.info("No resource found exception: {}", e.message) }
-    .also { logAndCapture("No resource found exception:", e) }
+    ).also { logAndCapture("service configuration not found error:", e) }
 
   @ExceptionHandler(AccessDeniedException::class)
   fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> = ResponseEntity
@@ -65,8 +62,7 @@ class SubjectAccessRequestApiExceptionHandler {
         userMessage = "Forbidden: ${e.message}",
         developerMessage = e.message,
       ),
-    ).also { log.debug("Forbidden (403) returned: {}", e.message) }
-    .also { logAndCapture("Forbidden (403) returned:", e) }
+    ).also { log.error("Forbidden (403) returned: {}", e.message) }
 
   @ExceptionHandler(SubjectAccessRequestApiException::class)
   fun handleException(e: SubjectAccessRequestApiException): ResponseEntity<ErrorResponse> = ResponseEntity
@@ -78,8 +74,7 @@ class SubjectAccessRequestApiExceptionHandler {
         developerMessage = e.message,
         moreInfo = "SubjectAccessRequestId: ${e.subjectAccessRequestId}",
       ),
-    ).also { log.error("subject access request API exception", e) }
-    .also { logAndCapture("subject access request API exception:", e) }
+    ).also { logAndCapture("subject access request API exception", e) }
 
   @ExceptionHandler(Exception::class)
   fun handleException(e: Exception): ResponseEntity<ErrorResponse> = ResponseEntity
@@ -90,8 +85,7 @@ class SubjectAccessRequestApiExceptionHandler {
         userMessage = "Unexpected error: ${e.message}",
         developerMessage = e.message,
       ),
-    ).also { log.error("Unexpected exception", e) }
-    .also { logAndCapture("Unexpected exception:", e) }
+    ).also { logAndCapture("Unexpected exception:", e) }
 
   @ExceptionHandler(TemplateVersionServiceConfigurationNotFoundException::class)
   fun handleTemplateVersionServiceConfigurationNotFoundException(
@@ -104,8 +98,7 @@ class SubjectAccessRequestApiExceptionHandler {
         userMessage = e.message,
         developerMessage = e.message,
       ),
-    ).also { log.error("Template version exception:", e) }
-    .also { logAndCapture("Template version exception:", e) }
+    ).also { logAndCapture("Template version exception:", e) }
 
   @ExceptionHandler(TemplateVersionTemplateBodyEmptyException::class)
   fun handleTemplateBodyEmptyException(
@@ -118,8 +111,7 @@ class SubjectAccessRequestApiExceptionHandler {
         userMessage = e.message,
         developerMessage = e.message,
       ),
-    ).also { log.error("Template version exception:", e) }
-    .also { logAndCapture("Template version exception:", e) }
+    ).also { logAndCapture("Template version exception:", e) }
 
   @ExceptionHandler(SubjectAccessRequestTemplateValidationException::class)
   fun handleTemplateValidationException(
@@ -131,8 +123,7 @@ class SubjectAccessRequestApiExceptionHandler {
         userMessage = e.message,
         developerMessage = e.message,
       ),
-    ).also { log.error("Template validation exception:", e) }
-    .also { logAndCapture("Template validation exception:", e) }
+    ).also { logAndCapture("Template validation exception:", e) }
 
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
