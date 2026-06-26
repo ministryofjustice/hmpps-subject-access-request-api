@@ -1,13 +1,16 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.3.1"
-  id("org.jetbrains.kotlin.plugin.serialization") version "2.3.21"
-  kotlin("plugin.spring") version "2.3.21"
-  kotlin("plugin.jpa") version "2.3.21"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.3"
+  id("org.jetbrains.kotlin.plugin.serialization") version "2.4.0"
+  kotlin("plugin.spring") version "2.4.0"
+  kotlin("plugin.jpa") version "2.4.0"
 }
 
 configurations {
   testImplementation { exclude(group = "org.junit.vintage") }
 }
+
+// Temporarily pin spring doc at 3.0.2 whilst waiting for 3.0.4 upgrade
+val springDocVersion = "3.0.2"
 
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -17,24 +20,24 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.2.0")
-  implementation("org.json:json:20251224")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.5.0")
+  implementation("org.json:json:20260522")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
   constraints {
     implementation("org.webjars:swagger-ui:5.32.2")
   }
-  implementation("io.sentry:sentry-spring-boot-4:8.41.0")
-  implementation("io.sentry:sentry-logback:8.41.0")
+  implementation("io.sentry:sentry-spring-boot-4:8.45.0")
+  implementation("io.sentry:sentry-logback:8.45.0")
 
   implementation("uk.gov.service.notify:notifications-java-client:6.0.0-RELEASE")
   implementation("net.javacrumbs.shedlock:shedlock-spring:7.7.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.7.0")
-  implementation("com.slack.api:slack-api-client:1.48.1")
+  implementation("com.slack.api:slack-api-client:1.49.0")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
-  implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.4.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.5.0")
   implementation("commons-io:commons-io:2.22.0")
-  implementation("com.google.guava:guava:33.2.0-jre")
+  implementation("com.google.guava:guava:33.6.0-jre")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.4.240")
