@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.3"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.4"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.4.0"
   kotlin("plugin.spring") version "2.4.0"
   kotlin("plugin.jpa") version "2.4.0"
@@ -27,21 +27,21 @@ dependencies {
   constraints {
     implementation("org.webjars:swagger-ui:5.32.2")
   }
-  implementation("io.sentry:sentry-spring-boot-4:8.45.0")
-  implementation("io.sentry:sentry-logback:8.45.0")
+  implementation("io.sentry:sentry-spring-boot-4:8.47.0")
+  implementation("io.sentry:sentry-logback:8.47.0")
 
   implementation("uk.gov.service.notify:notifications-java-client:6.0.0-RELEASE")
   implementation("net.javacrumbs.shedlock:shedlock-spring:7.7.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.7.0")
   implementation("com.slack.api:slack-api-client:1.49.0")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
-  implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.5.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.6.0")
   implementation("commons-io:commons-io:2.22.0")
   implementation("com.google.guava:guava:33.6.0-jre")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.4.240")
-  runtimeOnly("org.postgresql:postgresql:42.7.11")
+  runtimeOnly("org.postgresql:postgresql:42.7.12")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.8.2")
