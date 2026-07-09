@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.4"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.7"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.4.0"
   kotlin("plugin.spring") version "2.4.0"
   kotlin("plugin.jpa") version "2.4.0"
@@ -7,6 +7,10 @@ plugins {
 
 configurations {
   testImplementation { exclude(group = "org.junit.vintage") }
+}
+
+dependencyCheck {
+  suppressionFiles.add("httpcore-dependency-check-suppress.xml")
 }
 
 // Temporarily pin spring doc at 3.0.2 whilst waiting for 3.0.4 upgrade
@@ -27,10 +31,10 @@ dependencies {
   constraints {
     implementation("org.webjars:swagger-ui:5.32.2")
   }
-  implementation("io.sentry:sentry-spring-boot-4:8.47.0")
-  implementation("io.sentry:sentry-logback:8.47.0")
+  implementation("io.sentry:sentry-spring-boot-4:8.48.0")
+  implementation("io.sentry:sentry-logback:8.48.0")
 
-  implementation("uk.gov.service.notify:notifications-java-client:6.0.0-RELEASE")
+  implementation("uk.gov.service.notify:notifications-java-client:6.0.1-RELEASE")
   implementation("net.javacrumbs.shedlock:shedlock-spring:7.7.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.7.0")
   implementation("com.slack.api:slack-api-client:1.49.0")
@@ -41,7 +45,7 @@ dependencies {
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.4.240")
-  runtimeOnly("org.postgresql:postgresql:42.7.12")
+  runtimeOnly("org.postgresql:postgresql:42.7.13")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.8.2")

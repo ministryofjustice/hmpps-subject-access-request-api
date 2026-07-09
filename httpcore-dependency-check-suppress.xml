@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <suppress>
+        <notes><![CDATA[
+    file name: httpcore-4.4.16.jar
+    Suppressed as this is an httpcore5 vulnerability, not an httpcore one
+    ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.httpcomponents/httpcore@.*$</packageUrl>
+        <cve>CVE-2026-54399</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+    file name: httpcore-4.4.16.jar
+    Suppressed as this is an httpcore5 vulnerability, not an httpcore one
+    ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.httpcomponents/httpcore@.*$</packageUrl>
+        <cve>CVE-2026-54428</cve>
+    </suppress>
+</suppressions>
