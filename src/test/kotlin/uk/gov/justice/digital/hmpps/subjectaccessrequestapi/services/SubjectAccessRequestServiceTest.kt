@@ -151,6 +151,54 @@ class SubjectAccessRequestServiceTest {
     }
 
     @Test
+    fun `createSubjectAccessRequest trims surrounding whitespace from nomisId before saving`() {
+      whenever(authentication.name).thenReturn("UserName")
+      val sarCaptor = argumentCaptor<SubjectAccessRequest>()
+
+      subjectAccessRequestService.createSubjectAccessRequest(
+        request = nomisIdWithWhitespaceRequest,
+        requestedBy = "UserName",
+        requestTime = requestTime,
+        id = sampleSAR.id,
+      )
+
+      verify(subjectAccessRequestRepository, times(1)).save(sarCaptor.capture())
+      assertThat(sarCaptor.firstValue.nomisId).isEqualTo("1")
+    }
+
+    @Test
+    fun `createSubjectAccessRequest trims surrounding whitespace from ndeliusId before saving`() {
+      whenever(authentication.name).thenReturn("UserName")
+      val sarCaptor = argumentCaptor<SubjectAccessRequest>()
+
+      subjectAccessRequestService.createSubjectAccessRequest(
+        request = ndeliusIdWithWhitespaceRequest,
+        requestedBy = "UserName",
+        requestTime = requestTime,
+        id = sampleSAR.id,
+      )
+
+      verify(subjectAccessRequestRepository, times(1)).save(sarCaptor.capture())
+      assertThat(sarCaptor.firstValue.ndeliusCaseReferenceId).isEqualTo("1")
+    }
+
+    @Test
+    fun `createSubjectAccessRequest trims surrounding whitespace from sarCaseReferenceNumber before saving`() {
+      whenever(authentication.name).thenReturn("UserName")
+      val sarCaptor = argumentCaptor<SubjectAccessRequest>()
+
+      subjectAccessRequestService.createSubjectAccessRequest(
+        request = sarCaseReferenceNumberWithWhitespaceRequest,
+        requestedBy = "UserName",
+        requestTime = requestTime,
+        id = sampleSAR.id,
+      )
+
+      verify(subjectAccessRequestRepository, times(1)).save(sarCaptor.capture())
+      assertThat(sarCaptor.firstValue.sarCaseReferenceNumber).isEqualTo("1234abc")
+    }
+
+    @Test
     fun `createSubjectAccessRequest does not error when dateTo is not provided`() {
       whenever(authentication.name).thenReturn("UserName")
 
@@ -1032,6 +1080,33 @@ class SubjectAccessRequestServiceTest {
     sarCaseReferenceNumber = "1234abc",
     services = listOf("1", "2", "4"),
     dateFrom = null,
+    dateTo = LocalDate.of(2024, 1, 3),
+  )
+
+  private val nomisIdWithWhitespaceRequest = CreateSubjectAccessRequestEntity(
+    nomisId = " 1 ",
+    ndeliusId = null,
+    sarCaseReferenceNumber = "1234abc",
+    services = listOf("1", "2", "4"),
+    dateFrom = LocalDate.of(2023, 12, 1),
+    dateTo = LocalDate.of(2024, 1, 3),
+  )
+
+  private val ndeliusIdWithWhitespaceRequest = CreateSubjectAccessRequestEntity(
+    nomisId = null,
+    ndeliusId = " 1 ",
+    sarCaseReferenceNumber = "1234abc",
+    services = listOf("1", "2", "4"),
+    dateFrom = LocalDate.of(2023, 12, 1),
+    dateTo = LocalDate.of(2024, 1, 3),
+  )
+
+  private val sarCaseReferenceNumberWithWhitespaceRequest = CreateSubjectAccessRequestEntity(
+    nomisId = "1",
+    ndeliusId = null,
+    sarCaseReferenceNumber = " 1234abc ",
+    services = listOf("1", "2", "4"),
+    dateFrom = LocalDate.of(2023, 12, 1),
     dateTo = LocalDate.of(2024, 1, 3),
   )
 

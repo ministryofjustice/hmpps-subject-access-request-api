@@ -59,7 +59,9 @@ class SubjectAccessRequestService(
     requestTime: LocalDateTime?,
     id: UUID? = null,
   ): String {
-    if (request.nomisId == null && request.ndeliusId == null) {
+    val sanitisedNomisId = request.nomisId?.trim()
+    val sanitisedNdeliusId = request.ndeliusId?.trim()
+    if (sanitisedNomisId == null && sanitisedNdeliusId == null) {
       throw CreateSubjectAccessRequestException(
         message = "Neither nomisId or nDeliusId provided - exactly one is required",
         status = HttpStatus.BAD_REQUEST,
@@ -67,7 +69,7 @@ class SubjectAccessRequestService(
       )
     }
 
-    if (isNotEmpty(request.nomisId?.trim()) && isNotEmpty(request.ndeliusId?.trim())) {
+    if (isNotEmpty(sanitisedNomisId) && isNotEmpty(sanitisedNdeliusId)) {
       throw CreateSubjectAccessRequestException(
         message = "Both nomisId and nDeliusId are provided - exactly one is required",
         status = HttpStatus.BAD_REQUEST,
@@ -80,9 +82,9 @@ class SubjectAccessRequestService(
       status = Status.Pending,
       dateFrom = request.dateFrom,
       dateTo = request.dateTo ?: LocalDate.now(),
-      sarCaseReferenceNumber = request.sarCaseReferenceNumber!!,
-      nomisId = request.nomisId,
-      ndeliusCaseReferenceId = request.ndeliusId,
+      sarCaseReferenceNumber = request.sarCaseReferenceNumber!!.trim(),
+      nomisId = sanitisedNomisId,
+      ndeliusCaseReferenceId = sanitisedNdeliusId,
       requestedBy = requestedBy,
       requestDateTime = requestTime ?: LocalDateTime.now(),
     )
