@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.5"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
   kotlin("plugin.spring") version "2.4.10"
   kotlin("plugin.jpa") version "2.4.10"
@@ -25,23 +25,23 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.0")
-  implementation("org.json:json:20260719")
+  implementation("org.json:json:20260814")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
   constraints {
-    implementation("org.webjars:swagger-ui:5.32.2")
+    implementation("org.webjars:swagger-ui:5.32.11")
   }
-  implementation("io.sentry:sentry-spring-boot-4:8.49.0")
-  implementation("io.sentry:sentry-logback:8.49.0")
+  implementation("io.sentry:sentry-spring-boot-4:8.53.0")
+  implementation("io.sentry:sentry-logback:8.53.0")
 
-  implementation("uk.gov.service.notify:notifications-java-client:6.0.1-RELEASE")
-  implementation("net.javacrumbs.shedlock:shedlock-spring:7.7.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.7.0")
-  implementation("com.slack.api:slack-api-client:1.49.0")
+  implementation("uk.gov.service.notify:notifications-java-client:6.2.0-RELEASE")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:7.9.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.9.0")
+  implementation("com.slack.api:slack-api-client:1.50.0")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
-  implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.6.2")
+  implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.8.0")
   implementation("commons-io:commons-io:2.22.0")
-  implementation("com.google.guava:guava:33.6.0-jre")
+  implementation("com.google.guava:guava:33.7.1-jre")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.4.240")
