@@ -39,7 +39,7 @@ dependencies {
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.9.0")
   implementation("com.slack.api:slack-api-client:1.50.0")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
-  implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.8.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.8.1")
   implementation("commons-io:commons-io:2.22.0")
   implementation("com.google.guava:guava:33.7.1-jre")
 
