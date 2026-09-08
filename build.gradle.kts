@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.7"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.8"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
   kotlin("plugin.spring") version "2.4.10"
   kotlin("plugin.jpa") version "2.4.10"
@@ -24,13 +24,13 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.1")
   implementation("org.json:json:20260814")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
   implementation("io.sentry:sentry-spring-boot-4:8.55.0")
   implementation("io.sentry:sentry-logback:8.55.0")
 
   implementation("uk.gov.service.notify:notifications-java-client:6.2.0-RELEASE")
-  implementation("net.javacrumbs.shedlock:shedlock-spring:7.9.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.9.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:7.10.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.10.0")
   implementation("com.slack.api:slack-api-client:1.51.0")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
   implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.8.1")
@@ -38,7 +38,7 @@ dependencies {
   implementation("com.google.guava:guava:33.7.1-jre")
 
   runtimeOnly("org.flywaydb:flyway-core")
-  runtimeOnly("com.h2database:h2:2.4.240")
+  runtimeOnly("com.h2database:h2:2.5.250")
   runtimeOnly("org.postgresql:postgresql:42.7.13")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
