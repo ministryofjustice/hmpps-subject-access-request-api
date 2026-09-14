@@ -40,6 +40,9 @@ data class ServiceConfiguration(
 
   @Column(name = "suspended_at", nullable = true)
   var suspendedAt: Instant? = null,
+
+  @Column(name = "team_slack_channel_id", nullable = true)
+  var teamSlackChannelId: String? = null,
 )
 
 enum class ServiceCategory {

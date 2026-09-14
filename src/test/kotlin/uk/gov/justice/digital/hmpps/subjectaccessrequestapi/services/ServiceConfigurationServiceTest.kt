@@ -150,6 +150,7 @@ class ServiceConfigurationServiceTest {
       enabled = false,
       templateMigrated = false,
       category = PROBATION,
+      teamSlackChannelId = "team-alpha",
     )
 
     @Test
@@ -162,6 +163,7 @@ class ServiceConfigurationServiceTest {
         enabled = false,
         templateMigrated = false,
         category = PROBATION,
+        teamSlackChannelId = "team-alpha",
       )
 
       whenever(serviceConfigurationRepository.findByServiceNameAndIdNot(update.serviceName, update.id))
@@ -214,6 +216,7 @@ class ServiceConfigurationServiceTest {
       assertThat(actual.category).isEqualTo(PROBATION)
       assertThat(actual.enabled).isFalse()
       assertThat(actual.templateMigrated).isFalse()
+      assertThat(actual.teamSlackChannelId).isEqualTo("team-alpha")
     }
   }
 

@@ -33,7 +33,6 @@ import java.util.UUID
 class ServicesController(
   private val serviceConfigurationService: ServiceConfigurationService,
 ) {
-
   @GetMapping
   @Operation(
     summary = "Get the Services list",
@@ -320,6 +319,7 @@ class ServicesController(
     enabled = this.enabled!!,
     templateMigrated = this.templateMigrated!!,
     category = ServiceCategory.valueOf(this.category!!),
+    teamSlackChannelId = this.teamSlackChannelId,
   )
 
   private fun createServiceConfigurationUpdate(
@@ -333,5 +333,6 @@ class ServicesController(
     enabled = entity.enabled!!,
     templateMigrated = entity.templateMigrated!!,
     category = ServiceCategory.valueOf(entity.category!!),
+    teamSlackChannelId = entity.teamSlackChannelId,
   )
 }

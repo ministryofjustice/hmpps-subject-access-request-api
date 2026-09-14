@@ -31,6 +31,7 @@ class ServiceConfigurationService(
     val category: ServiceCategory,
     val enabled: Boolean,
     val templateMigrated: Boolean,
+    val teamSlackChannelId: String?,
   )
 
   fun getServiceConfigurationSanitised(): List<ServiceConfiguration>? = serviceConfigurationRepository
@@ -74,6 +75,7 @@ class ServiceConfigurationService(
           enabled = update.enabled
           templateMigrated = update.templateMigrated
           category = update.category
+          teamSlackChannelId = update.teamSlackChannelId
         }
         serviceConfigurationRepository.saveAndFlush(entity)
       }
