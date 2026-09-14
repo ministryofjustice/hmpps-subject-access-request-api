@@ -289,6 +289,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
           category,
           enabled,
           templateMigrated,
+          null,
         ),
         roles = createAndUpdateServiceRoles(),
       )
@@ -319,8 +320,9 @@ class ServicesControllerIntTest : IntegrationTestBase() {
     fun `should successfully create new service configuration`(
       role: String,
     ) {
+      val request = s1.copy(teamSlackChannelId = "team-one")
       val actual = createServiceConfiguration(
-        body = s1.toEntity(),
+        body = request.toEntity(),
         roles = listOf(role),
       )
         .expectStatus()
@@ -330,10 +332,12 @@ class ServicesControllerIntTest : IntegrationTestBase() {
 
       assertThat(actual.responseBody).isNotNull
       assertThat(actual.responseBody!!.id).isNotNull
+      assertThat(actual.responseBody!!.teamSlackChannelId).isEqualTo("team-one")
 
       val saved = serviceConfigurationService.getById(actual.responseBody?.id!!)
       assertThat(saved).isNotNull
-      assertServiceConfigurationIsNotSuspended(saved!!.id)
+      assertThat(saved!!.teamSlackChannelId).isEqualTo("team-one")
+      assertServiceConfigurationIsNotSuspended(saved.id)
     }
   }
 
@@ -415,6 +419,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
           category = category,
           enabled = enabled,
           templateMigrated = templateMigrated,
+          null,
         ),
         roles = listOf("ROLE_SAR_SUPPORT"),
       ).expectStatus()
@@ -439,6 +444,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
           category = PROBATION.name,
           enabled = true,
           templateMigrated = true,
+          null,
         ),
         roles = listOf("ROLE_SAR_SUPPORT"),
       ).expectStatus()
@@ -466,6 +472,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
           category = PROBATION.name,
           enabled = false,
           templateMigrated = false,
+          teamSlackChannelId = "team-updated",
         ),
         roles = listOf(role),
       ).expectStatus()
@@ -481,6 +488,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
       assertThat(latest.category).isEqualTo(PROBATION)
       assertThat(latest.enabled).isFalse
       assertThat(latest.templateMigrated).isFalse
+      assertThat(latest.teamSlackChannelId).isEqualTo("team-updated")
 
       // Assert suspended is not modified
       assertServiceConfigurationIsNotSuspended(s1.id)
@@ -721,5 +729,6 @@ class ServicesControllerIntTest : IntegrationTestBase() {
     category = this.category.name,
     enabled = this.enabled,
     templateMigrated = this.templateMigrated,
+    teamSlackChannelId = this.teamSlackChannelId,
   )
 }
