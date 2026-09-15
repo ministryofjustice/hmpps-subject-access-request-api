@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequestAdminSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
