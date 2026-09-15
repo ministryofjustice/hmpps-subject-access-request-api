@@ -144,18 +144,27 @@ class AdminController(
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = Int::class),
-            examples = [ExampleObject(1.toString())],
+            schema = Schema(implementation = SubjectAccessRequest::class),
           ),
         ],
       ),
       ApiResponse(
         responseCode = "403",
-        description = "Forbidden - user not authorised to create a Subject Access Request.",
+        description = "Forbidden - user not authorised to cancel a Subject Access Request.",
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = CreateSubjectAccessRequestEntity::class),
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Not Found - Subject Access Request with provided ID not found",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
           ),
         ],
       ),
