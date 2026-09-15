@@ -7,6 +7,7 @@ import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
@@ -18,6 +19,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStora
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.ApplicationInsightsQueryConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.DuplicateRequestResponseEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
@@ -41,6 +43,7 @@ import java.util.Base64
 import java.util.Optional
 import java.util.UUID
 import java.util.zip.GZIPOutputStream
+import kotlin.toString
 
 @Service
 class SubjectAccessRequestService(
@@ -242,12 +245,17 @@ class SubjectAccessRequestService(
 
       when (subjectAccessRequest.status) {
         Status.Pending -> {
-          log.info("updating subject access request $id to status '${Status.Completed}'")
+          log.info("updating subject access request {} to status '{}'", id, Status.Completed)
           return subjectAccessRequestRepository.updateStatus(id, Status.Completed)
         }
 
         Status.Completed -> {
           telemetryClient.trackApiEvent("DuplicateCompleteRequest", subjectAccessRequest.id.toString())
+          return 0
+        }
+
+        Status.Cancelled -> {
+          log.info("subject access request id={} could not be completed as request has status cancelled", id)
           return 0
         }
 
@@ -411,6 +419,43 @@ class SubjectAccessRequestService(
     )
   }
 
+  @Transactional
+  fun cancelSubjectAccessRequest(
+    id: UUID,
+    username: String,
+  ): SubjectAccessRequest {
+    val req = subjectAccessRequestRepository.findByIdOrNull(id) ?: run {
+      log.info("subject access request id={} could not be cancelled as request not found", id)
+      throw cancelSubjectAccessRequestNotFoundException(id)
+    }
+
+    return when (req.status) {
+      Status.Pending -> {
+        log.info("cancelling subject access request id={}, current status: {}", id, req.status)
+        req.status = Status.Cancelled
+
+        subjectAccessRequestRepository.save(req).also {
+          telemetryClient.trackEvent(
+            "subjectAccessRequestCancelled",
+            mapOf("id" to id.toString(), "user" to username),
+          )
+        }
+      }
+
+      Status.Cancelled,
+      Status.Completed,
+      Status.Errored,
+      -> {
+        log.info(
+          "subject access request {} not be cancelled, only requests with status 'Pending' can be cancelled, actual status: {}",
+          id,
+          req.status,
+        )
+        throw cancelSubjectAccessRequestInvalidStatusException(id, req.status)
+      }
+    }
+  }
+
   private fun copyAndSaveSubjectAccessRequest(source: SubjectAccessRequest, requestedBy: String): UUID {
     try {
       return UUID.fromString(
@@ -429,4 +474,21 @@ class SubjectAccessRequestService(
   }
 
   internal fun getAuthenticationPrincipalName() = SecurityContextHolder.getContext().authentication?.name ?: "NONE"
+
+  internal fun cancelSubjectAccessRequestNotFoundException(
+    id: UUID,
+  ): SubjectAccessRequestApiException = SubjectAccessRequestApiException(
+    message = "failed to cancel subject access request, request not found",
+    status = HttpStatus.NOT_FOUND,
+    subjectAccessRequestId = id.toString(),
+  )
+
+  internal fun cancelSubjectAccessRequestInvalidStatusException(
+    id: UUID,
+    status: Status,
+  ): SubjectAccessRequestApiException = SubjectAccessRequestApiException(
+    message = "only subject access requests with status 'Pending' can be cancelled, actual status: '${status.name}'",
+    status = HttpStatus.CONFLICT,
+    subjectAccessRequestId = id.toString(),
+  )
 }

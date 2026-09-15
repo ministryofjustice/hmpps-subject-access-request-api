@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito.times
@@ -21,8 +22,10 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.firstValue
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.Page
@@ -89,6 +92,11 @@ class SubjectAccessRequestServiceTest {
 
   private val formattedCurrentTime =
     LocalDateTime.parse("02/01/2024 00:30", DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+
+  companion object {
+    @JvmStatic
+    private fun cancelRequestTestInvalidStatuses(): List<Status> = listOf(Status.Errored, Status.Completed, Status.Cancelled)
+  }
 
   @Nested
   inner class CreateSubjectAccessRequest {
@@ -1035,6 +1043,93 @@ class SubjectAccessRequestServiceTest {
       assertThat(exception.subjectAccessRequestId).isEqualTo(uuid.toString())
 
       verify(subjectAccessRequestRepository, never()).updateStatusToPendingAndRequestDateTime(any(), any())
+    }
+  }
+
+  @Nested
+  inner class CancelSubjectAccessRequest {
+
+    @Captor
+    lateinit var subjectAccessRequestCaptor: ArgumentCaptor<SubjectAccessRequest>
+
+    @Captor
+    lateinit var eventNameCaptor: ArgumentCaptor<String>
+
+    @Captor
+    lateinit var eventPropertiesCaptor: ArgumentCaptor<Map<String, String>?>
+
+    private val subjectAccessRequest = SubjectAccessRequest()
+
+    @Test
+    fun `should update status to cancelled when request exists and has current status pending`() {
+      subjectAccessRequest.status = Status.Pending
+
+      whenever(subjectAccessRequestRepository.findById(subjectAccessRequest.id))
+        .thenReturn(Optional.of(subjectAccessRequest))
+
+      whenever(subjectAccessRequestRepository.save(any<SubjectAccessRequest>()))
+        .thenReturn(subjectAccessRequest)
+
+      val actual = subjectAccessRequestService.cancelSubjectAccessRequest(subjectAccessRequest.id, "bob")
+
+      assertThat(actual).isNotNull
+
+      verify(subjectAccessRequestRepository, times(1))
+        .findById(subjectAccessRequest.id)
+
+      verify(subjectAccessRequestRepository, times(1))
+        .save(subjectAccessRequestCaptor.capture())
+
+      verify(telemetryClient, times(1))
+        .trackEvent(eventNameCaptor.capture(), eventPropertiesCaptor.capture(), isNull())
+
+      assertThat(subjectAccessRequestCaptor.allValues).hasSize(1)
+      assertThat(subjectAccessRequestCaptor.allValues.first().id).isEqualTo(subjectAccessRequest.id)
+      assertThat(subjectAccessRequestCaptor.allValues.first().status).isEqualTo(Status.Cancelled)
+
+      assertThat(eventNameCaptor.allValues).hasSize(1)
+      assertThat(eventNameCaptor.allValues.first()).isEqualTo("subjectAccessRequestCancelled")
+
+      assertThat(eventPropertiesCaptor.allValues).hasSize(1)
+      assertThat(eventPropertiesCaptor.allValues.first())
+        .containsExactlyInAnyOrderEntriesOf(mapOf("id" to subjectAccessRequest.id.toString(), "user" to "bob"))
+    }
+
+    @Test
+    fun `should throw not found exception when request does not exist`() {
+      val actual = assertThrows<SubjectAccessRequestApiException> {
+        subjectAccessRequestService.cancelSubjectAccessRequest(subjectAccessRequest.id, "bob")
+      }
+
+      assertThat(actual.status).isEqualTo(HttpStatus.NOT_FOUND)
+      assertThat(actual.message).isEqualTo("failed to cancel subject access request, request not found")
+      assertThat(actual.subjectAccessRequestId).isEqualTo(subjectAccessRequest.id.toString())
+
+      verify(subjectAccessRequestRepository, times(1)).findById(subjectAccessRequest.id)
+      verify(subjectAccessRequestRepository, never()).save(any())
+      verifyNoInteractions(telemetryClient)
+    }
+
+    @ParameterizedTest(name = "status={0}")
+    @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestServiceTest#cancelRequestTestInvalidStatuses")
+    fun `should throw bad request exception when status is`(status: Status) {
+      subjectAccessRequest.status = status
+
+      whenever(subjectAccessRequestRepository.findById(subjectAccessRequest.id))
+        .thenReturn(Optional.of(subjectAccessRequest))
+
+      val actual = assertThrows<SubjectAccessRequestApiException> {
+        subjectAccessRequestService.cancelSubjectAccessRequest(subjectAccessRequest.id, "bob")
+      }
+
+      assertThat(actual).isNotNull()
+      assertThat(actual.message).isEqualTo("only subject access requests with status 'Pending' can be cancelled, actual status: '${status.name}'")
+      assertThat(actual.status).isEqualTo(HttpStatus.CONFLICT)
+      assertThat(actual.subjectAccessRequestId).isEqualTo(subjectAccessRequest.id.toString())
+
+      verify(subjectAccessRequestRepository, times(1)).findById(subjectAccessRequest.id)
+      verify(subjectAccessRequestRepository, never()).save(any())
+      verifyNoInteractions(telemetryClient)
     }
   }
 
