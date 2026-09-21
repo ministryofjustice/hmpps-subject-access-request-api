@@ -76,6 +76,12 @@ slack:
     auth: "FAKE_AUTH_TOKEN"
     template-error-recipients: "CHANNEL_ID1"
     dev-help-channel-id: "CHANNEL_ID2"
+    team-notifications-enabled:
+      template-health: true
+      template-registered: true
+      service-suspended: true
+      service-unsuspended: true
+      reports-timed-out: true
 
 springdoc:
   api-docs:
