@@ -14,8 +14,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.SlackApiClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -23,6 +27,11 @@ import java.time.format.DateTimeFormatter
 class SlackNotificationService(
   @param:Value("\${slack.bot.dev-help-channel-id}") private val devHelpChannelId: String,
   @param:Value("\${slack.bot.template-error-recipients}") private val templateErrorRecipients: List<String>,
+  @param:Value("\${slack.bot.team-notifications-enabled.template-health:true}") private val templateHealthTeamNotificationsEnabled: Boolean,
+  @param:Value("\${slack.bot.team-notifications-enabled.template-registered:true}") private val templateRegisteredTeamNotificationsEnabled: Boolean,
+  @param:Value("\${slack.bot.team-notifications-enabled.service-suspended:true}") private val serviceSuspendedTeamNotificationsEnabled: Boolean,
+  @param:Value("\${slack.bot.team-notifications-enabled.service-unsuspended:true}") private val serviceUnsuspendedTeamNotificationsEnabled: Boolean,
+  @param:Value("\${slack.bot.team-notifications-enabled.reports-timed-out:true}") private val reportsTimedOutTeamNotificationsEnabled: Boolean,
   val slackApiClient: SlackApiClient,
 ) {
 
@@ -32,21 +41,63 @@ class SlackNotificationService(
   }
 
   fun sendTemplateHealthAlert(unhealthyTemplates: List<TemplateVersionHealthStatus>) {
-    templateErrorRecipients.takeIf { it.isNotEmpty() }?.forEach {
-      val resp = slackApiClient.chatPostMessage(
-        ChatPostMessageRequest.builder()
-          .channel(it)
-          .blocks(buildMessage(unhealthyTemplates))
-          .build(),
-      )
-
-      if (!resp.isOk) {
-        LOG.error("error sending template health slack alert: {}", resp.error)
-      }
-    }
+    sendMessage(
+      recipients = recipientsFor(
+        unhealthyTemplates.map { it.serviceConfiguration.teamSlackChannelId },
+        templateHealthTeamNotificationsEnabled,
+      ),
+      blocks = buildTemplateHealthMessage(unhealthyTemplates),
+      errorMessage = "error sending template health slack alert",
+    )
   }
 
-  private fun buildMessage(
+  fun sendNewTemplateVersionAlert(templateVersion: TemplateVersion) {
+    sendMessage(
+      recipients = recipientsFor(
+        listOf(templateVersion.serviceConfiguration?.teamSlackChannelId),
+        templateRegisteredTeamNotificationsEnabled,
+      ),
+      blocks = buildTemplateRegisteredMessage(templateVersion),
+      errorMessage = "error sending template registered slack alert",
+    )
+  }
+
+  fun sendSuspendProductAlert(serviceConfiguration: ServiceConfiguration) {
+    sendMessage(
+      recipients = recipientsFor(
+        listOf(serviceConfiguration.teamSlackChannelId),
+        serviceSuspendedTeamNotificationsEnabled,
+      ),
+      blocks = buildServiceSuspendedMessage(serviceConfiguration),
+      errorMessage = "error sending service suspended slack alert",
+    )
+  }
+
+  fun sendUnsuspendProductAlert(serviceConfiguration: ServiceConfiguration) {
+    sendMessage(
+      recipients = recipientsFor(
+        listOf(serviceConfiguration.teamSlackChannelId),
+        serviceUnsuspendedTeamNotificationsEnabled,
+      ),
+      blocks = buildServiceUnsuspendedMessage(serviceConfiguration),
+      errorMessage = "error sending service unsuspended slack alert",
+    )
+  }
+
+  fun sendReportsTimedOutAlert(timedOutRequests: List<SubjectAccessRequest>) {
+    sendMessage(
+      recipients = recipientsFor(
+        timedOutRequests.flatMap { request ->
+          request.services.map { it.serviceConfiguration.teamSlackChannelId }
+        },
+        reportsTimedOutTeamNotificationsEnabled,
+      ),
+      blocks = buildReportsTimedOutMessage(timedOutRequests),
+      errorMessage = "error sending reports timed out slack alert",
+    )
+  }
+
+  private fun buildTemplateHealthMessage(
     unhealthyTemplates: List<TemplateVersionHealthStatus>,
   ): List<LayoutBlock> {
     val fields = mutableListOf<TextObject>(
@@ -87,7 +138,119 @@ class SlackNotificationService(
     )
   }
 
+  private fun buildTemplateRegisteredMessage(templateVersion: TemplateVersion): List<LayoutBlock> = asBlocks(
+    header { it.text(plainText("Subject Access Request: Template Registered :page_facing_up:")) },
+    section { s ->
+      s.text(
+        markdownText(
+          "A new template version has been registered for *${templateVersion.serviceConfiguration?.label ?: templateVersion.serviceConfiguration?.serviceName ?: "unknown service"}*.",
+        ),
+      )
+    },
+    divider(),
+    context { c ->
+      c.elements(
+        listOf(
+          markdownText("Version ${templateVersion.version} registered at ${templateVersion.createdAt.prettyFormat()}."),
+        ),
+      )
+    },
+  )
+
+  private fun buildServiceSuspendedMessage(serviceConfiguration: ServiceConfiguration): List<LayoutBlock> = asBlocks(
+    header { it.text(plainText("Subject Access Request: Service Suspended :pause_button:")) },
+    section { s ->
+      s.text(markdownText("Service *${serviceConfiguration.label}* has been suspended."))
+    },
+    divider(),
+    context { c ->
+      c.elements(
+        listOf(
+          markdownText("Reports for this service will remain suspended until it is unsuspended."),
+        ),
+      )
+    },
+  )
+
+  private fun buildServiceUnsuspendedMessage(serviceConfiguration: ServiceConfiguration): List<LayoutBlock> = asBlocks(
+    header { it.text(plainText("Subject Access Request: Service Unsuspended :arrow_forward:")) },
+    section { s ->
+      s.text(markdownText("Service *${serviceConfiguration.label}* has been unsuspended."))
+    },
+    divider(),
+    context { c ->
+      c.elements(
+        listOf(
+          markdownText("Reports for this service can now continue to be processed."),
+        ),
+      )
+    },
+  )
+
+  private fun buildReportsTimedOutMessage(timedOutRequests: List<SubjectAccessRequest>): List<LayoutBlock> {
+    val fields = mutableListOf<TextObject>(
+      markdownText("*SAR*"),
+      markdownText("*Service*"),
+    )
+    timedOutRequests.forEach { request ->
+      fields.add(markdownText(request.sarCaseReferenceNumber))
+      fields.add(markdownText(request.services.map { it.serviceConfiguration.serviceName }.distinct().joinToString(", ")))
+    }
+
+    return asBlocks(
+      header { it.text(plainText("Subject Access Request: Reports Timed Out :hourglass_flowing_sand:")) },
+      section { s ->
+        s.text(
+          markdownText(
+            "One or more Subject Access Requests did not complete within 48 hours and were marked as errored.",
+          ),
+        )
+        s.fields(fields)
+      },
+      divider(),
+      context { c ->
+        c.elements(
+          listOf(
+            markdownText("Please investigate the failed requests and retry if necessary."),
+          ),
+        )
+      },
+    )
+  }
+
+  private fun recipientsFor(
+    channelIds: Collection<String?>,
+    teamNotificationsEnabled: Boolean,
+  ): List<String> = (
+    templateErrorRecipients +
+      channelIds.takeIf { teamNotificationsEnabled }.orEmpty().filterNotNull()
+    ).filter { it.isNotBlank() }
+    .distinct()
+
+  private fun sendMessage(
+    recipients: List<String>,
+    blocks: List<LayoutBlock>,
+    errorMessage: String,
+  ) {
+    if (recipients.isEmpty()) return
+
+    recipients.forEach {
+      val resp = slackApiClient.chatPostMessage(
+        ChatPostMessageRequest.builder()
+          .channel(it)
+          .blocks(blocks)
+          .build(),
+      )
+
+      if (!resp.isOk) {
+        LOG.error("{}: {}", errorMessage, resp.error)
+      }
+    }
+  }
+
   private fun Instant.prettyFormat(): String = this.atZone(ZoneId.of("UTC")).format(dateTimeFormatter)
+
+  private fun LocalDateTime.prettyFormat(): String = this.atZone(ZoneId.of("UTC")).format(dateTimeFormatter)
 
   fun sendDiagnosticMessage() {
     val message = asBlocks(

@@ -17,8 +17,12 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.SlackApiClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RenderStatus
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RequestServiceDetail
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceCategory
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
 import java.time.Instant
 
@@ -34,6 +38,16 @@ class SlackNotificationServiceTest {
     enabled = true,
     templateMigrated = true,
     category = ServiceCategory.PRISON,
+    teamSlackChannelId = "team-channel-01",
+  )
+
+  private val serviceConfigWithoutTeamChannel: ServiceConfiguration = ServiceConfiguration(
+    serviceName = "OtherService",
+    label = "Other",
+    url = "http://localhost:8081",
+    enabled = true,
+    templateMigrated = true,
+    category = ServiceCategory.PRISON,
   )
 
   private val t1: TemplateVersionHealthStatus = TemplateVersionHealthStatus(
@@ -42,9 +56,38 @@ class SlackNotificationServiceTest {
     lastModified = Instant.parse("2026-01-22T14:30:00Z"),
   )
 
+  private val t2: TemplateVersionHealthStatus = TemplateVersionHealthStatus(
+    serviceConfiguration = serviceConfigWithoutTeamChannel,
+    status = HealthStatusType.UNHEALTHY,
+    lastModified = Instant.parse("2026-01-22T15:45:00Z"),
+  )
+
+  private val templateVersion = TemplateVersion(
+    serviceConfiguration = serviceConfig,
+    version = 1,
+  )
+
+  private val timedOutSarBase = SubjectAccessRequest(
+    sarCaseReferenceNumber = "SAR123",
+    services = mutableListOf(),
+  )
+
+  private val timedOutSar = timedOutSarBase.addServices(
+    RequestServiceDetail(
+      subjectAccessRequest = timedOutSarBase,
+      serviceConfiguration = serviceConfig,
+      renderStatus = RenderStatus.PENDING,
+    ),
+  )
+
   private val slackNotificationService = SlackNotificationService(
     devHelpChannelId = "666",
     templateErrorRecipients = listOf("test-channel-01"),
+    templateHealthTeamNotificationsEnabled = true,
+    templateRegisteredTeamNotificationsEnabled = true,
+    serviceSuspendedTeamNotificationsEnabled = true,
+    serviceUnsuspendedTeamNotificationsEnabled = true,
+    reportsTimedOutTeamNotificationsEnabled = true,
     slackApiClient = slackClient,
   )
 
@@ -59,10 +102,14 @@ class SlackNotificationServiceTest {
 
     slackNotificationService.sendTemplateHealthAlert(listOf(t1))
 
-    verify(slackClient, times(1))
+    verify(slackClient, times(2))
       .chatPostMessage(messageCaptor.capture())
 
-    assertThat(messageCaptor.allValues).hasSize(1)
+    assertThat(messageCaptor.allValues).hasSize(2)
+    assertThat(messageCaptor.allValues.map { it.channel }).containsExactly(
+      "test-channel-01",
+      "team-channel-01",
+    )
 
     val actual = messageCaptor.firstValue
     assertThat(actual.channel).isEqualTo("test-channel-01")
@@ -94,5 +141,189 @@ class SlackNotificationServiceTest {
     assertThat((actual.blocks[4] as ContextBlock).elements).hasSize(1)
     assertThat(((actual.blocks[4] as ContextBlock).elements[0] as MarkdownTextObject).text)
       .isEqualTo("Please contact <#666> if you require guidance or assistance debugging this issue.")
+  }
+
+  @Test
+  fun `should send alerts to global and team slack channels`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendTemplateHealthAlert(listOf(t1, t2))
+
+    verify(slackClient, times(2))
+      .chatPostMessage(messageCaptor.capture())
+
+    assertThat(messageCaptor.allValues.map { it.channel }).containsExactlyInAnyOrder(
+      "test-channel-01",
+      "team-channel-01",
+    )
+  }
+
+  @Test
+  fun `should send alerts to team slack channel when there are no global recipients`() {
+    val service = SlackNotificationService(
+      devHelpChannelId = "666",
+      templateErrorRecipients = emptyList(),
+      templateHealthTeamNotificationsEnabled = true,
+      templateRegisteredTeamNotificationsEnabled = true,
+      serviceSuspendedTeamNotificationsEnabled = true,
+      serviceUnsuspendedTeamNotificationsEnabled = true,
+      reportsTimedOutTeamNotificationsEnabled = true,
+      slackApiClient = slackClient,
+    )
+
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    service.sendTemplateHealthAlert(listOf(t1))
+
+    verify(slackClient, times(1))
+      .chatPostMessage(messageCaptor.capture())
+
+    assertThat(messageCaptor.firstValue.channel).isEqualTo("team-channel-01")
+  }
+
+  @Test
+  fun `should send template registered alert to global and team slack channels`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendNewTemplateVersionAlert(templateVersion)
+
+    verify(slackClient, times(2))
+      .chatPostMessage(messageCaptor.capture())
+
+    assertThat(messageCaptor.allValues.map { it.channel }).containsExactlyInAnyOrder(
+      "test-channel-01",
+      "team-channel-01",
+    )
+  }
+
+  @Test
+  fun `should send timed out alert to global and team slack channels`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendReportsTimedOutAlert(listOf(timedOutSar))
+
+    verify(slackClient, times(2))
+      .chatPostMessage(messageCaptor.capture())
+
+    assertThat(messageCaptor.allValues.map { it.channel }).containsExactlyInAnyOrder(
+      "test-channel-01",
+      "team-channel-01",
+    )
+  }
+
+  @Test
+  fun `should send only global slack channels when template health team notifications are disabled`() {
+    val service = SlackNotificationService(
+      devHelpChannelId = "666",
+      templateErrorRecipients = listOf("test-channel-01"),
+      templateHealthTeamNotificationsEnabled = false,
+      templateRegisteredTeamNotificationsEnabled = true,
+      serviceSuspendedTeamNotificationsEnabled = true,
+      serviceUnsuspendedTeamNotificationsEnabled = true,
+      reportsTimedOutTeamNotificationsEnabled = true,
+      slackApiClient = slackClient,
+    )
+
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    service.sendTemplateHealthAlert(listOf(t1))
+
+    verify(slackClient, times(1))
+      .chatPostMessage(messageCaptor.capture())
+
+    assertThat(messageCaptor.firstValue.channel).isEqualTo("test-channel-01")
+  }
+
+  @Test
+  fun `should not send team slack channels when template health notifications are disabled and no global recipients exist`() {
+    val service = SlackNotificationService(
+      devHelpChannelId = "666",
+      templateErrorRecipients = emptyList(),
+      templateHealthTeamNotificationsEnabled = false,
+      templateRegisteredTeamNotificationsEnabled = true,
+      serviceSuspendedTeamNotificationsEnabled = true,
+      serviceUnsuspendedTeamNotificationsEnabled = true,
+      reportsTimedOutTeamNotificationsEnabled = true,
+      slackApiClient = slackClient,
+    )
+
+    service.sendTemplateHealthAlert(listOf(t1))
+
+    verify(slackClient, times(0))
+      .chatPostMessage(any<ChatPostMessageRequest>())
+  }
+
+  @Test
+  fun `should send only global slack channels when template registered team notifications are disabled`() {
+    val service = SlackNotificationService(
+      devHelpChannelId = "666",
+      templateErrorRecipients = listOf("test-channel-01"),
+      templateHealthTeamNotificationsEnabled = true,
+      templateRegisteredTeamNotificationsEnabled = false,
+      serviceSuspendedTeamNotificationsEnabled = true,
+      serviceUnsuspendedTeamNotificationsEnabled = true,
+      reportsTimedOutTeamNotificationsEnabled = true,
+      slackApiClient = slackClient,
+    )
+
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    service.sendNewTemplateVersionAlert(templateVersion)
+
+    verify(slackClient, times(1))
+      .chatPostMessage(messageCaptor.capture())
+
+    assertThat(messageCaptor.firstValue.channel).isEqualTo("test-channel-01")
+  }
+
+  @Test
+  fun `should send only global slack channels when timed out team notifications are disabled`() {
+    val service = SlackNotificationService(
+      devHelpChannelId = "666",
+      templateErrorRecipients = listOf("test-channel-01"),
+      templateHealthTeamNotificationsEnabled = true,
+      templateRegisteredTeamNotificationsEnabled = true,
+      serviceSuspendedTeamNotificationsEnabled = true,
+      serviceUnsuspendedTeamNotificationsEnabled = true,
+      reportsTimedOutTeamNotificationsEnabled = false,
+      slackApiClient = slackClient,
+    )
+
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    service.sendReportsTimedOutAlert(listOf(timedOutSar))
+
+    verify(slackClient, times(1))
+      .chatPostMessage(messageCaptor.capture())
+
+    assertThat(messageCaptor.firstValue.channel).isEqualTo("test-channel-01")
   }
 }
