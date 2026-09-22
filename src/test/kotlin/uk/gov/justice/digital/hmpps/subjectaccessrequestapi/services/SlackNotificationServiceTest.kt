@@ -50,6 +50,16 @@ class SlackNotificationServiceTest {
     category = ServiceCategory.PRISON,
   )
 
+  private val serviceConfigComplete: ServiceConfiguration = ServiceConfiguration(
+    serviceName = "CompleteService",
+    label = "Complete",
+    url = "http://localhost:8082",
+    enabled = true,
+    templateMigrated = true,
+    category = ServiceCategory.PRISON,
+    teamSlackChannelId = "team-channel-02",
+  )
+
   private val t1: TemplateVersionHealthStatus = TemplateVersionHealthStatus(
     serviceConfiguration = serviceConfig,
     status = HealthStatusType.UNHEALTHY,
@@ -77,6 +87,24 @@ class SlackNotificationServiceTest {
       subjectAccessRequest = timedOutSarBase,
       serviceConfiguration = serviceConfig,
       renderStatus = RenderStatus.PENDING,
+    ),
+  )
+
+  private val timedOutSarWithCompletedServiceBase = SubjectAccessRequest(
+    sarCaseReferenceNumber = "SAR456",
+    services = mutableListOf(),
+  )
+
+  private val timedOutSarWithCompletedService = timedOutSarWithCompletedServiceBase.addServices(
+    RequestServiceDetail(
+      subjectAccessRequest = timedOutSarWithCompletedServiceBase,
+      serviceConfiguration = serviceConfigComplete,
+      renderStatus = RenderStatus.COMPLETE,
+    ),
+    RequestServiceDetail(
+      subjectAccessRequest = timedOutSarWithCompletedServiceBase,
+      serviceConfiguration = serviceConfig,
+      renderStatus = RenderStatus.ERRORED,
     ),
   )
 
@@ -225,6 +253,30 @@ class SlackNotificationServiceTest {
       "test-channel-01",
       "team-channel-01",
     )
+  }
+
+  @Test
+  fun `should only send timed out team slack alerts for non complete service details`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendReportsTimedOutAlert(listOf(timedOutSarWithCompletedService))
+
+    verify(slackClient, times(2))
+      .chatPostMessage(messageCaptor.capture())
+
+    assertThat(messageCaptor.allValues.map { it.channel }).containsExactlyInAnyOrder(
+      "test-channel-01",
+      "team-channel-01",
+    )
+    assertThat(messageCaptor.allValues.map { it.channel }).doesNotContain("team-channel-02")
+
+    val actual = messageCaptor.firstValue
+    assertThat((actual.blocks[1] as SectionBlock).fields[2].text).isEqualTo("SAR456")
+    assertThat((actual.blocks[1] as SectionBlock).fields[3].text).isEqualTo("TestService")
   }
 
   @Test

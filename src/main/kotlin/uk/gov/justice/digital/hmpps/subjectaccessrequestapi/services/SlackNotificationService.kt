@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.SlackApiClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RenderStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
@@ -88,7 +89,7 @@ class SlackNotificationService(
     sendMessage(
       recipients = recipientsFor(
         timedOutRequests.flatMap { request ->
-          request.services.map { it.serviceConfiguration.teamSlackChannelId }
+          timedOutServiceDetails(request).map { it.serviceConfiguration.teamSlackChannelId }
         },
         reportsTimedOutTeamNotificationsEnabled,
       ),
@@ -158,7 +159,7 @@ class SlackNotificationService(
   )
 
   private fun buildServiceSuspendedMessage(serviceConfiguration: ServiceConfiguration): List<LayoutBlock> = asBlocks(
-    header { it.text(plainText("Subject Access Request: Service Suspended :pause_button:")) },
+    header { it.text(plainText("Subject Access Request: Service Suspended :double_vertical_bar:")) },
     section { s ->
       s.text(markdownText("Service *${serviceConfiguration.label}* has been suspended."))
     },
@@ -194,7 +195,7 @@ class SlackNotificationService(
     )
     timedOutRequests.forEach { request ->
       fields.add(markdownText(request.sarCaseReferenceNumber))
-      fields.add(markdownText(request.services.map { it.serviceConfiguration.serviceName }.distinct().joinToString(", ")))
+      fields.add(markdownText(timedOutServiceDetails(request).map { it.serviceConfiguration.serviceName }.distinct().joinToString(", ")))
     }
 
     return asBlocks(
@@ -226,6 +227,9 @@ class SlackNotificationService(
       channelIds.takeIf { teamNotificationsEnabled }.orEmpty().filterNotNull()
     ).filter { it.isNotBlank() }
     .distinct()
+
+  private fun timedOutServiceDetails(request: SubjectAccessRequest) = request.services
+    .filter { it.renderStatus != RenderStatus.COMPLETE }
 
   private fun sendMessage(
     recipients: List<String>,
