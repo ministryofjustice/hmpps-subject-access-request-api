@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.ApplicationIn
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.DuplicateRequestResponseEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.ServiceErrorNotificationEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ExtendedSubjectAccessRequestDetail
@@ -50,6 +51,7 @@ class SubjectAccessRequestService(
   val alertsConfiguration: AlertsConfiguration,
   private val telemetryClient: TelemetryClient,
   private val appInsightsQueryConfig: ApplicationInsightsQueryConfiguration,
+  private val slackNotificationService: SlackNotificationService,
 ) {
   private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -264,6 +266,43 @@ class SubjectAccessRequestService(
       message = "complete subject access request unsuccessful request ID not found",
       status = HttpStatus.NOT_FOUND,
       subjectAccessRequestId = id.toString(),
+    )
+  }
+
+  fun reportServiceError(
+    id: UUID,
+    serviceError: ServiceErrorNotificationEntity,
+  ) {
+    val subjectAccessRequest = findSubjectAccessRequest(id).orElseThrow {
+      SubjectAccessRequestApiException(
+        message = "service error notification unsuccessful request ID not found",
+        status = HttpStatus.NOT_FOUND,
+        subjectAccessRequestId = id.toString(),
+      )
+    }
+
+    val requestServiceDetail = subjectAccessRequest.services.find {
+      it.serviceConfiguration.serviceName == serviceError.serviceName
+    } ?: throw SubjectAccessRequestApiException(
+      message = "service error notification unsuccessful service '${serviceError.serviceName}' not found on request",
+      status = HttpStatus.BAD_REQUEST,
+      subjectAccessRequestId = id.toString(),
+    )
+
+    telemetryClient.trackApiEvent(
+      "SubjectAccessRequestServiceCallFailed",
+      id.toString(),
+      "serviceName" to serviceError.serviceName,
+      "failureType" to serviceError.failureType.name,
+      "statusCode" to serviceError.statusCode?.toString().orEmpty(),
+    )
+
+    slackNotificationService.sendRendererServiceCallFailedAlert(
+      subjectAccessRequest = subjectAccessRequest,
+      requestServiceDetail = requestServiceDetail,
+      failureType = serviceError.failureType,
+      statusCode = serviceError.statusCode,
+      message = serviceError.message,
     )
   }
 

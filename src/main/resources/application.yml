@@ -185,6 +185,7 @@ slack:
       service-suspended: ${TEAM_SLACK_SERVICE_SUSPENDED_NOTIFICATIONS_ENABLED:true}
       service-unsuspended: ${TEAM_SLACK_SERVICE_UNSUSPENDED_NOTIFICATIONS_ENABLED:true}
       reports-timed-out: ${TEAM_SLACK_REPORTS_TIMED_OUT_NOTIFICATIONS_ENABLED:true}
+      service-call-failed: ${TEAM_SLACK_SERVICE_CALL_FAILED_NOTIFICATIONS_ENABLED:true}
 
 springdoc:
   api-docs:

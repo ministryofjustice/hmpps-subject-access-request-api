@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.DuplicateRequestResponseEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.ServiceErrorNotificationEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.SubjectAccessRequestResponseEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.BacklogSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.OverdueReportSummary
@@ -453,6 +454,63 @@ class SubjectAccessRequestController(
     } else {
       ResponseEntity(HttpStatus.OK)
     }
+  }
+
+  @PostMapping("/subjectAccessRequests/{id}/service-errors")
+  @PreAuthorize("hasRole('ROLE_SAR_DATA_ACCESS')")
+  @Operation(
+    summary = "Notify service call failure.",
+    description = "Record that the there was a failure to call a service for a Subject Access Request and trigger notifications.",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(responseCode = "204", description = "Service error notification processed."),
+      ApiResponse(
+        responseCode = "400",
+        description = "Failed to process service error notification.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Subject Access Request not found.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unable to serve request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  fun reportServiceError(
+    @PathVariable("id") id: UUID,
+    @RequestBody serviceError: ServiceErrorNotificationEntity,
+  ): ResponseEntity<Void> {
+    telemetryClient.trackEvent(
+      "reportServiceError",
+      mapOf(
+        "id" to id.toString(),
+        "serviceName" to serviceError.serviceName,
+        "failureType" to serviceError.failureType.name,
+      ),
+    )
+    subjectAccessRequestService.reportServiceError(id, serviceError)
+    return ResponseEntity.noContent().build()
   }
 
   @GetMapping("/subjectAccessRequests/overdue")

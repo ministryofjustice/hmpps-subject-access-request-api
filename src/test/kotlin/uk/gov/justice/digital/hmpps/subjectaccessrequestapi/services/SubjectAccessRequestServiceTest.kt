@@ -43,6 +43,8 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.OverdueAlertC
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.RequestTimeoutAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.RendererServiceFailureType
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.ServiceErrorNotificationEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ExtendedSubjectAccessRequestDetail
@@ -74,6 +76,7 @@ class SubjectAccessRequestServiceTest {
   private val overdueAlertConfig: OverdueAlertConfiguration = mock()
   private val appInsightsQueryConfig: ApplicationInsightsQueryConfiguration = mock()
   private val serviceConfigurationService: ServiceConfigurationService = mock()
+  private val slackNotificationService: SlackNotificationService = mock()
 
   @Captor
   private lateinit var sarIdCaptor: ArgumentCaptor<UUID>
@@ -85,6 +88,7 @@ class SubjectAccessRequestServiceTest {
     alertConfiguration,
     telemetryClient,
     appInsightsQueryConfig,
+    slackNotificationService,
   )
 
   private val formattedCurrentTime =
@@ -98,6 +102,67 @@ class SubjectAccessRequestServiceTest {
       whenever(serviceConfigurationService.getByServiceName("1")).thenReturn(serviceConfigOne)
       whenever(serviceConfigurationService.getByServiceName("2")).thenReturn(serviceConfigTwo)
       whenever(serviceConfigurationService.getByServiceName("4")).thenReturn(serviceConfigFour)
+    }
+
+    @Nested
+    inner class ReportServiceError {
+      private val serviceError = ServiceErrorNotificationEntity(
+        serviceName = "1",
+        failureType = RendererServiceFailureType.SAR_DATA,
+        statusCode = 500,
+        message = "renderer failed after retries",
+      )
+
+      @Test
+      fun `should throw exception when request not found`() {
+        whenever(subjectAccessRequestRepository.findById(sampleSAR.id)).thenReturn(Optional.empty())
+
+        val actual = assertThrows<SubjectAccessRequestApiException> {
+          subjectAccessRequestService.reportServiceError(sampleSAR.id, serviceError)
+        }
+
+        assertThat(actual.message).isEqualTo("service error notification unsuccessful request ID not found")
+        assertThat(actual.status).isEqualTo(HttpStatus.NOT_FOUND)
+        verify(slackNotificationService, never()).sendRendererServiceCallFailedAlert(any(), any(), any(), any(), any())
+      }
+
+      @Test
+      fun `should throw exception when service is not attached to request`() {
+        whenever(subjectAccessRequestRepository.findById(sampleSAR.id)).thenReturn(Optional.of(sampleSAR))
+
+        val actual = assertThrows<SubjectAccessRequestApiException> {
+          subjectAccessRequestService.reportServiceError(
+            sampleSAR.id,
+            serviceError.copy(serviceName = "missing-service"),
+          )
+        }
+
+        assertThat(actual.message).isEqualTo("service error notification unsuccessful service 'missing-service' not found on request")
+        assertThat(actual.status).isEqualTo(HttpStatus.BAD_REQUEST)
+        verify(slackNotificationService, never()).sendRendererServiceCallFailedAlert(any(), any(), any(), any(), any())
+      }
+
+      @Test
+      fun `should send renderer service call failed alert for matching service`() {
+        whenever(subjectAccessRequestRepository.findById(sampleSAR.id)).thenReturn(Optional.of(sampleSAR))
+
+        subjectAccessRequestService.reportServiceError(sampleSAR.id, serviceError)
+
+        verify(slackNotificationService).sendRendererServiceCallFailedAlert(
+          subjectAccessRequest = sampleSAR,
+          requestServiceDetail = sampleSAR.services.first(),
+          failureType = RendererServiceFailureType.SAR_DATA,
+          statusCode = 500,
+          message = "renderer failed after retries",
+        )
+        verify(telemetryClient).trackApiEvent(
+          "SubjectAccessRequestServiceCallFailed",
+          sampleSAR.id.toString(),
+          "serviceName" to "1",
+          "failureType" to "SAR_DATA",
+          "statusCode" to "500",
+        )
+      }
     }
 
     @Test

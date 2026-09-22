@@ -16,6 +16,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.SlackApiClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.RendererServiceFailureType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RenderStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RequestServiceDetail
@@ -116,6 +117,7 @@ class SlackNotificationServiceTest {
     serviceSuspendedTeamNotificationsEnabled = true,
     serviceUnsuspendedTeamNotificationsEnabled = true,
     reportsTimedOutTeamNotificationsEnabled = true,
+    serviceCallFailedTeamNotificationsEnabled = true,
     slackApiClient = slackClient,
   )
 
@@ -200,6 +202,7 @@ class SlackNotificationServiceTest {
       serviceSuspendedTeamNotificationsEnabled = true,
       serviceUnsuspendedTeamNotificationsEnabled = true,
       reportsTimedOutTeamNotificationsEnabled = true,
+      serviceCallFailedTeamNotificationsEnabled = true,
       slackApiClient = slackClient,
     )
 
@@ -289,6 +292,7 @@ class SlackNotificationServiceTest {
       serviceSuspendedTeamNotificationsEnabled = true,
       serviceUnsuspendedTeamNotificationsEnabled = true,
       reportsTimedOutTeamNotificationsEnabled = true,
+      serviceCallFailedTeamNotificationsEnabled = true,
       slackApiClient = slackClient,
     )
 
@@ -316,6 +320,7 @@ class SlackNotificationServiceTest {
       serviceSuspendedTeamNotificationsEnabled = true,
       serviceUnsuspendedTeamNotificationsEnabled = true,
       reportsTimedOutTeamNotificationsEnabled = true,
+      serviceCallFailedTeamNotificationsEnabled = true,
       slackApiClient = slackClient,
     )
 
@@ -335,6 +340,7 @@ class SlackNotificationServiceTest {
       serviceSuspendedTeamNotificationsEnabled = true,
       serviceUnsuspendedTeamNotificationsEnabled = true,
       reportsTimedOutTeamNotificationsEnabled = true,
+      serviceCallFailedTeamNotificationsEnabled = true,
       slackApiClient = slackClient,
     )
 
@@ -362,6 +368,7 @@ class SlackNotificationServiceTest {
       serviceSuspendedTeamNotificationsEnabled = true,
       serviceUnsuspendedTeamNotificationsEnabled = true,
       reportsTimedOutTeamNotificationsEnabled = false,
+      serviceCallFailedTeamNotificationsEnabled = true,
       slackApiClient = slackClient,
     )
 
@@ -372,6 +379,65 @@ class SlackNotificationServiceTest {
     val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
 
     service.sendReportsTimedOutAlert(listOf(timedOutSar))
+
+    verify(slackClient, times(1))
+      .chatPostMessage(messageCaptor.capture())
+
+    assertThat(messageCaptor.firstValue.channel).isEqualTo("test-channel-01")
+  }
+
+  @Test
+  fun `should send renderer service call failed alert to global and team slack channels`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendRendererServiceCallFailedAlert(
+      subjectAccessRequest = timedOutSar,
+      requestServiceDetail = timedOutSar.services.first(),
+      failureType = RendererServiceFailureType.SAR_DATA,
+      statusCode = 500,
+      message = "renderer failed after retries",
+    )
+
+    verify(slackClient, times(2))
+      .chatPostMessage(messageCaptor.capture())
+
+    assertThat(messageCaptor.allValues.map { it.channel }).containsExactlyInAnyOrder(
+      "test-channel-01",
+      "team-channel-01",
+    )
+  }
+
+  @Test
+  fun `should send only global slack channels when service call failed team notifications are disabled`() {
+    val service = SlackNotificationService(
+      devHelpChannelId = "666",
+      templateErrorRecipients = listOf("test-channel-01"),
+      templateHealthTeamNotificationsEnabled = true,
+      templateRegisteredTeamNotificationsEnabled = true,
+      serviceSuspendedTeamNotificationsEnabled = true,
+      serviceUnsuspendedTeamNotificationsEnabled = true,
+      reportsTimedOutTeamNotificationsEnabled = true,
+      serviceCallFailedTeamNotificationsEnabled = false,
+      slackApiClient = slackClient,
+    )
+
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    service.sendRendererServiceCallFailedAlert(
+      subjectAccessRequest = timedOutSar,
+      requestServiceDetail = timedOutSar.services.first(),
+      failureType = RendererServiceFailureType.SAR_DATA,
+      statusCode = 500,
+      message = "renderer failed after retries",
+    )
 
     verify(slackClient, times(1))
       .chatPostMessage(messageCaptor.capture())

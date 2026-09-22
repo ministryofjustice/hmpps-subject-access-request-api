@@ -71,6 +71,7 @@ slack:
       service-suspended: true
       service-unsuspended: true
       reports-timed-out: true
+      service-call-failed: true
 
 springdoc:
   api-docs:
