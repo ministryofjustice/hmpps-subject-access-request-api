@@ -43,6 +43,8 @@ class SlackNotificationService(
   companion object {
     private val LOG = LoggerFactory.getLogger(this::class.java)
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+    private const val SLACK_CONTEXT_TEXT_MAX_LENGTH = 3000
+    private const val TRUNCATED_TEXT_SUFFIX = "..."
   }
 
   fun sendTemplateHealthAlert(unhealthyTemplates: List<TemplateVersionHealthStatus>) {
@@ -109,6 +111,15 @@ class SlackNotificationService(
     statusCode: Int?,
     message: String?,
   ) {
+    val recipients = recipientsFor(
+      listOf(requestServiceDetail.serviceConfiguration.teamSlackChannelId),
+      serviceCallFailedTeamNotificationsEnabled,
+    )
+
+    if (recipients.isEmpty()) {
+      return
+    }
+
     if (!rendererServiceCallFailedAlertLimiter.shouldSend(requestServiceDetail.serviceConfiguration.serviceName, failureType)) {
       LOG.info(
         "suppressing renderer service call failed slack alert for service={} failureType={}",
@@ -119,10 +130,7 @@ class SlackNotificationService(
     }
 
     sendMessage(
-      recipients = recipientsFor(
-        listOf(requestServiceDetail.serviceConfiguration.teamSlackChannelId),
-        serviceCallFailedTeamNotificationsEnabled,
-      ),
+      recipients = recipients,
       blocks = buildRendererServiceCallFailedMessage(
         subjectAccessRequest = subjectAccessRequest,
         requestServiceDetail = requestServiceDetail,
@@ -290,7 +298,7 @@ class SlackNotificationService(
       context { c ->
         c.elements(
           listOf(
-            markdownText(message?.takeIf { it.isNotBlank() } ?: "No error message provided."),
+            plainText(rendererServiceCallFailedContextMessage(message)),
           ),
         )
       },
@@ -308,6 +316,16 @@ class SlackNotificationService(
 
   private fun timedOutServiceDetails(request: SubjectAccessRequest) = request.services
     .filter { it.renderStatus != RenderStatus.COMPLETE }
+
+  private fun rendererServiceCallFailedContextMessage(message: String?): String {
+    val text = message?.takeIf { it.isNotBlank() } ?: "No error message provided."
+
+    return if (text.length <= SLACK_CONTEXT_TEXT_MAX_LENGTH) {
+      text
+    } else {
+      text.take(SLACK_CONTEXT_TEXT_MAX_LENGTH - TRUNCATED_TEXT_SUFFIX.length) + TRUNCATED_TEXT_SUFFIX
+    }
+  }
 
   private fun sendMessage(
     recipients: List<String>,

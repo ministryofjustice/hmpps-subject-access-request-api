@@ -460,7 +460,7 @@ class SubjectAccessRequestController(
   @PreAuthorize("hasRole('ROLE_SAR_DATA_ACCESS')")
   @Operation(
     summary = "Notify service call failure.",
-    description = "Record that the there was a failure to call a service for a Subject Access Request and trigger notifications.",
+    description = "Record that there was a failure to call a service for a Subject Access Request and trigger notifications.",
   )
   @ApiResponses(
     value = [

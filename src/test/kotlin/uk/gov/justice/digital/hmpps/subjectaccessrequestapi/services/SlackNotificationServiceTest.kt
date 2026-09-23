@@ -7,6 +7,7 @@ import com.slack.api.model.block.DividerBlock
 import com.slack.api.model.block.HeaderBlock
 import com.slack.api.model.block.SectionBlock
 import com.slack.api.model.block.composition.MarkdownTextObject
+import com.slack.api.model.block.composition.PlainTextObject
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -445,5 +446,52 @@ class SlackNotificationServiceTest {
     )
 
     verify(slackClient, times(0)).chatPostMessage(any<ChatPostMessageRequest>())
+  }
+
+  @Test
+  fun `should not acquire renderer service call failed limiter when there are no recipients`() {
+    val service = createSlackNotificationService(
+      templateErrorRecipients = emptyList(),
+      serviceCallFailedTeamNotificationsEnabled = false,
+    )
+
+    service.sendRendererServiceCallFailedAlert(
+      subjectAccessRequest = timedOutSar,
+      requestServiceDetail = timedOutSar.services.first(),
+      failureType = RendererServiceFailureType.SAR_DATA,
+      statusCode = 500,
+      message = "renderer failed after retries",
+    )
+
+    verify(rendererServiceCallFailedAlertLimiter, times(0)).shouldSend(any(), any())
+    verify(slackClient, times(0)).chatPostMessage(any<ChatPostMessageRequest>())
+  }
+
+  @Test
+  fun `should render renderer service call failed message as capped plain text`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+    whenever(rendererServiceCallFailedAlertLimiter.shouldSend(any(), any()))
+      .thenReturn(true)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+    val upstreamMessage = "<!channel>" + "x".repeat(4000)
+
+    slackNotificationService.sendRendererServiceCallFailedAlert(
+      subjectAccessRequest = timedOutSar,
+      requestServiceDetail = timedOutSar.services.first(),
+      failureType = RendererServiceFailureType.SAR_DATA,
+      statusCode = 500,
+      message = upstreamMessage,
+    )
+
+    verify(slackClient, times(2)).chatPostMessage(messageCaptor.capture())
+
+    val contextText = ((messageCaptor.firstValue.blocks[3] as ContextBlock).elements[0] as PlainTextObject).text
+
+    assertThat(contextText).startsWith("<!channel>")
+    assertThat(contextText).hasSize(3000)
+    assertThat(contextText).endsWith("...")
   }
 }
