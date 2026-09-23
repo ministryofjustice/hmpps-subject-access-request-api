@@ -140,3 +140,16 @@ data class RequestServiceDetailResponseEntity(
     renderedAt = requestServiceDetail.renderedAt,
   )
 }
+
+data class ServiceErrorNotificationEntity(
+  val serviceName: String,
+  val failureType: RendererServiceFailureType,
+  val statusCode: Int? = null,
+  val message: String? = null,
+)
+
+enum class RendererServiceFailureType(val displayName: String) {
+  SAR_DATA("SAR data"),
+  ATTACHMENTS("attachments"),
+  TEMPLATE("template"),
+}

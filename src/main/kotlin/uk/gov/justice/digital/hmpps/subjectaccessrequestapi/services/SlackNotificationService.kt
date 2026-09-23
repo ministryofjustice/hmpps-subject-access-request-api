@@ -14,7 +14,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.SlackApiClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.RendererServiceFailureType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RenderStatus
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RequestServiceDetail
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
@@ -33,12 +35,16 @@ class SlackNotificationService(
   @param:Value("\${slack.bot.team-notifications-enabled.service-suspended:true}") private val serviceSuspendedTeamNotificationsEnabled: Boolean,
   @param:Value("\${slack.bot.team-notifications-enabled.service-unsuspended:true}") private val serviceUnsuspendedTeamNotificationsEnabled: Boolean,
   @param:Value("\${slack.bot.team-notifications-enabled.reports-timed-out:true}") private val reportsTimedOutTeamNotificationsEnabled: Boolean,
+  @param:Value("\${slack.bot.team-notifications-enabled.service-call-failed:true}") private val serviceCallFailedTeamNotificationsEnabled: Boolean,
+  private val rendererServiceCallFailedAlertLimiter: RendererServiceCallFailedAlertLimiter,
   val slackApiClient: SlackApiClient,
 ) {
 
   companion object {
     private val LOG = LoggerFactory.getLogger(this::class.java)
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+    private const val SLACK_CONTEXT_TEXT_MAX_LENGTH = 3000
+    private const val TRUNCATED_TEXT_SUFFIX = "..."
   }
 
   fun sendTemplateHealthAlert(unhealthyTemplates: List<TemplateVersionHealthStatus>) {
@@ -95,6 +101,44 @@ class SlackNotificationService(
       ),
       blocks = buildReportsTimedOutMessage(timedOutRequests),
       errorMessage = "error sending reports timed out slack alert",
+    )
+  }
+
+  fun sendRendererServiceCallFailedAlert(
+    subjectAccessRequest: SubjectAccessRequest,
+    requestServiceDetail: RequestServiceDetail,
+    failureType: RendererServiceFailureType,
+    statusCode: Int?,
+    message: String?,
+  ) {
+    val recipients = recipientsFor(
+      listOf(requestServiceDetail.serviceConfiguration.teamSlackChannelId),
+      serviceCallFailedTeamNotificationsEnabled,
+    )
+
+    if (recipients.isEmpty()) {
+      return
+    }
+
+    if (!rendererServiceCallFailedAlertLimiter.shouldSend(requestServiceDetail.serviceConfiguration.serviceName, failureType)) {
+      LOG.info(
+        "suppressing renderer service call failed slack alert for service={} failureType={}",
+        requestServiceDetail.serviceConfiguration.serviceName,
+        failureType,
+      )
+      return
+    }
+
+    sendMessage(
+      recipients = recipients,
+      blocks = buildRendererServiceCallFailedMessage(
+        subjectAccessRequest = subjectAccessRequest,
+        requestServiceDetail = requestServiceDetail,
+        failureType = failureType,
+        statusCode = statusCode,
+        message = message,
+      ),
+      errorMessage = "error sending renderer service call failed slack alert",
     )
   }
 
@@ -219,6 +263,48 @@ class SlackNotificationService(
     )
   }
 
+  private fun buildRendererServiceCallFailedMessage(
+    subjectAccessRequest: SubjectAccessRequest,
+    requestServiceDetail: RequestServiceDetail,
+    failureType: RendererServiceFailureType,
+    statusCode: Int?,
+    message: String?,
+  ): List<LayoutBlock> {
+    val fields = mutableListOf<TextObject>(
+      markdownText("*SAR*"),
+      markdownText("*Service*"),
+      markdownText("*Failure type*"),
+    ).apply {
+      add(markdownText(subjectAccessRequest.sarCaseReferenceNumber))
+      add(markdownText(requestServiceDetail.serviceConfiguration.serviceName))
+      add(markdownText(failureType.displayName))
+      statusCode?.let {
+        add(markdownText("*Status code*"))
+        add(markdownText(it.toString()))
+      }
+    }
+
+    return asBlocks(
+      header { it.text(plainText("Subject Access Request: Service Call Failed :warning:")) },
+      section { s ->
+        s.text(
+          markdownText(
+            "The HTML renderer failed to retrieve ${failureType.displayName} for *${requestServiceDetail.serviceConfiguration.label}*.",
+          ),
+        )
+        s.fields(fields)
+      },
+      divider(),
+      context { c ->
+        c.elements(
+          listOf(
+            plainText(rendererServiceCallFailedContextMessage(message)),
+          ),
+        )
+      },
+    )
+  }
+
   private fun recipientsFor(
     channelIds: Collection<String?>,
     teamNotificationsEnabled: Boolean,
@@ -230,6 +316,16 @@ class SlackNotificationService(
 
   private fun timedOutServiceDetails(request: SubjectAccessRequest) = request.services
     .filter { it.renderStatus != RenderStatus.COMPLETE }
+
+  private fun rendererServiceCallFailedContextMessage(message: String?): String {
+    val text = message?.takeIf { it.isNotBlank() } ?: "No error message provided."
+
+    return if (text.length <= SLACK_CONTEXT_TEXT_MAX_LENGTH) {
+      text
+    } else {
+      text.take(SLACK_CONTEXT_TEXT_MAX_LENGTH - TRUNCATED_TEXT_SUFFIX.length) + TRUNCATED_TEXT_SUFFIX
+    }
+  }
 
   private fun sendMessage(
     recipients: List<String>,
