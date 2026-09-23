@@ -36,6 +36,7 @@ class SlackNotificationService(
   @param:Value("\${slack.bot.team-notifications-enabled.service-unsuspended:true}") private val serviceUnsuspendedTeamNotificationsEnabled: Boolean,
   @param:Value("\${slack.bot.team-notifications-enabled.reports-timed-out:true}") private val reportsTimedOutTeamNotificationsEnabled: Boolean,
   @param:Value("\${slack.bot.team-notifications-enabled.service-call-failed:true}") private val serviceCallFailedTeamNotificationsEnabled: Boolean,
+  private val rendererServiceCallFailedAlertLimiter: RendererServiceCallFailedAlertLimiter,
   val slackApiClient: SlackApiClient,
 ) {
 
@@ -108,6 +109,15 @@ class SlackNotificationService(
     statusCode: Int?,
     message: String?,
   ) {
+    if (!rendererServiceCallFailedAlertLimiter.shouldSend(requestServiceDetail.serviceConfiguration.serviceName, failureType)) {
+      LOG.info(
+        "suppressing renderer service call failed slack alert for service={} failureType={}",
+        requestServiceDetail.serviceConfiguration.serviceName,
+        failureType,
+      )
+      return
+    }
+
     sendMessage(
       recipients = recipientsFor(
         listOf(requestServiceDetail.serviceConfiguration.teamSlackChannelId),

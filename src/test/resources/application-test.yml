@@ -83,6 +83,8 @@ slack:
       service-unsuspended: true
       reports-timed-out: true
       service-call-failed: true
+    notification-cooldown:
+      service-call-failed: 15m
 
 springdoc:
   api-docs:
