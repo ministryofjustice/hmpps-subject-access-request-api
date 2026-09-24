@@ -115,6 +115,7 @@ class SlackNotificationServiceTest {
 
   private fun createSlackNotificationService(
     templateErrorRecipients: List<String> = listOf("test-channel-01"),
+    environmentName: String = "test",
     templateHealthTeamNotificationsEnabled: Boolean = true,
     templateRegisteredTeamNotificationsEnabled: Boolean = true,
     serviceSuspendedTeamNotificationsEnabled: Boolean = true,
@@ -124,6 +125,7 @@ class SlackNotificationServiceTest {
   ) = SlackNotificationService(
     devHelpChannelId = "666",
     templateErrorRecipients = templateErrorRecipients,
+    environmentName = environmentName,
     templateHealthTeamNotificationsEnabled = templateHealthTeamNotificationsEnabled,
     templateRegisteredTeamNotificationsEnabled = templateRegisteredTeamNotificationsEnabled,
     serviceSuspendedTeamNotificationsEnabled = serviceSuspendedTeamNotificationsEnabled,
@@ -181,9 +183,11 @@ class SlackNotificationServiceTest {
     assertThat(actual.blocks[3]).isInstanceOf(DividerBlock::class.java)
 
     assertThat(actual.blocks[4]).isInstanceOf(ContextBlock::class.java)
-    assertThat((actual.blocks[4] as ContextBlock).elements).hasSize(1)
+    assertThat((actual.blocks[4] as ContextBlock).elements).hasSize(2)
     assertThat(((actual.blocks[4] as ContextBlock).elements[0] as MarkdownTextObject).text)
       .isEqualTo("Please contact <#666> if you require guidance or assistance debugging this issue.")
+    assertThat(((actual.blocks[4] as ContextBlock).elements[1] as MarkdownTextObject).text)
+      .isEqualTo("Environment: *test*")
   }
 
   @Test
@@ -377,6 +381,17 @@ class SlackNotificationServiceTest {
       "test-channel-01",
       "team-channel-01",
     )
+
+    val actual = messageCaptor.firstValue
+    assertThat((actual.blocks[1] as SectionBlock).fields).hasSize(8)
+    assertThat((actual.blocks[1] as SectionBlock).fields[0].text).isEqualTo("*SAR*")
+    assertThat((actual.blocks[1] as SectionBlock).fields[1].text).isEqualTo("SAR123")
+    assertThat((actual.blocks[1] as SectionBlock).fields[2].text).isEqualTo("*Service*")
+    assertThat((actual.blocks[1] as SectionBlock).fields[3].text).isEqualTo("TestService")
+    assertThat((actual.blocks[1] as SectionBlock).fields[4].text).isEqualTo("*Failure type*")
+    assertThat((actual.blocks[1] as SectionBlock).fields[5].text).isEqualTo("SAR data")
+    assertThat((actual.blocks[1] as SectionBlock).fields[6].text).isEqualTo("*Status code*")
+    assertThat((actual.blocks[1] as SectionBlock).fields[7].text).isEqualTo("500")
   }
 
   @Test
@@ -493,5 +508,7 @@ class SlackNotificationServiceTest {
     assertThat(contextText).startsWith("<!channel>")
     assertThat(contextText).hasSize(3000)
     assertThat(contextText).endsWith("...")
+    assertThat(((messageCaptor.firstValue.blocks[3] as ContextBlock).elements[1] as MarkdownTextObject).text)
+      .isEqualTo("Environment: *test*")
   }
 }
