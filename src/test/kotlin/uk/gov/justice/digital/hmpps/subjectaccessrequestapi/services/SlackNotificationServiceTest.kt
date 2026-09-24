@@ -381,6 +381,17 @@ class SlackNotificationServiceTest {
       "test-channel-01",
       "team-channel-01",
     )
+
+    val actual = messageCaptor.firstValue
+    assertThat((actual.blocks[1] as SectionBlock).fields).hasSize(8)
+    assertThat((actual.blocks[1] as SectionBlock).fields[0].text).isEqualTo("*SAR*")
+    assertThat((actual.blocks[1] as SectionBlock).fields[1].text).isEqualTo("SAR123")
+    assertThat((actual.blocks[1] as SectionBlock).fields[2].text).isEqualTo("*Service*")
+    assertThat((actual.blocks[1] as SectionBlock).fields[3].text).isEqualTo("TestService")
+    assertThat((actual.blocks[1] as SectionBlock).fields[4].text).isEqualTo("*Failure type*")
+    assertThat((actual.blocks[1] as SectionBlock).fields[5].text).isEqualTo("SAR data")
+    assertThat((actual.blocks[1] as SectionBlock).fields[6].text).isEqualTo("*Status code*")
+    assertThat((actual.blocks[1] as SectionBlock).fields[7].text).isEqualTo("500")
   }
 
   @Test

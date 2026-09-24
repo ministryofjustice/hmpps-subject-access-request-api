@@ -276,13 +276,12 @@ class SlackNotificationService(
     statusCode: Int?,
     message: String?,
   ): List<LayoutBlock> {
-    val fields = mutableListOf<TextObject>(
-      markdownText("*SAR*"),
-      markdownText("*Service*"),
-      markdownText("*Failure type*"),
-    ).apply {
+    val fields = mutableListOf<TextObject>().apply {
+      add(markdownText("*SAR*"))
       add(markdownText(subjectAccessRequest.sarCaseReferenceNumber))
+      add(markdownText("*Service*"))
       add(markdownText(requestServiceDetail.serviceConfiguration.serviceName))
+      add(markdownText("*Failure type*"))
       add(markdownText(failureType.displayName))
       statusCode?.let {
         add(markdownText("*Status code*"))
