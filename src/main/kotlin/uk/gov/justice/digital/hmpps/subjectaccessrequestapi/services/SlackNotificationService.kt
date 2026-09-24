@@ -30,6 +30,7 @@ import java.time.format.DateTimeFormatter
 class SlackNotificationService(
   @param:Value("\${slack.bot.dev-help-channel-id}") private val devHelpChannelId: String,
   @param:Value("\${slack.bot.template-error-recipients}") private val templateErrorRecipients: List<String>,
+  @param:Value("\${sentry.env:local}") private val environmentName: String,
   @param:Value("\${slack.bot.team-notifications-enabled.template-health:true}") private val templateHealthTeamNotificationsEnabled: Boolean,
   @param:Value("\${slack.bot.team-notifications-enabled.template-registered:true}") private val templateRegisteredTeamNotificationsEnabled: Boolean,
   @param:Value("\${slack.bot.team-notifications-enabled.service-suspended:true}") private val serviceSuspendedTeamNotificationsEnabled: Boolean,
@@ -177,6 +178,7 @@ class SlackNotificationService(
             markdownText(
               "Please contact <#$devHelpChannelId> if you require guidance or assistance debugging this issue.",
             ),
+            environmentContextText(),
           ),
         )
       },
@@ -197,6 +199,7 @@ class SlackNotificationService(
       c.elements(
         listOf(
           markdownText("Version ${templateVersion.version} registered at ${templateVersion.createdAt.prettyFormat()}."),
+          environmentContextText(),
         ),
       )
     },
@@ -212,6 +215,7 @@ class SlackNotificationService(
       c.elements(
         listOf(
           markdownText("Reports for this service will remain suspended until it is unsuspended."),
+          environmentContextText(),
         ),
       )
     },
@@ -227,6 +231,7 @@ class SlackNotificationService(
       c.elements(
         listOf(
           markdownText("Reports for this service can now continue to be processed."),
+          environmentContextText(),
         ),
       )
     },
@@ -257,6 +262,7 @@ class SlackNotificationService(
         c.elements(
           listOf(
             markdownText("Please investigate the failed requests and retry if necessary."),
+            environmentContextText(),
           ),
         )
       },
@@ -299,6 +305,7 @@ class SlackNotificationService(
         c.elements(
           listOf(
             plainText(rendererServiceCallFailedContextMessage(message)),
+            environmentContextText(),
           ),
         )
       },
@@ -313,6 +320,8 @@ class SlackNotificationService(
       channelIds.takeIf { teamNotificationsEnabled }.orEmpty().filterNotNull()
     ).filter { it.isNotBlank() }
     .distinct()
+
+  private fun environmentContextText() = markdownText("Environment: *$environmentName*")
 
   private fun timedOutServiceDetails(request: SubjectAccessRequest) = request.services
     .filter { it.renderStatus != RenderStatus.COMPLETE }
