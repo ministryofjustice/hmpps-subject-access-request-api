@@ -172,6 +172,7 @@ G3-api:
   url: ${G3_API_URL}
 
 sentry:
+  env: ${SENTRY_ENV:local}
   traces-sample-rate: "0.05"
 
 slack:
