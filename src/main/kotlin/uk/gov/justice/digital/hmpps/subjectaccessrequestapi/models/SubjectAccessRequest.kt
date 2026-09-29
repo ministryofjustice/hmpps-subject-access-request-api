@@ -16,6 +16,7 @@ enum class Status {
   Pending,
   Completed,
   Errored,
+  Cancelled,
 }
 
 @Entity
@@ -23,7 +24,7 @@ data class SubjectAccessRequest(
   @Id
   val id: UUID = UUID.randomUUID(),
   @Enumerated(EnumType.STRING)
-  val status: Status = Status.Pending,
+  var status: Status = Status.Pending,
   val dateFrom: LocalDate? = null,
   var dateTo: LocalDate? = null,
   val sarCaseReferenceNumber: String = "",
