@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.10"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.11"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.4.20"
   kotlin("plugin.spring") version "2.4.20"
   kotlin("plugin.jpa") version "2.4.20"
@@ -33,7 +33,7 @@ dependencies {
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.10.1")
   implementation("com.slack.api:slack-api-client:1.51.0")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
-  implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.8.3")
+  implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.8.4")
   implementation("commons-io:commons-io:2.22.0")
   implementation("com.google.guava:guava:33.7.1-jre")
 
