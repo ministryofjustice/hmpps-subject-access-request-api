@@ -24,7 +24,7 @@ data class SubjectAccessRequest(
   @Id
   val id: UUID = UUID.randomUUID(),
   @Enumerated(EnumType.STRING)
-  var status: Status = Status.Pending,
+  val status: Status = Status.Pending,
   val dateFrom: LocalDate? = null,
   var dateTo: LocalDate? = null,
   val sarCaseReferenceNumber: String = "",

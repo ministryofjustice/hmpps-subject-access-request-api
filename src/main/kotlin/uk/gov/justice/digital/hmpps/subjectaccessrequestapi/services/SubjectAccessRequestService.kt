@@ -471,9 +471,7 @@ class SubjectAccessRequestService(
     return when (req.status) {
       Status.Pending -> {
         log.info("cancelling subject access request id={}, current status: {}", id, req.status)
-        req.status = Status.Cancelled
-
-        subjectAccessRequestRepository.save(req).also {
+        subjectAccessRequestRepository.save(req.copy(status = Status.Cancelled)).also {
           telemetryClient.trackEvent(
             "subjectAccessRequestCancelled",
             mapOf("id" to id.toString(), "user" to username),
