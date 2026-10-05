@@ -1127,7 +1127,7 @@ class SubjectAccessRequestServiceTest {
 
     @Test
     fun `should update status to cancelled when request exists and has current status pending`() {
-      subjectAccessRequest = subjectAccessRequest.copy(status = Status.Pending)
+      subjectAccessRequest.status = Status.Pending
 
       whenever(subjectAccessRequestRepository.findById(subjectAccessRequest.id))
         .thenReturn(Optional.of(subjectAccessRequest))
@@ -1178,7 +1178,7 @@ class SubjectAccessRequestServiceTest {
     @ParameterizedTest(name = "status={0}")
     @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestServiceTest#cancelRequestTestInvalidStatuses")
     fun `should throw bad request exception when status is`(status: Status) {
-      subjectAccessRequest = subjectAccessRequest.copy(status = status)
+      subjectAccessRequest.status = status
 
       whenever(subjectAccessRequestRepository.findById(subjectAccessRequest.id))
         .thenReturn(Optional.of(subjectAccessRequest))
