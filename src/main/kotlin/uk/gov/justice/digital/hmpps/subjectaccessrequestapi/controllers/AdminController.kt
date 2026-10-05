@@ -11,14 +11,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequestAdminSummary
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.util.UUID
@@ -129,4 +132,58 @@ class AdminController(
     subjectAccessRequestService.restartSubjectAccessRequest(id)
     return ResponseEntity(HttpStatus.OK)
   }
+
+  @PutMapping("/subjectAccessRequests/{id}/cancel")
+  @Operation(summary = "Cancelled a Subject Access Request.", description = "Update request status to Cancelled to prevent further processing")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Successfully cancelled subject access request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = SubjectAccessRequest::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden - user not authorised to cancel a Subject Access Request.",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Not Found - Subject Access Request with provided ID not found",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Failed to cancel subject access request due to conflicting status",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = String::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  fun cancelSubjectAccessRequest(
+    @PathVariable("id") id: UUID,
+    authentication: Authentication,
+  ): ResponseEntity<SubjectAccessRequest> = subjectAccessRequestService.cancelSubjectAccessRequest(
+    id = id,
+    username = authentication.name,
+  ).let { request -> ResponseEntity.ok(request) }
 }

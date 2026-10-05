@@ -16,6 +16,7 @@ enum class Status {
   Pending,
   Completed,
   Errored,
+  Cancelled,
 }
 
 @Entity
