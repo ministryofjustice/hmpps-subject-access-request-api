@@ -17,6 +17,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.AlertsService
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SlackNotificationService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 
 @ExtendWith(MockitoExtension::class)
@@ -24,12 +25,14 @@ class ReportsTimedOutAlertTest {
 
   private val alertsService: AlertsService = mock()
   private val subjectAccessRequestService: SubjectAccessRequestService = mock()
+  private val slackNotificationService: SlackNotificationService = mock()
   private val expiredSar1: SubjectAccessRequest = mock()
   private val thrownException = RuntimeException("KABOOOM!")
 
   private val timeoutAlert = ReportsTimedOutAlert(
     subjectAccessRequestService = subjectAccessRequestService,
     alertsService = alertsService,
+    slackNotificationService = slackNotificationService,
   )
 
   @Captor
@@ -64,6 +67,7 @@ class ReportsTimedOutAlertTest {
       .expirePendingRequestsSubmittedBeforeThreshold()
 
     verify(alertsService, times(1)).raiseReportsTimedOutAlert(timedOutRequests)
+    verify(slackNotificationService, times(1)).sendReportsTimedOutAlert(timedOutRequests)
   }
 
   @Test
@@ -99,6 +103,7 @@ class ReportsTimedOutAlertTest {
     verify(subjectAccessRequestService, times(1)).expirePendingRequestsSubmittedBeforeThreshold()
 
     verify(alertsService, times(1)).raiseReportsTimedOutAlert(listOf(expiredSar1))
+    verifyNoInteractions(slackNotificationService)
 
     verify(alertsService, times(1)).raiseUnexpectedExceptionAlert(
       capture(errorCaptor),
@@ -129,6 +134,7 @@ class ReportsTimedOutAlertTest {
     verify(subjectAccessRequestService, times(1)).expirePendingRequestsSubmittedBeforeThreshold()
 
     verify(alertsService, times(1)).raiseReportsTimedOutAlert(listOf(expiredSar1))
+    verifyNoInteractions(slackNotificationService)
 
     verify(alertsService, times(1)).raiseUnexpectedExceptionAlert(
       capture(errorCaptor),

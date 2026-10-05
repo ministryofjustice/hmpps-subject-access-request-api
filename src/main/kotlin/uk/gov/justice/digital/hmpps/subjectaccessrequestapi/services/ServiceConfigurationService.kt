@@ -17,6 +17,7 @@ import java.util.UUID
 class ServiceConfigurationService(
   private val serviceConfigurationRepository: ServiceConfigurationRepository,
   private val notificationService: NotificationService,
+  private val slackNotificationService: SlackNotificationService,
 ) {
 
   private companion object {
@@ -92,8 +93,14 @@ class ServiceConfigurationService(
 
     serviceConfigurationRepository.saveAndFlush(serviceConfiguration).also {
       when (suspended) {
-        true -> notificationService.sendSuspendProductNotification(it)
-        else -> notificationService.sendUnsuspendProductNotification(it)
+        true -> {
+          notificationService.sendSuspendProductNotification(it)
+          slackNotificationService.sendSuspendProductAlert(it)
+        }
+        else -> {
+          notificationService.sendUnsuspendProductNotification(it)
+          slackNotificationService.sendUnsuspendProductAlert(it)
+        }
       }
     }
   } ?: throw ServiceConfigurationNotFoundException(id)

@@ -4,6 +4,7 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.AlertsService
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SlackNotificationService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.util.concurrent.TimeUnit
 
@@ -11,6 +12,7 @@ import java.util.concurrent.TimeUnit
 class ReportsTimedOutAlert(
   val subjectAccessRequestService: SubjectAccessRequestService,
   val alertsService: AlertsService,
+  val slackNotificationService: SlackNotificationService,
 ) {
 
   /**
@@ -29,6 +31,7 @@ class ReportsTimedOutAlert(
       val expiredReports = subjectAccessRequestService.expirePendingRequestsSubmittedBeforeThreshold()
       expiredReports.takeIf { it.isNotEmpty() }?.let {
         alertsService.raiseReportsTimedOutAlert(it)
+        slackNotificationService.sendReportsTimedOutAlert(it)
       }
     } catch (ex: Exception) {
       alertsService.raiseUnexpectedExceptionAlert(

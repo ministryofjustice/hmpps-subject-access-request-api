@@ -172,6 +172,7 @@ G3-api:
   url: ${G3_API_URL}
 
 sentry:
+  env: ${SENTRY_ENV:local}
   traces-sample-rate: "0.05"
 
 slack:
@@ -179,6 +180,15 @@ slack:
     auth: ${SAR_SLACK_BOT_AUTH_TOKEN}
     template-error-recipients: ${TEMPLATE_ALERT_SLACK_CHANNEL_IDS}
     dev-help-channel-id: ${DEV_HELP_SLACK_CHANNEL_ID}
+    team-notifications-enabled:
+      template-health: ${TEAM_SLACK_TEMPLATE_HEALTH_NOTIFICATIONS_ENABLED:true}
+      template-registered: ${TEAM_SLACK_TEMPLATE_REGISTERED_NOTIFICATIONS_ENABLED:true}
+      service-suspended: ${TEAM_SLACK_SERVICE_SUSPENDED_NOTIFICATIONS_ENABLED:true}
+      service-unsuspended: ${TEAM_SLACK_SERVICE_UNSUSPENDED_NOTIFICATIONS_ENABLED:true}
+      reports-timed-out: ${TEAM_SLACK_REPORTS_TIMED_OUT_NOTIFICATIONS_ENABLED:true}
+      service-call-failed: ${TEAM_SLACK_SERVICE_CALL_FAILED_NOTIFICATIONS_ENABLED:true}
+    notification-cooldown:
+      service-call-failed: ${SLACK_SERVICE_CALL_FAILED_NOTIFICATION_COOLDOWN:15m}
 
 springdoc:
   api-docs:
