@@ -48,9 +48,6 @@ and the [Subject Access Request worker](https://github.com/ministryofjustice/hmp
 # Run tests
 ./gradlew test
 
-# Run Ktlint check
-./gradlew ktlintCheck
-
 # List dependencies / check for updates
 ./gradlew dependencies
 ./gradlew dependencyUpdates --warning-mode all
@@ -60,7 +57,7 @@ and the [Subject Access Request worker](https://github.com/ministryofjustice/hmp
 ```
 
 Run the smallest relevant command for a change (e.g. a single test class) where possible, and run
-`./gradlew ktlintCheck` and `./gradlew test` before considering Kotlin changes complete.
+`./gradlew test` before considering Kotlin changes complete.
 
 ## Running locally
 
@@ -71,8 +68,8 @@ Run the smallest relevant command for a change (e.g. a single test class) where 
 
 ## Conventions
 
-- Kotlin code style is enforced by Ktlint — run `./gradlew ktlintCheck` after edits and fix any
-  violations (`./gradlew ktlintFormat` can auto-fix most issues).
+- Follow the existing Kotlin code style. Do not run any Gradle ktlint task in this repository,
+  including `ktlintCheck` and `ktlintFormat`.
 - Follow the existing package-by-layer structure described above when adding new code.
 - Add/modify Flyway migrations under `db/migration` (PostgreSQL) — don't edit already-applied
   migrations; add a new versioned migration file instead. Keep `migration_h2` in sync if required
@@ -84,7 +81,7 @@ Run the smallest relevant command for a change (e.g. a single test class) where 
 ## Pull requests
 
 - Keep changes focused and avoid unrelated refactors.
-- Ensure `./gradlew ktlintCheck` and `./gradlew test` pass before opening a PR.
+- Ensure `./gradlew test` passes before opening a PR. Do not run any Gradle ktlint task.
 
 ## Dependency injection
 
