@@ -18,6 +18,7 @@ class TemplateVersionService(
   private val templateVersionRepository: TemplateVersionRepository,
   private val serviceConfigurationRepository: ServiceConfigurationRepository,
   private val notificationService: NotificationService,
+  private val slackNotificationService: SlackNotificationService,
 ) {
 
   private companion object {
@@ -63,6 +64,7 @@ class TemplateVersionService(
       ),
     )
     notificationService.sendNewTemplateVersionNotification(newTemplateVersion)
+    slackNotificationService.sendNewTemplateVersionAlert(newTemplateVersion)
     return newTemplateVersion
   }
 

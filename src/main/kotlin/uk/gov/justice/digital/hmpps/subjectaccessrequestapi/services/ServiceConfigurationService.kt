@@ -17,6 +17,7 @@ import java.util.UUID
 class ServiceConfigurationService(
   private val serviceConfigurationRepository: ServiceConfigurationRepository,
   private val notificationService: NotificationService,
+  private val slackNotificationService: SlackNotificationService,
 ) {
 
   private companion object {
@@ -31,6 +32,7 @@ class ServiceConfigurationService(
     val category: ServiceCategory,
     val enabled: Boolean,
     val templateMigrated: Boolean,
+    val teamSlackChannelId: String?,
   )
 
   fun getServiceConfigurationSanitised(): List<ServiceConfiguration>? = serviceConfigurationRepository
@@ -74,6 +76,7 @@ class ServiceConfigurationService(
           enabled = update.enabled
           templateMigrated = update.templateMigrated
           category = update.category
+          teamSlackChannelId = update.teamSlackChannelId
         }
         serviceConfigurationRepository.saveAndFlush(entity)
       }
@@ -90,8 +93,14 @@ class ServiceConfigurationService(
 
     serviceConfigurationRepository.saveAndFlush(serviceConfiguration).also {
       when (suspended) {
-        true -> notificationService.sendSuspendProductNotification(it)
-        else -> notificationService.sendUnsuspendProductNotification(it)
+        true -> {
+          notificationService.sendSuspendProductNotification(it)
+          slackNotificationService.sendSuspendProductAlert(it)
+        }
+        else -> {
+          notificationService.sendUnsuspendProductNotification(it)
+          slackNotificationService.sendUnsuspendProductAlert(it)
+        }
       }
     }
   } ?: throw ServiceConfigurationNotFoundException(id)

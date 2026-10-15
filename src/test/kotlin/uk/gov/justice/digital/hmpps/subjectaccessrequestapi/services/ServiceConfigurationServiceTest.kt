@@ -34,7 +34,8 @@ class ServiceConfigurationServiceTest {
 
   private val serviceConfigurationRepository: ServiceConfigurationRepository = mock()
   private val notificationService: NotificationService = mock()
-  private val service = ServiceConfigurationService(serviceConfigurationRepository, notificationService)
+  private val slackNotificationService: SlackNotificationService = mock()
+  private val service = ServiceConfigurationService(serviceConfigurationRepository, notificationService, slackNotificationService)
 
   @Nested
   inner class GetServiceConfigurationSanitised {
@@ -150,6 +151,7 @@ class ServiceConfigurationServiceTest {
       enabled = false,
       templateMigrated = false,
       category = PROBATION,
+      teamSlackChannelId = "team-alpha",
     )
 
     @Test
@@ -162,6 +164,7 @@ class ServiceConfigurationServiceTest {
         enabled = false,
         templateMigrated = false,
         category = PROBATION,
+        teamSlackChannelId = "team-alpha",
       )
 
       whenever(serviceConfigurationRepository.findByServiceNameAndIdNot(update.serviceName, update.id))
@@ -214,6 +217,7 @@ class ServiceConfigurationServiceTest {
       assertThat(actual.category).isEqualTo(PROBATION)
       assertThat(actual.enabled).isFalse()
       assertThat(actual.templateMigrated).isFalse()
+      assertThat(actual.teamSlackChannelId).isEqualTo("team-alpha")
     }
   }
 
@@ -241,7 +245,7 @@ class ServiceConfigurationServiceTest {
       assertThat(actual.message).isEqualTo("Service configuration service not found for id: ${s.id}")
 
       verify(serviceConfigurationRepository, times(1)).findById(s.id)
-      verifyNoMoreInteractions(serviceConfigurationRepository, notificationService)
+      verifyNoMoreInteractions(serviceConfigurationRepository, notificationService, slackNotificationService)
     }
 
     @Test
@@ -270,6 +274,7 @@ class ServiceConfigurationServiceTest {
       assertThat(actual.suspendedAt).isBetween(start, Instant.now())
 
       verify(notificationService).sendSuspendProductNotification(actual)
+      verify(slackNotificationService).sendSuspendProductAlert(actual)
     }
 
     @Test
@@ -296,6 +301,7 @@ class ServiceConfigurationServiceTest {
       assertThat(actual.suspendedAt).isNull()
 
       verify(notificationService).sendUnsuspendProductNotification(actual)
+      verify(slackNotificationService).sendUnsuspendProductAlert(actual)
     }
 
     @Test
@@ -330,6 +336,7 @@ class ServiceConfigurationServiceTest {
       assertThat(actual.suspendedAt).isBetween(start, Instant.now())
 
       verify(notificationService).sendSuspendProductNotification(actual)
+      verify(slackNotificationService).sendSuspendProductAlert(actual)
     }
   }
 }

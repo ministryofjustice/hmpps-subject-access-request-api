@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito.times
@@ -21,8 +22,10 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.firstValue
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.Page
@@ -43,6 +46,8 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.OverdueAlertC
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.RequestTimeoutAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackApiEvent
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.CreateSubjectAccessRequestEntity
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.RendererServiceFailureType
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.ServiceErrorNotificationEntity
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.CreateSubjectAccessRequestException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestApiException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ExtendedSubjectAccessRequestDetail
@@ -74,6 +79,7 @@ class SubjectAccessRequestServiceTest {
   private val overdueAlertConfig: OverdueAlertConfiguration = mock()
   private val appInsightsQueryConfig: ApplicationInsightsQueryConfiguration = mock()
   private val serviceConfigurationService: ServiceConfigurationService = mock()
+  private val slackNotificationService: SlackNotificationService = mock()
 
   @Captor
   private lateinit var sarIdCaptor: ArgumentCaptor<UUID>
@@ -85,10 +91,16 @@ class SubjectAccessRequestServiceTest {
     alertConfiguration,
     telemetryClient,
     appInsightsQueryConfig,
+    slackNotificationService,
   )
 
   private val formattedCurrentTime =
     LocalDateTime.parse("02/01/2024 00:30", DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+
+  companion object {
+    @JvmStatic
+    private fun cancelRequestTestInvalidStatuses(): List<Status> = listOf(Status.Errored, Status.Completed, Status.Cancelled)
+  }
 
   @Nested
   inner class CreateSubjectAccessRequest {
@@ -98,6 +110,67 @@ class SubjectAccessRequestServiceTest {
       whenever(serviceConfigurationService.getByServiceName("1")).thenReturn(serviceConfigOne)
       whenever(serviceConfigurationService.getByServiceName("2")).thenReturn(serviceConfigTwo)
       whenever(serviceConfigurationService.getByServiceName("4")).thenReturn(serviceConfigFour)
+    }
+
+    @Nested
+    inner class ReportServiceError {
+      private val serviceError = ServiceErrorNotificationEntity(
+        serviceName = "1",
+        failureType = RendererServiceFailureType.SAR_DATA,
+        statusCode = 500,
+        message = "renderer failed after retries",
+      )
+
+      @Test
+      fun `should throw exception when request not found`() {
+        whenever(subjectAccessRequestRepository.findById(sampleSAR.id)).thenReturn(Optional.empty())
+
+        val actual = assertThrows<SubjectAccessRequestApiException> {
+          subjectAccessRequestService.reportServiceError(sampleSAR.id, serviceError)
+        }
+
+        assertThat(actual.message).isEqualTo("service error notification unsuccessful request ID not found")
+        assertThat(actual.status).isEqualTo(HttpStatus.NOT_FOUND)
+        verify(slackNotificationService, never()).sendRendererServiceCallFailedAlert(any(), any(), any(), any(), any())
+      }
+
+      @Test
+      fun `should throw exception when service is not attached to request`() {
+        whenever(subjectAccessRequestRepository.findById(sampleSAR.id)).thenReturn(Optional.of(sampleSAR))
+
+        val actual = assertThrows<SubjectAccessRequestApiException> {
+          subjectAccessRequestService.reportServiceError(
+            sampleSAR.id,
+            serviceError.copy(serviceName = "missing-service"),
+          )
+        }
+
+        assertThat(actual.message).isEqualTo("service error notification unsuccessful service 'missing-service' not found on request")
+        assertThat(actual.status).isEqualTo(HttpStatus.BAD_REQUEST)
+        verify(slackNotificationService, never()).sendRendererServiceCallFailedAlert(any(), any(), any(), any(), any())
+      }
+
+      @Test
+      fun `should send renderer service call failed alert for matching service`() {
+        whenever(subjectAccessRequestRepository.findById(sampleSAR.id)).thenReturn(Optional.of(sampleSAR))
+
+        subjectAccessRequestService.reportServiceError(sampleSAR.id, serviceError)
+
+        verify(slackNotificationService).sendRendererServiceCallFailedAlert(
+          subjectAccessRequest = sampleSAR,
+          requestServiceDetail = sampleSAR.services.first(),
+          failureType = RendererServiceFailureType.SAR_DATA,
+          statusCode = 500,
+          message = "renderer failed after retries",
+        )
+        verify(telemetryClient).trackApiEvent(
+          "SubjectAccessRequestServiceCallFailed",
+          sampleSAR.id.toString(),
+          "serviceName" to "1",
+          "failureType" to "SAR_DATA",
+          "statusCode" to "500",
+        )
+      }
     }
 
     @Test
@@ -1035,6 +1108,93 @@ class SubjectAccessRequestServiceTest {
       assertThat(exception.subjectAccessRequestId).isEqualTo(uuid.toString())
 
       verify(subjectAccessRequestRepository, never()).updateStatusToPendingAndRequestDateTime(any(), any())
+    }
+  }
+
+  @Nested
+  inner class CancelSubjectAccessRequest {
+
+    @Captor
+    lateinit var subjectAccessRequestCaptor: ArgumentCaptor<SubjectAccessRequest>
+
+    @Captor
+    lateinit var eventNameCaptor: ArgumentCaptor<String>
+
+    @Captor
+    lateinit var eventPropertiesCaptor: ArgumentCaptor<Map<String, String>?>
+
+    private var subjectAccessRequest = SubjectAccessRequest()
+
+    @Test
+    fun `should update status to cancelled when request exists and has current status pending`() {
+      subjectAccessRequest.status = Status.Pending
+
+      whenever(subjectAccessRequestRepository.findById(subjectAccessRequest.id))
+        .thenReturn(Optional.of(subjectAccessRequest))
+
+      whenever(subjectAccessRequestRepository.save(any<SubjectAccessRequest>()))
+        .thenReturn(subjectAccessRequest)
+
+      val actual = subjectAccessRequestService.cancelSubjectAccessRequest(subjectAccessRequest.id, "bob")
+
+      assertThat(actual).isNotNull
+
+      verify(subjectAccessRequestRepository, times(1))
+        .findById(subjectAccessRequest.id)
+
+      verify(subjectAccessRequestRepository, times(1))
+        .save(subjectAccessRequestCaptor.capture())
+
+      verify(telemetryClient, times(1))
+        .trackEvent(eventNameCaptor.capture(), eventPropertiesCaptor.capture(), isNull())
+
+      assertThat(subjectAccessRequestCaptor.allValues).hasSize(1)
+      assertThat(subjectAccessRequestCaptor.allValues.first().id).isEqualTo(subjectAccessRequest.id)
+      assertThat(subjectAccessRequestCaptor.allValues.first().status).isEqualTo(Status.Cancelled)
+
+      assertThat(eventNameCaptor.allValues).hasSize(1)
+      assertThat(eventNameCaptor.allValues.first()).isEqualTo("subjectAccessRequestCancelled")
+
+      assertThat(eventPropertiesCaptor.allValues).hasSize(1)
+      assertThat(eventPropertiesCaptor.allValues.first())
+        .containsExactlyInAnyOrderEntriesOf(mapOf("id" to subjectAccessRequest.id.toString(), "user" to "bob"))
+    }
+
+    @Test
+    fun `should throw not found exception when request does not exist`() {
+      val actual = assertThrows<SubjectAccessRequestApiException> {
+        subjectAccessRequestService.cancelSubjectAccessRequest(subjectAccessRequest.id, "bob")
+      }
+
+      assertThat(actual.status).isEqualTo(HttpStatus.NOT_FOUND)
+      assertThat(actual.message).isEqualTo("failed to cancel subject access request, request not found")
+      assertThat(actual.subjectAccessRequestId).isEqualTo(subjectAccessRequest.id.toString())
+
+      verify(subjectAccessRequestRepository, times(1)).findById(subjectAccessRequest.id)
+      verify(subjectAccessRequestRepository, never()).save(any())
+      verifyNoInteractions(telemetryClient)
+    }
+
+    @ParameterizedTest(name = "status={0}")
+    @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestServiceTest#cancelRequestTestInvalidStatuses")
+    fun `should throw bad request exception when status is`(status: Status) {
+      subjectAccessRequest.status = status
+
+      whenever(subjectAccessRequestRepository.findById(subjectAccessRequest.id))
+        .thenReturn(Optional.of(subjectAccessRequest))
+
+      val actual = assertThrows<SubjectAccessRequestApiException> {
+        subjectAccessRequestService.cancelSubjectAccessRequest(subjectAccessRequest.id, "bob")
+      }
+
+      assertThat(actual).isNotNull()
+      assertThat(actual.message).isEqualTo("only subject access requests with status 'Pending' can be cancelled, actual status: '${status.name}'")
+      assertThat(actual.status).isEqualTo(HttpStatus.CONFLICT)
+      assertThat(actual.subjectAccessRequestId).isEqualTo(subjectAccessRequest.id.toString())
+
+      verify(subjectAccessRequestRepository, times(1)).findById(subjectAccessRequest.id)
+      verify(subjectAccessRequestRepository, never()).save(any())
+      verifyNoInteractions(telemetryClient)
     }
   }
 

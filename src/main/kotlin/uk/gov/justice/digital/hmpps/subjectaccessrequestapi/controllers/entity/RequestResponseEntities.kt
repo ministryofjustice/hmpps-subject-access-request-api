@@ -61,6 +61,7 @@ data class ServiceInfo(
   val templateMigrated: Boolean,
   val category: ServiceCategory,
   val suspended: Boolean,
+  val teamSlackChannelId: String? = null,
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "UTC")
   val suspendedAt: Instant? = null,
@@ -75,6 +76,7 @@ data class ServiceInfo(
     templateMigrated = serviceConfiguration.templateMigrated,
     category = serviceConfiguration.category,
     suspended = serviceConfiguration.suspended,
+    teamSlackChannelId = serviceConfiguration.teamSlackChannelId,
     suspendedAt = serviceConfiguration.suspendedAt,
   )
 }
@@ -86,6 +88,7 @@ data class ServiceConfigurationEntity(
   val category: String?,
   val enabled: Boolean?,
   val templateMigrated: Boolean?,
+  val teamSlackChannelId: String?,
 )
 
 data class SubjectAccessRequestResponseEntity(
@@ -136,4 +139,17 @@ data class RequestServiceDetailResponseEntity(
     templateVersion = requestServiceDetail.templateVersion?.version,
     renderedAt = requestServiceDetail.renderedAt,
   )
+}
+
+data class ServiceErrorNotificationEntity(
+  val serviceName: String,
+  val failureType: RendererServiceFailureType,
+  val statusCode: Int? = null,
+  val message: String? = null,
+)
+
+enum class RendererServiceFailureType(val displayName: String) {
+  SAR_DATA("SAR data"),
+  ATTACHMENTS("attachments"),
+  TEMPLATE("template"),
 }
