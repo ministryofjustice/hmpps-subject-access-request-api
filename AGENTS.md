@@ -12,6 +12,7 @@ and the [Subject Access Request worker](https://github.com/ministryofjustice/hmp
 
 ## Tech stack
 
+- JAVA 25
 - Kotlin / Spring Boot (`uk.gov.justice.hmpps.gradle-spring-boot` plugin)
 - Gradle (Kotlin DSL) build via `./gradlew`
 - Java version pinned in `.java-version`
@@ -47,9 +48,6 @@ and the [Subject Access Request worker](https://github.com/ministryofjustice/hmp
 # Run tests
 ./gradlew test
 
-# Run Ktlint check
-./gradlew ktlintCheck
-
 # List dependencies / check for updates
 ./gradlew dependencies
 ./gradlew dependencyUpdates --warning-mode all
@@ -59,7 +57,7 @@ and the [Subject Access Request worker](https://github.com/ministryofjustice/hmp
 ```
 
 Run the smallest relevant command for a change (e.g. a single test class) where possible, and run
-`./gradlew ktlintCheck` and `./gradlew test` before considering Kotlin changes complete.
+`./gradlew test` before considering Kotlin changes complete.
 
 ## Running locally
 
@@ -70,8 +68,8 @@ Run the smallest relevant command for a change (e.g. a single test class) where 
 
 ## Conventions
 
-- Kotlin code style is enforced by Ktlint — run `./gradlew ktlintCheck` after edits and fix any
-  violations (`./gradlew ktlintFormat` can auto-fix most issues).
+- Follow the existing Kotlin code style. Do not run any Gradle ktlint task in this repository,
+  including `ktlintCheck` and `ktlintFormat`.
 - Follow the existing package-by-layer structure described above when adding new code.
 - Add/modify Flyway migrations under `db/migration` (PostgreSQL) — don't edit already-applied
   migrations; add a new versioned migration file instead. Keep `migration_h2` in sync if required
@@ -83,4 +81,25 @@ Run the smallest relevant command for a change (e.g. a single test class) where 
 ## Pull requests
 
 - Keep changes focused and avoid unrelated refactors.
-- Ensure `./gradlew ktlintCheck` and `./gradlew test` pass before opening a PR.
+- Ensure `./gradlew test` passes before opening a PR. Do not run any Gradle ktlint task.
+
+## Dependency injection
+
+Prefer constructor injection over field injection in Spring components, including test classes.
+
+- In production code, declare dependencies as constructor parameters (e.g. `private val fooRepository: FooRepository`) rather than using `@Autowired` on a field.
+- In integration test classes, pass `@Autowired` repositories/beans as primary constructor parameters instead of using `@Autowired` on a `lateinit var` field.
+
+## Tests
+
+Prefer `@BeforeAll`/`@AfterAll` over `@BeforeEach`/`@AfterEach` where possible in nested integration test classes.
+
+- Use `@TestInstance(TestInstance.Lifecycle.PER_CLASS)` on the nested test class so that `@BeforeAll`/`@AfterAll` can be non-static (instance) methods.
+- Build shared fixture data once in `@BeforeAll` and clean it up once in `@AfterAll`, rather than rebuilding it before every test, when the fixture is not mutated in a way that would leak between tests.
+- When copying or adapting an integration test, preserve the full nested test structure, including `Security`, `Validation`, and `HappyPath` scenarios for each endpoint.
+- Place each `@AfterAll` method immediately after the corresponding `@BeforeAll` setup method.
+- OAuth2 propagation tests must verify the exact WireMock header value with `equalTo("Bearer ABCDE")`; do not weaken this assertion to a regex or non-empty-header matcher.
+
+## Linting
+
+Do not run `ktlintCheck` (or any ktlint gradle task) in this repository. Skip ktlint validation entirely.
