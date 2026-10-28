@@ -172,6 +172,7 @@ class SubjectAccessRequestController(
     ],
   )
   @GetMapping("/subjectAccessRequest/{id}")
+  @PreAuthorize("hasAnyRole('ROLE_SAR_USER_ACCESS', 'ROLE_SAR_DATA_ACCESS', 'ROLE_SAR_ADMIN_ACCESS')")
   fun getSubjectAccessRequest(
     @PathVariable id: UUID,
   ): ResponseEntity<SubjectAccessRequestResponseEntity> = subjectAccessRequestService
