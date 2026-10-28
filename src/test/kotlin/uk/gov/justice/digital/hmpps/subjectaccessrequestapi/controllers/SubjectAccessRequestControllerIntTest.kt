@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
@@ -128,6 +130,39 @@ class SubjectAccessRequestControllerIntTest : IntegrationTestBase() {
       .expectStatus()
       .isCreated
       .expectBody()
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["ROLE_SAR_USER_ACCESS", "ROLE_SAR_DATA_ACCESS", "ROLE_SAR_ADMIN_ACCESS"])
+  fun `User with eligible role can get subjectAccessRequest by id`(role: String) {
+    val saved = subjectAccessRequestRepository.save(
+      SubjectAccessRequest(
+        sarCaseReferenceNumber = "adminCaseRef",
+        nomisId = "A1111AA",
+        dateFrom = LocalDate.of(2001, 1, 1),
+        dateTo = LocalDate.of(2022, 12, 25),
+        requestedBy = "admin",
+      ),
+    )
+
+    webTestClient.get()
+      .uri("/api/subjectAccessRequest/${saved.id}")
+      .headers(setAuthorisation(roles = listOf(role)))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody()
+      .jsonPath("$.id").isEqualTo(saved.id.toString())
+  }
+
+  @Test
+  fun `User with wrong role cannot get subjectAccessRequest by id`() {
+    webTestClient.get()
+      .uri("/api/subjectAccessRequest/${java.util.UUID.randomUUID()}")
+      .headers(setAuthorisation(roles = listOf("ROLE_WRONG")))
+      .exchange()
+      .expectStatus()
+      .isForbidden
   }
 
   @Test
