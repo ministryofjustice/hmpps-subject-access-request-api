@@ -10,6 +10,8 @@ import com.slack.api.model.block.composition.MarkdownTextObject
 import com.slack.api.model.block.composition.PlainTextObject
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -172,7 +174,7 @@ class SlackNotificationServiceTest {
     assertThat((actual.blocks[1] as SectionBlock).fields).hasSize(4)
     assertThat((actual.blocks[1] as SectionBlock).fields[0].text).isEqualTo("*Service*")
     assertThat((actual.blocks[1] as SectionBlock).fields[1].text).isEqualTo("*First detected*")
-    assertThat((actual.blocks[1] as SectionBlock).fields[2].text).isEqualTo("TestService")
+    assertThat((actual.blocks[1] as SectionBlock).fields[2].text).isEqualTo("Test (TestService)")
     assertThat((actual.blocks[1] as SectionBlock).fields[3].text).isEqualTo("22/01/2026 14:30:00")
 
     assertThat(actual.blocks[2]).isInstanceOf(SectionBlock::class.java)
@@ -286,7 +288,7 @@ class SlackNotificationServiceTest {
 
     val actual = messageCaptor.firstValue
     assertThat((actual.blocks[1] as SectionBlock).fields[2].text).isEqualTo("SAR456")
-    assertThat((actual.blocks[1] as SectionBlock).fields[3].text).isEqualTo("TestService")
+    assertThat((actual.blocks[1] as SectionBlock).fields[3].text).isEqualTo("Test (TestService)")
   }
 
   @Test
@@ -387,7 +389,7 @@ class SlackNotificationServiceTest {
     assertThat((actual.blocks[1] as SectionBlock).fields[0].text).isEqualTo("*SAR*")
     assertThat((actual.blocks[1] as SectionBlock).fields[1].text).isEqualTo("SAR123")
     assertThat((actual.blocks[1] as SectionBlock).fields[2].text).isEqualTo("*Service*")
-    assertThat((actual.blocks[1] as SectionBlock).fields[3].text).isEqualTo("TestService")
+    assertThat((actual.blocks[1] as SectionBlock).fields[3].text).isEqualTo("Test (TestService)")
     assertThat((actual.blocks[1] as SectionBlock).fields[4].text).isEqualTo("*Failure type*")
     assertThat((actual.blocks[1] as SectionBlock).fields[5].text).isEqualTo("SAR data")
     assertThat((actual.blocks[1] as SectionBlock).fields[6].text).isEqualTo("*Status code*")
@@ -480,6 +482,92 @@ class SlackNotificationServiceTest {
 
     verify(rendererServiceCallFailedAlertLimiter, times(0)).shouldSend(any(), any())
     verify(slackClient, times(0)).chatPostMessage(any<ChatPostMessageRequest>())
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["health", "registered", "suspended", "unsuspended", "timed-out", "call-failed"])
+  fun `should send each product alert to common and comma separated product channels with label and name`(alert: String) {
+    serviceConfig.teamSlackChannelId = " team-channel-01 ,team-channel-03, team-channel-04, test-channel-01, team-channel-01,, ,"
+    whenever(slackClient.chatPostMessage(any())).thenReturn(chatPostMessageResponse)
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(rendererServiceCallFailedAlertLimiter.shouldSend(any(), any())).thenReturn(true)
+
+    when (alert) {
+      "health" -> slackNotificationService.sendTemplateHealthAlert(listOf(t1, t2))
+      "registered" -> slackNotificationService.sendNewTemplateVersionAlert(templateVersion)
+      "suspended" -> slackNotificationService.sendSuspendProductAlert(serviceConfig)
+      "unsuspended" -> slackNotificationService.sendUnsuspendProductAlert(serviceConfig)
+      "timed-out" -> slackNotificationService.sendReportsTimedOutAlert(listOf(timedOutSarWithCompletedService))
+      "call-failed" -> slackNotificationService.sendRendererServiceCallFailedAlert(
+        timedOutSar,
+        timedOutSar.services.first(),
+        RendererServiceFailureType.SAR_DATA,
+        500,
+        "failed",
+      )
+      else -> error("Unknown alert: $alert")
+    }
+
+    val captor = argumentCaptor<ChatPostMessageRequest>()
+    verify(slackClient, times(4)).chatPostMessage(captor.capture())
+    assertThat(captor.allValues.map { it.channel }).containsExactlyInAnyOrder(
+      "test-channel-01",
+      "team-channel-01",
+      "team-channel-03",
+      "team-channel-04",
+    )
+    captor.allValues.forEach { request ->
+      val sections = request.blocks.filterIsInstance<SectionBlock>()
+      val text = sections.flatMap { section ->
+        listOfNotNull(section.text?.text) + section.fields.orEmpty().map { it.text }
+      }.joinToString("\n")
+      assertThat(text).contains("Test (TestService)")
+      assertThat(text).doesNotContain("CompleteService")
+    }
+  }
+
+  @Test
+  fun `should send only once to a channel shared by affected products`() {
+    serviceConfig.teamSlackChannelId = "team-channel-01, shared-team-channel"
+    serviceConfigWithoutTeamChannel.teamSlackChannelId = " shared-team-channel "
+    whenever(slackClient.chatPostMessage(any())).thenReturn(chatPostMessageResponse)
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+
+    slackNotificationService.sendTemplateHealthAlert(listOf(t1, t2))
+
+    val captor = argumentCaptor<ChatPostMessageRequest>()
+    verify(slackClient, times(3)).chatPostMessage(captor.capture())
+    assertThat(captor.allValues.map { it.channel }).containsExactlyInAnyOrder(
+      "test-channel-01",
+      "team-channel-01",
+      "shared-team-channel",
+    )
+  }
+
+  @Test
+  fun `should send alerts when only multiple product channels are configured`() {
+    serviceConfig.teamSlackChannelId = "team-channel-03, team-channel-04"
+    whenever(slackClient.chatPostMessage(any())).thenReturn(chatPostMessageResponse)
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+
+    createSlackNotificationService(templateErrorRecipients = emptyList()).sendTemplateHealthAlert(listOf(t1))
+
+    val captor = argumentCaptor<ChatPostMessageRequest>()
+    verify(slackClient, times(2)).chatPostMessage(captor.capture())
+    assertThat(captor.allValues.map { it.channel }).containsExactlyInAnyOrder("team-channel-03", "team-channel-04")
+  }
+
+  @Test
+  fun `should exclude multiple product channels when team notifications are disabled`() {
+    serviceConfig.teamSlackChannelId = "team-channel-03, team-channel-04"
+    whenever(slackClient.chatPostMessage(any())).thenReturn(chatPostMessageResponse)
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+
+    createSlackNotificationService(templateHealthTeamNotificationsEnabled = false).sendTemplateHealthAlert(listOf(t1))
+
+    val captor = argumentCaptor<ChatPostMessageRequest>()
+    verify(slackClient).chatPostMessage(captor.capture())
+    assertThat(captor.firstValue.channel).isEqualTo("test-channel-01")
   }
 
   @Test
