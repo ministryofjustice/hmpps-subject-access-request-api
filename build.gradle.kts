@@ -25,17 +25,21 @@ dependencies {
   implementation("org.json:json:20260814")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
+  // Temporarily pin swagger-ui for dompurify issues CVE-2026-11680(2-4)
+  constraints {
+    implementation("org.webjars:swagger-ui:5.34.1")
+  }
   implementation("io.sentry:sentry-spring-boot-4:8.62.0")
   implementation("io.sentry:sentry-logback:8.62.0")
 
   implementation("uk.gov.service.notify:notifications-java-client:6.2.1-RELEASE")
   implementation("net.javacrumbs.shedlock:shedlock-spring:7.10.1")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.10.1")
-  implementation("com.slack.api:slack-api-client:1.52.0")
+  implementation("com.slack.api:slack-api-client:1.53.0")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
   implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.8.6")
   implementation("commons-io:commons-io:2.22.0")
-  implementation("com.google.guava:guava:33.7.2-jre")
+  implementation("com.google.guava:guava:33.8.0-jre")
 
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("com.h2database:h2:2.5.252")
