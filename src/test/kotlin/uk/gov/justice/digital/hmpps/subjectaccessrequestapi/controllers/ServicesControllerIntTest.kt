@@ -320,7 +320,9 @@ class ServicesControllerIntTest : IntegrationTestBase() {
     fun `should successfully create new service configuration`(
       role: String,
     ) {
-      val request = s1.copy(teamSlackChannelId = "team-one")
+      val request = s1.copy(
+        teamSlackChannelId = "team-one, team-two",
+      )
       val actual = createServiceConfiguration(
         body = request.toEntity(),
         roles = listOf(role),
@@ -332,11 +334,11 @@ class ServicesControllerIntTest : IntegrationTestBase() {
 
       assertThat(actual.responseBody).isNotNull
       assertThat(actual.responseBody!!.id).isNotNull
-      assertThat(actual.responseBody!!.teamSlackChannelId).isEqualTo("team-one")
+      assertThat(actual.responseBody!!.teamSlackChannelId).isEqualTo("team-one, team-two")
 
       val saved = serviceConfigurationService.getById(actual.responseBody?.id!!)
       assertThat(saved).isNotNull
-      assertThat(saved!!.teamSlackChannelId).isEqualTo("team-one")
+      assertThat(saved!!.teamSlackChannelId).isEqualTo("team-one, team-two")
       assertServiceConfigurationIsNotSuspended(saved.id)
     }
   }
@@ -472,7 +474,7 @@ class ServicesControllerIntTest : IntegrationTestBase() {
           category = PROBATION.name,
           enabled = false,
           templateMigrated = false,
-          teamSlackChannelId = "team-updated",
+          teamSlackChannelId = "team-updated, team-two",
         ),
         roles = listOf(role),
       ).expectStatus()
@@ -488,10 +490,31 @@ class ServicesControllerIntTest : IntegrationTestBase() {
       assertThat(latest.category).isEqualTo(PROBATION)
       assertThat(latest.enabled).isFalse
       assertThat(latest.templateMigrated).isFalse
-      assertThat(latest.teamSlackChannelId).isEqualTo("team-updated")
+      assertThat(latest.teamSlackChannelId).isEqualTo("team-updated, team-two")
 
       // Assert suspended is not modified
       assertServiceConfigurationIsNotSuspended(s1.id)
+    }
+
+    @Test
+    fun `should allow clearing comma separated product channels`() {
+      ensureServiceConfigurationExists(s1.copy(teamSlackChannelId = "team-two, team-three"))
+
+      putServiceConfiguration(
+        id = s1.id,
+        body = s1.toEntity().copy(teamSlackChannelId = ""),
+        roles = listOf("ROLE_SAR_ADMIN_ACCESS"),
+      ).expectStatus().isOk
+
+      assertThat(serviceConfigurationService.getById(s1.id)!!.teamSlackChannelId).isEmpty()
+
+      putServiceConfiguration(
+        id = s1.id,
+        body = s1.toEntity().copy(teamSlackChannelId = null),
+        roles = listOf("ROLE_SAR_ADMIN_ACCESS"),
+      ).expectStatus().isOk
+
+      assertThat(serviceConfigurationService.getById(s1.id)!!.teamSlackChannelId).isNull()
     }
   }
 

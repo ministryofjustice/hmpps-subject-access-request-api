@@ -73,6 +73,7 @@ G3-api:
 
 slack:
   bot:
+    noop-enabled: true
     auth: "FAKE_AUTH_TOKEN"
     template-error-recipients: "CHANNEL_ID1"
     dev-help-channel-id: "CHANNEL_ID2"

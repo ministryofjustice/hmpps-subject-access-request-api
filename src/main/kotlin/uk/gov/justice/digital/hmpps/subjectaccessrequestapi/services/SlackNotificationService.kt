@@ -51,7 +51,7 @@ class SlackNotificationService(
   fun sendTemplateHealthAlert(unhealthyTemplates: List<TemplateVersionHealthStatus>) {
     sendMessage(
       recipients = recipientsFor(
-        unhealthyTemplates.map { it.serviceConfiguration.teamSlackChannelId },
+        unhealthyTemplates.flatMap { it.serviceConfiguration.slackChannelIds() },
         templateHealthTeamNotificationsEnabled,
       ),
       blocks = buildTemplateHealthMessage(unhealthyTemplates),
@@ -62,7 +62,7 @@ class SlackNotificationService(
   fun sendNewTemplateVersionAlert(templateVersion: TemplateVersion) {
     sendMessage(
       recipients = recipientsFor(
-        listOf(templateVersion.serviceConfiguration?.teamSlackChannelId),
+        templateVersion.serviceConfiguration?.slackChannelIds().orEmpty(),
         templateRegisteredTeamNotificationsEnabled,
       ),
       blocks = buildTemplateRegisteredMessage(templateVersion),
@@ -73,7 +73,7 @@ class SlackNotificationService(
   fun sendSuspendProductAlert(serviceConfiguration: ServiceConfiguration) {
     sendMessage(
       recipients = recipientsFor(
-        listOf(serviceConfiguration.teamSlackChannelId),
+        serviceConfiguration.slackChannelIds(),
         serviceSuspendedTeamNotificationsEnabled,
       ),
       blocks = buildServiceSuspendedMessage(serviceConfiguration),
@@ -84,7 +84,7 @@ class SlackNotificationService(
   fun sendUnsuspendProductAlert(serviceConfiguration: ServiceConfiguration) {
     sendMessage(
       recipients = recipientsFor(
-        listOf(serviceConfiguration.teamSlackChannelId),
+        serviceConfiguration.slackChannelIds(),
         serviceUnsuspendedTeamNotificationsEnabled,
       ),
       blocks = buildServiceUnsuspendedMessage(serviceConfiguration),
@@ -96,7 +96,7 @@ class SlackNotificationService(
     sendMessage(
       recipients = recipientsFor(
         timedOutRequests.flatMap { request ->
-          timedOutServiceDetails(request).map { it.serviceConfiguration.teamSlackChannelId }
+          timedOutServiceDetails(request).flatMap { it.serviceConfiguration.slackChannelIds() }
         },
         reportsTimedOutTeamNotificationsEnabled,
       ),
@@ -113,7 +113,7 @@ class SlackNotificationService(
     message: String?,
   ) {
     val recipients = recipientsFor(
-      listOf(requestServiceDetail.serviceConfiguration.teamSlackChannelId),
+      requestServiceDetail.serviceConfiguration.slackChannelIds(),
       serviceCallFailedTeamNotificationsEnabled,
     )
 
@@ -151,7 +151,7 @@ class SlackNotificationService(
       markdownText("*First detected*"),
     )
     unhealthyTemplates.forEach { t ->
-      fields.add(markdownText(t.serviceConfiguration.serviceName))
+      fields.add(markdownText(t.serviceConfiguration.alertDisplayName()))
       fields.add(markdownText(t.lastModified.prettyFormat()))
     }
 
@@ -190,7 +190,7 @@ class SlackNotificationService(
     section { s ->
       s.text(
         markdownText(
-          "A new template version has been registered for *${templateVersion.serviceConfiguration?.label ?: templateVersion.serviceConfiguration?.serviceName ?: "unknown service"}*.",
+          "A new template version has been registered for *${templateVersion.serviceConfiguration?.alertDisplayName() ?: "unknown service"}*.",
         ),
       )
     },
@@ -208,7 +208,7 @@ class SlackNotificationService(
   private fun buildServiceSuspendedMessage(serviceConfiguration: ServiceConfiguration): List<LayoutBlock> = asBlocks(
     header { it.text(plainText("Subject Access Request: Service Suspended :double_vertical_bar:")) },
     section { s ->
-      s.text(markdownText("Service *${serviceConfiguration.label}* has been suspended."))
+      s.text(markdownText("Service *${serviceConfiguration.alertDisplayName()}* has been suspended."))
     },
     divider(),
     context { c ->
@@ -224,7 +224,7 @@ class SlackNotificationService(
   private fun buildServiceUnsuspendedMessage(serviceConfiguration: ServiceConfiguration): List<LayoutBlock> = asBlocks(
     header { it.text(plainText("Subject Access Request: Service Unsuspended :arrow_forward:")) },
     section { s ->
-      s.text(markdownText("Service *${serviceConfiguration.label}* has been unsuspended."))
+      s.text(markdownText("Service *${serviceConfiguration.alertDisplayName()}* has been unsuspended."))
     },
     divider(),
     context { c ->
@@ -244,7 +244,7 @@ class SlackNotificationService(
     )
     timedOutRequests.forEach { request ->
       fields.add(markdownText(request.sarCaseReferenceNumber))
-      fields.add(markdownText(timedOutServiceDetails(request).map { it.serviceConfiguration.serviceName }.distinct().joinToString(", ")))
+      fields.add(markdownText(timedOutServiceDetails(request).map { it.serviceConfiguration.alertDisplayName() }.distinct().joinToString(", ")))
     }
 
     return asBlocks(
@@ -280,7 +280,7 @@ class SlackNotificationService(
       add(markdownText("*SAR*"))
       add(markdownText(subjectAccessRequest.sarCaseReferenceNumber))
       add(markdownText("*Service*"))
-      add(markdownText(requestServiceDetail.serviceConfiguration.serviceName))
+      add(markdownText(requestServiceDetail.serviceConfiguration.alertDisplayName()))
       add(markdownText("*Failure type*"))
       add(markdownText(failureType.displayName))
       statusCode?.let {
@@ -317,8 +317,16 @@ class SlackNotificationService(
   ): List<String> = (
     templateErrorRecipients +
       channelIds.takeIf { teamNotificationsEnabled }.orEmpty().filterNotNull()
-    ).filter { it.isNotBlank() }
+    ).map { it.trim() }
+    .filter { it.isNotBlank() }
     .distinct()
+
+  private fun ServiceConfiguration.slackChannelIds(): List<String> = teamSlackChannelId
+    ?.split(",")
+    .orEmpty()
+    .map { it.trim() }
+
+  private fun ServiceConfiguration.alertDisplayName(): String = "$label ($serviceName)"
 
   private fun environmentContextText() = markdownText("Environment: *$environmentName*")
 
