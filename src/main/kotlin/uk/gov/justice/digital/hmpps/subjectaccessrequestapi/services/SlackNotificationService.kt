@@ -70,13 +70,12 @@ class SlackNotificationService(
     )
   }
 
-  private fun buildReportsOverdueMessage(overdueRequests: List<SubjectAccessRequest>, threshold: String): List<LayoutBlock> =
-    buildReportsAlertMessage(
-      requests = overdueRequests,
-      title = "Reports Overdue",
-      description = "One or more Subject Access Requests have not completed within $threshold.",
-      followUp = "Please investigate the pending requests.",
-    )
+  private fun buildReportsOverdueMessage(overdueRequests: List<SubjectAccessRequest>, threshold: String): List<LayoutBlock> = buildReportsAlertMessage(
+    requests = overdueRequests,
+    title = "Reports Overdue",
+    description = "One or more Subject Access Requests have not completed within $threshold.",
+    followUp = "Please investigate the pending requests.",
+  )
 
   private fun buildReportsAlertMessage(
     requests: List<SubjectAccessRequest>,
@@ -289,13 +288,12 @@ class SlackNotificationService(
     },
   )
 
-  private fun buildReportsTimedOutMessage(timedOutRequests: List<SubjectAccessRequest>): List<LayoutBlock> =
-    buildReportsAlertMessage(
-      requests = timedOutRequests,
-      title = "Reports Timed Out",
-      description = "One or more Subject Access Requests did not complete within 48 hours and were marked as errored.",
-      followUp = "Please investigate the failed requests and retry if necessary.",
-    )
+  private fun buildReportsTimedOutMessage(timedOutRequests: List<SubjectAccessRequest>): List<LayoutBlock> = buildReportsAlertMessage(
+    requests = timedOutRequests,
+    title = "Reports Timed Out",
+    description = "One or more Subject Access Requests did not complete within 48 hours and were marked as errored.",
+    followUp = "Please investigate the failed requests and retry if necessary.",
+  )
 
   private fun buildRendererServiceCallFailedMessage(
     subjectAccessRequest: SubjectAccessRequest,

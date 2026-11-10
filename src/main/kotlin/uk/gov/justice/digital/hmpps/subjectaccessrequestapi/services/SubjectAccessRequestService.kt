@@ -369,17 +369,15 @@ class SubjectAccessRequestService(
   }
 
   @Transactional
-  fun getRequestsAwaitingOneHourOverdueAlert(): List<SubjectAccessRequest> =
-    subjectAccessRequestRepository.findPendingSubjectAccessRequestsBetweenOverdueThresholds(
-      alertsConfiguration.overdueAlertConfig.calculateFirstAlertThreshold(),
-      alertsConfiguration.overdueAlertConfig.calculateOverdueThreshold(),
-    )
+  fun getRequestsAwaitingOneHourOverdueAlert(): List<SubjectAccessRequest> = subjectAccessRequestRepository.findPendingSubjectAccessRequestsBetweenOverdueThresholds(
+    alertsConfiguration.overdueAlertConfig.calculateFirstAlertThreshold(),
+    alertsConfiguration.overdueAlertConfig.calculateOverdueThreshold(),
+  )
 
   @Transactional
-  fun getRequestsAwaitingTwelveHourOverdueAlert(): List<SubjectAccessRequest> =
-    subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(
-      alertsConfiguration.overdueAlertConfig.calculateOverdueThreshold(),
-    ).filterNotNull()
+  fun getRequestsAwaitingTwelveHourOverdueAlert(): List<SubjectAccessRequest> = subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(
+    alertsConfiguration.overdueAlertConfig.calculateOverdueThreshold(),
+  ).filterNotNull()
 
   @Transactional
   fun countPendingSubjectAccessRequests(): Int = subjectAccessRequestRepository.countSubjectAccessRequestsByStatus(Status.Pending)
