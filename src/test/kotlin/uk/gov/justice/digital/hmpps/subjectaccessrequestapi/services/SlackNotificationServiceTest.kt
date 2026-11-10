@@ -268,6 +268,28 @@ class SlackNotificationServiceTest {
   }
 
   @Test
+  fun `should send overdue alert to global and incomplete service Slack channels`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendReportsOverdueAlert(listOf(timedOutSarWithCompletedService), "1 HOURS")
+
+    verify(slackClient, times(2)).chatPostMessage(messageCaptor.capture())
+    assertThat(messageCaptor.allValues.map { it.channel }).containsExactlyInAnyOrder(
+      "test-channel-01",
+      "team-channel-01",
+    )
+    assertThat(messageCaptor.allValues.map { it.channel }).doesNotContain("team-channel-02")
+
+    val message = messageCaptor.firstValue
+    assertThat((message.blocks[1] as SectionBlock).text.text).contains("within 1 HOURS")
+    assertThat((message.blocks[1] as SectionBlock).fields[2].text).isEqualTo("SAR456")
+  }
+
+  @Test
   fun `should only send timed out team slack alerts for non complete service details`() {
     whenever(chatPostMessageResponse.isOk).thenReturn(true)
     whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))

@@ -48,6 +48,17 @@ class SlackNotificationService(
     private const val TRUNCATED_TEXT_SUFFIX = "..."
   }
 
+  fun sendReportsOverdueAlert(overdueRequests: List<SubjectAccessRequest>, threshold: String) = sendMessage(
+    recipients = recipientsFor(
+      overdueRequests.flatMap { request ->
+        timedOutServiceDetails(request).flatMap { it.serviceConfiguration.slackChannelIds() }
+      },
+      true,
+    ),
+    blocks = buildReportsOverdueMessage(overdueRequests, threshold),
+    errorMessage = "error sending reports overdue Slack alert",
+  )
+
   fun sendTemplateHealthAlert(unhealthyTemplates: List<TemplateVersionHealthStatus>) {
     sendMessage(
       recipients = recipientsFor(
@@ -56,6 +67,47 @@ class SlackNotificationService(
       ),
       blocks = buildTemplateHealthMessage(unhealthyTemplates),
       errorMessage = "error sending template health slack alert",
+    )
+  }
+
+  private fun buildReportsOverdueMessage(overdueRequests: List<SubjectAccessRequest>, threshold: String): List<LayoutBlock> =
+    buildReportsAlertMessage(
+      requests = overdueRequests,
+      title = "Reports Overdue",
+      description = "One or more Subject Access Requests have not completed within $threshold.",
+      followUp = "Please investigate the pending requests.",
+    )
+
+  private fun buildReportsAlertMessage(
+    requests: List<SubjectAccessRequest>,
+    title: String,
+    description: String,
+    followUp: String,
+  ): List<LayoutBlock> {
+    val fields = mutableListOf<TextObject>(
+      markdownText("*SAR*"),
+      markdownText("*Service*"),
+    )
+    requests.forEach { request ->
+      fields.add(markdownText(request.sarCaseReferenceNumber))
+      fields.add(markdownText(timedOutServiceDetails(request).map { it.serviceConfiguration.alertDisplayName() }.distinct().joinToString(", ")))
+    }
+
+    return asBlocks(
+      header { it.text(plainText("Subject Access Request: $title :hourglass_flowing_sand:")) },
+      section { s ->
+        s.text(markdownText(description))
+        s.fields(fields)
+      },
+      divider(),
+      context { c ->
+        c.elements(
+          listOf(
+            markdownText(followUp),
+            environmentContextText(),
+          ),
+        )
+      },
     )
   }
 
@@ -237,37 +289,13 @@ class SlackNotificationService(
     },
   )
 
-  private fun buildReportsTimedOutMessage(timedOutRequests: List<SubjectAccessRequest>): List<LayoutBlock> {
-    val fields = mutableListOf<TextObject>(
-      markdownText("*SAR*"),
-      markdownText("*Service*"),
+  private fun buildReportsTimedOutMessage(timedOutRequests: List<SubjectAccessRequest>): List<LayoutBlock> =
+    buildReportsAlertMessage(
+      requests = timedOutRequests,
+      title = "Reports Timed Out",
+      description = "One or more Subject Access Requests did not complete within 48 hours and were marked as errored.",
+      followUp = "Please investigate the failed requests and retry if necessary.",
     )
-    timedOutRequests.forEach { request ->
-      fields.add(markdownText(request.sarCaseReferenceNumber))
-      fields.add(markdownText(timedOutServiceDetails(request).map { it.serviceConfiguration.alertDisplayName() }.distinct().joinToString(", ")))
-    }
-
-    return asBlocks(
-      header { it.text(plainText("Subject Access Request: Reports Timed Out :hourglass_flowing_sand:")) },
-      section { s ->
-        s.text(
-          markdownText(
-            "One or more Subject Access Requests did not complete within 48 hours and were marked as errored.",
-          ),
-        )
-        s.fields(fields)
-      },
-      divider(),
-      context { c ->
-        c.elements(
-          listOf(
-            markdownText("Please investigate the failed requests and retry if necessary."),
-            environmentContextText(),
-          ),
-        )
-      },
-    )
-  }
 
   private fun buildRendererServiceCallFailedMessage(
     subjectAccessRequest: SubjectAccessRequest,
@@ -348,7 +376,10 @@ class SlackNotificationService(
     blocks: List<LayoutBlock>,
     errorMessage: String,
   ) {
-    if (recipients.isEmpty()) return
+    if (recipients.isEmpty()) {
+      LOG.error("{}: no Slack recipients configured", errorMessage)
+      return
+    }
 
     recipients.forEach {
       val resp = slackApiClient.chatPostMessage(

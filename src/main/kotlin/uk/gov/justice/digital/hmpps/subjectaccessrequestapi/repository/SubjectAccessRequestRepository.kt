@@ -142,6 +142,18 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
   )
   fun findAllPendingSubjectAccessRequestsSubmittedBefore(@Param("threshold") threshold: LocalDateTime): List<SubjectAccessRequest?>
 
+  @Query(
+    "SELECT s FROM SubjectAccessRequest s " +
+      "WHERE s.status = 'Pending' " +
+      "AND s.requestDateTime < :oneHourThreshold " +
+      "AND s.requestDateTime >= :twelveHourThreshold " +
+      "ORDER BY s.requestDateTime ASC",
+  )
+  fun findPendingSubjectAccessRequestsBetweenOverdueThresholds(
+    @Param("oneHourThreshold") oneHourThreshold: LocalDateTime,
+    @Param("twelveHourThreshold") twelveHourThreshold: LocalDateTime,
+  ): List<SubjectAccessRequest>
+
   @Lock(LockModeType.PESSIMISTIC_READ)
   @QueryHints(value = [QueryHint(name = "jakarta.persistence.lock.timeout", value = LOCK_TIMEOUT)])
   @Query("SELECT COUNT(1) FROM SubjectAccessRequest s WHERE s.status = :status")

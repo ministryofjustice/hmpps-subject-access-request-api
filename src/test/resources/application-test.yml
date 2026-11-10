@@ -25,6 +25,8 @@ application:
       last-notified-threshold-minutes: 120
     reports-overdue:
       alert-interval-minutes: 120
+      first-alert-threshold: 1
+      first-alert-threshold-unit: HOURS
       threshold: 12
       threshold-unit: HOURS
     backlog-threshold:
