@@ -45,19 +45,25 @@ class SlackNotificationService(
     private val LOG = LoggerFactory.getLogger(this::class.java)
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
     private const val SLACK_CONTEXT_TEXT_MAX_LENGTH = 3000
+    private const val MAX_REPORTS_PER_OVERDUE_MESSAGE = 4
     private const val TRUNCATED_TEXT_SUFFIX = "..."
   }
 
-  fun sendReportsOverdueAlert(overdueRequests: List<SubjectAccessRequest>, threshold: String) = sendMessage(
-    recipients = recipientsFor(
+  fun sendReportsOverdueAlert(overdueRequests: List<SubjectAccessRequest>, threshold: String) {
+    val recipients = recipientsFor(
       overdueRequests.flatMap { request ->
         timedOutServiceDetails(request).flatMap { it.serviceConfiguration.slackChannelIds() }
       },
       true,
-    ),
-    blocks = buildReportsOverdueMessage(overdueRequests, threshold),
-    errorMessage = "error sending reports overdue Slack alert",
-  )
+    )
+    overdueRequests.chunked(MAX_REPORTS_PER_OVERDUE_MESSAGE).ifEmpty { listOf(emptyList()) }.forEach { requests ->
+      sendMessage(
+        recipients = recipients,
+        blocks = buildReportsOverdueMessage(requests, threshold),
+        errorMessage = "error sending reports overdue Slack alert",
+      )
+    }
+  }
 
   fun sendTemplateHealthAlert(unhealthyTemplates: List<TemplateVersionHealthStatus>) {
     sendMessage(

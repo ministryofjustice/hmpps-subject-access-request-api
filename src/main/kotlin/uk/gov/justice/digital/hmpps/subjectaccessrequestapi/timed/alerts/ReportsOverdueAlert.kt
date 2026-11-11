@@ -18,9 +18,8 @@ class ReportsOverdueAlert(
   val slackNotificationService: SlackNotificationService,
 ) {
 
-  /** Sends Slack alerts for pending requests that have reached each configured overdue threshold. */
   @Scheduled(
-    fixedDelayString = "\${application.alerts.reports-overdue.alert-interval-minutes:120}",
+    fixedDelayString = "\${application.alerts.reports-overdue.alert-interval-minutes:15}",
     timeUnit = TimeUnit.MINUTES,
     initialDelay = 1,
   )
@@ -31,6 +30,25 @@ class ReportsOverdueAlert(
         requests = subjectAccessRequestService.getRequestsAwaitingOneHourOverdueAlert(),
         threshold = alertsConfiguration.overdueAlertConfig.firstAlertThresholdAsString(),
       )
+    } catch (ex: Exception) {
+      alertsService.raiseUnexpectedExceptionAlert(
+        RuntimeException("ReportsOverdueAlert threw unexpected exception", ex),
+      )
+    }
+  }
+
+  @Scheduled(
+    fixedDelayString = "\${application.alerts.reports-overdue.twelve-hour-alert-interval-minutes:120}",
+    timeUnit = TimeUnit.MINUTES,
+    initialDelay = 1,
+  )
+  @SchedulerLock(
+    name = "reportsTwelveHourOverdueAlert",
+    lockAtLeastFor = "\${application.alerts.reports-overdue.twelve-hour-alert-interval-minutes:120}m",
+    lockAtMostFor = "PT2H5M",
+  )
+  fun executeTwelveHourAlert() {
+    try {
       sendOverdueAlert(
         requests = subjectAccessRequestService.getRequestsAwaitingTwelveHourOverdueAlert(),
         threshold = alertsConfiguration.overdueAlertConfig.thresholdAsString(),

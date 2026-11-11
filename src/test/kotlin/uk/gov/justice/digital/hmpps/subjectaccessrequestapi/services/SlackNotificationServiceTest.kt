@@ -289,6 +289,55 @@ class SlackNotificationServiceTest {
     assertThat((message.blocks[1] as SectionBlock).fields[2].text).isEqualTo("SAR456")
   }
 
+  @ParameterizedTest
+  @ValueSource(ints = [0, 1, 4, 5, 8, 9])
+  fun `should batch overdue reports within Slack field limits for every recipient`(count: Int) {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+
+    val requests = (1..count).map { number ->
+      val request = SubjectAccessRequest(sarCaseReferenceNumber = "SAR$number")
+      request.addServices(
+        RequestServiceDetail(
+          subjectAccessRequest = request,
+          serviceConfiguration = if (number % 2 == 0) serviceConfigComplete else serviceConfig,
+          renderStatus = RenderStatus.PENDING,
+        ),
+      )
+    }
+    val expectedBatches = requests.chunked(4).ifEmpty { listOf(emptyList()) }
+    val expectedChannels = buildList {
+      add("test-channel-01")
+      if (count >= 1) add("team-channel-01")
+      if (count >= 2) add("team-channel-02")
+    }
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendReportsOverdueAlert(requests, "1 HOURS")
+
+    verify(slackClient, times(expectedBatches.size * expectedChannels.size)).chatPostMessage(messageCaptor.capture())
+    assertThat(messageCaptor.allValues.map { it.channel }.distinct()).containsExactlyElementsOf(expectedChannels)
+    expectedChannels.forEach { channel ->
+      val messages = messageCaptor.allValues.filter { it.channel == channel }
+      assertThat(messages).hasSize(expectedBatches.size)
+      messages.zip(expectedBatches).forEach { (message, batch) ->
+        val section = message.blocks[1] as SectionBlock
+        assertThat(section.text.text).contains("within 1 HOURS")
+        assertThat(section.fields).hasSize(2 + 2 * batch.size)
+        assertThat(section.fields.size).isLessThanOrEqualTo(10)
+        assertThat(section.fields.map { it.text }).containsExactlyElementsOf(
+          listOf("*SAR*", "*Service*") + batch.flatMap { request ->
+            listOf(
+              request.sarCaseReferenceNumber,
+              request.services.single().serviceConfiguration.let { "${it.label} (${it.serviceName})" },
+            )
+          },
+        )
+      }
+    }
+  }
+
   @Test
   fun `should only send timed out team slack alerts for non complete service details`() {
     whenever(chatPostMessageResponse.isOk).thenReturn(true)

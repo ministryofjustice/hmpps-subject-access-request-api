@@ -103,7 +103,8 @@ application:
       unhealthy-threshold-minutes: ${TEMPLATE_VERSION_HEALTH_ALERT_UNHEALTHY_THRESHOLD:10}
       last-notified-threshold-minutes: ${TEMPLATE_VERSION_HEALTH_ALERT_LAST_NOTIFIED_THRESHOLD:120}
     reports-overdue:
-      alert-interval-minutes: 120
+      alert-interval-minutes: 15
+      twelve-hour-alert-interval-minutes: 120
       first-alert-threshold: 1
       first-alert-threshold-unit: HOURS
       threshold: 12
