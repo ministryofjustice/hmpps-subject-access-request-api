@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.14"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.15"
   id("org.jetbrains.kotlin.plugin.serialization") version "2.4.21"
   kotlin("plugin.spring") version "2.4.21"
   kotlin("plugin.jpa") version "2.4.21"
@@ -21,21 +21,21 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.3")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.1.0")
   implementation("org.json:json:20260814")
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.13.0")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
   // Temporarily pin swagger-ui for dompurify issues CVE-2026-11680(2-4)
   constraints {
     implementation("org.webjars:swagger-ui:5.34.1")
   }
-  implementation("io.sentry:sentry-spring-boot-4:8.62.0")
-  implementation("io.sentry:sentry-logback:8.62.0")
+  implementation("io.sentry:sentry-spring-boot-4:8.64.0")
+  implementation("io.sentry:sentry-logback:8.64.0")
 
   implementation("uk.gov.service.notify:notifications-java-client:6.2.1-RELEASE")
-  implementation("net.javacrumbs.shedlock:shedlock-spring:7.10.1")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.10.1")
-  implementation("com.slack.api:slack-api-client:1.53.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:7.11.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.11.0")
+  implementation("com.slack.api:slack-api-client:1.54.0")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
   implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.8.6")
   implementation("commons-io:commons-io:2.22.0")
@@ -46,7 +46,7 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.7.14")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.3")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.1.0")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.13.0")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.13.0")
   testImplementation("org.mockito:mockito-core:5.24.0")
