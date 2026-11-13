@@ -95,7 +95,8 @@ class SlackNotificationService(
     )
     requests.forEach { request ->
       fields.add(markdownText(request.sarCaseReferenceNumber))
-      fields.add(markdownText(timedOutServiceDetails(request).map { it.serviceConfiguration.alertDisplayName() }.distinct().joinToString(", ")))
+      val services = timedOutServiceDetails(request).map { it.serviceConfiguration.alertDisplayName() }.distinct().joinToString(", ")
+      fields.add(markdownText(services.ifEmpty { "No incomplete services" }))
     }
 
     return asBlocks(

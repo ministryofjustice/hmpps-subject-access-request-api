@@ -289,6 +289,57 @@ class SlackNotificationServiceTest {
     assertThat((message.blocks[1] as SectionBlock).fields[2].text).isEqualTo("SAR456")
   }
 
+  @Test
+  fun `should use a non-empty service field when overdue requests have no incomplete services`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+    val noServices = SubjectAccessRequest(sarCaseReferenceNumber = "SAR-NONE")
+    val completed = SubjectAccessRequest(sarCaseReferenceNumber = "SAR-COMPLETE")
+    completed.addServices(
+      RequestServiceDetail(
+        subjectAccessRequest = completed,
+        serviceConfiguration = serviceConfigComplete,
+        renderStatus = RenderStatus.COMPLETE,
+      ),
+    )
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendReportsOverdueAlert(listOf(noServices, completed, timedOutSar), "1 HOURS")
+
+    verify(slackClient, times(2)).chatPostMessage(messageCaptor.capture())
+    assertThat(messageCaptor.allValues.map { it.channel }).containsExactlyInAnyOrder("test-channel-01", "team-channel-01")
+    messageCaptor.allValues.forEach { message ->
+      val fields = (message.blocks[1] as SectionBlock).fields.map { it.text }
+      assertThat(fields).containsExactly(
+        "*SAR*",
+        "*Service*",
+        "SAR-NONE",
+        "No incomplete services",
+        "SAR-COMPLETE",
+        "No incomplete services",
+        "SAR123",
+        "Test (TestService)",
+      )
+      assertThat(fields).allMatch { it.isNotBlank() }
+    }
+  }
+
+  @Test
+  fun `should use a non-empty service field when timed out requests have no incomplete services`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>()))
+      .thenReturn(chatPostMessageResponse)
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+    val request = SubjectAccessRequest(sarCaseReferenceNumber = "SAR-NONE")
+
+    slackNotificationService.sendReportsTimedOutAlert(listOf(request))
+
+    verify(slackClient).chatPostMessage(messageCaptor.capture())
+    assertThat((messageCaptor.firstValue.blocks[1] as SectionBlock).fields.map { it.text })
+      .containsExactly("*SAR*", "*Service*", "SAR-NONE", "No incomplete services")
+  }
+
   @ParameterizedTest
   @ValueSource(ints = [0, 1, 4, 5, 8, 9])
   fun `should batch overdue reports within Slack field limits for every recipient`(count: Int) {

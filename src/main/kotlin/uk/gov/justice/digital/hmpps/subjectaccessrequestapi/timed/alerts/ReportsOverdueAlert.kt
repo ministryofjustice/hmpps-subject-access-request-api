@@ -23,7 +23,11 @@ class ReportsOverdueAlert(
     timeUnit = TimeUnit.MINUTES,
     initialDelay = 1,
   )
-  @SchedulerLock(name = "reportsOverdueAlert")
+  @SchedulerLock(
+    name = "reportsOverdueAlert",
+    lockAtLeastFor = "\${application.alerts.reports-overdue.alert-interval-minutes:15}m",
+    lockAtMostFor = "PT2H5M",
+  )
   fun execute() {
     try {
       sendOverdueAlert(
