@@ -14,13 +14,17 @@ class AlertsConfiguration(
 
 @Configuration
 class OverdueAlertConfiguration(
+  @param:Value("\${application.alerts.reports-overdue.first-alert-threshold:1}") val firstAlertThreshold: Long,
   @param:Value("\${application.alerts.reports-overdue.threshold:12}") val threshold: Long,
+  @param:Value("\${application.alerts.reports-overdue.first-alert-threshold-unit:HOURS}") val firstAlertThresholdChronoUnit: ChronoUnit,
   @param:Value("\${application.alerts.reports-overdue.threshold-unit:HOURS}") val thresholdChronoUnit: ChronoUnit,
-  @param:Value("\${application.alerts.reports-overdue.alert-interval-minutes:720}") val alertIntervalMinutes: Int,
+  @param:Value("\${application.alerts.reports-overdue.twelve-hour-alert-interval-minutes:120}") val twelveHourAlertIntervalMinutes: Int,
 ) {
+  fun calculateFirstAlertThreshold(): LocalDateTime = LocalDateTime.now().minus(firstAlertThreshold, firstAlertThresholdChronoUnit)
   fun calculateOverdueThreshold(): LocalDateTime = LocalDateTime.now().minus(threshold, thresholdChronoUnit)
+  fun firstAlertThresholdAsString() = "$firstAlertThreshold $firstAlertThresholdChronoUnit"
   fun thresholdAsString() = "$threshold $thresholdChronoUnit"
-  fun thresholdAlertFrequency() = "$alertIntervalMinutes ${ChronoUnit.MINUTES}"
+  fun thresholdAlertFrequency() = "$twelveHourAlertIntervalMinutes ${ChronoUnit.MINUTES}"
 }
 
 @Configuration

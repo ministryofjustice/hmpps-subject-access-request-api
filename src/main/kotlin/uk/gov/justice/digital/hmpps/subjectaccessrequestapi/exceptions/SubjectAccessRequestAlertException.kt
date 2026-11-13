@@ -6,5 +6,3 @@ class SubjectAccessRequestTimeoutException(message: String, private val requestI
   override val message: String
     get() = "${super.message}: \n\nRequests:\n${requestIds.joinToString("\n")}"
 }
-
-class SubjectAccessRequestProcessingOverdueException(message: String) : RuntimeException(message)
