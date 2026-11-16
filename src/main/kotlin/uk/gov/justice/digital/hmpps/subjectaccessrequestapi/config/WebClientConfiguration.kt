@@ -32,7 +32,7 @@ class WebClientConfiguration(
 
   @Bean
   fun documentStorageWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder
-    .codecs { configurer -> configurer.defaultCodecs().maxInMemorySize(100 * 1024 * 1024) }
+    .codecs { configurer -> configurer.defaultCodecs().maxInMemorySize(250 * 1024 * 1024) }
     .authorisedWebClient(authorizedClientManager, registrationId = "sar-client", url = documentStorageApiBaseUri, longTimeout)
 
   @Bean
