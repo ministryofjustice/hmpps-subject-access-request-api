@@ -28,7 +28,9 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfig
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
+import java.io.IOException
 import java.time.Instant
+import java.util.UUID
 
 class SlackNotificationServiceTest {
 
@@ -137,6 +139,32 @@ class SlackNotificationServiceTest {
     rendererServiceCallFailedAlertLimiter = rendererServiceCallFailedAlertLimiter,
     slackApiClient = slackClient,
   )
+
+  @Test
+  fun `should send Document API failure alerts only to the dev help channel`() {
+    val documentId = UUID.randomUUID()
+    val operation = "GET /documents/{id}/file"
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>())).thenReturn(chatPostMessageResponse)
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendDocumentApiCallFailedAlert(operation, documentId)
+
+    verify(slackClient).chatPostMessage(messageCaptor.capture())
+    val message = messageCaptor.firstValue
+    assertThat(message.channel).isEqualTo("666")
+    assertThat((message.blocks[1] as SectionBlock).text.text)
+      .isEqualTo("Operation: $operation\nDocument ID: $documentId")
+  }
+
+  @Test
+  fun `should not propagate a Slack transport failure when alerting about Document API failures`() {
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>())).thenThrow(IOException("Slack unavailable"))
+
+    slackNotificationService.sendDocumentApiCallFailedAlert("DELETE /documents/{id}", UUID.randomUUID())
+
+    verify(slackClient).chatPostMessage(any<ChatPostMessageRequest>())
+  }
 
   @Test
   fun `should send expected Slack message`() {
