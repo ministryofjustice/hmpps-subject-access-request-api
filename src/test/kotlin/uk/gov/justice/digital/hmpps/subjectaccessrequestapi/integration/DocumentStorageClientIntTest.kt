@@ -1,12 +1,18 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration
 
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.serverError
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration
 import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
@@ -19,10 +25,13 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.DocumentStorageClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.WebClientConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.DocumentServiceApiMockServer
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.integration.wiremock.HmppsAuthMockServer
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SlackNotificationService
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.io.File
 import java.util.UUID
@@ -39,10 +48,11 @@ import java.util.UUID
   ],
 )
 @WithMockAuthUser
-class DocumentStorageClientIntTest {
-
-  @Autowired
-  private lateinit var documentStorageClient: DocumentStorageClient
+@MockitoBean(types = [SlackNotificationService::class])
+class DocumentStorageClientIntTest(
+  @Autowired private val documentStorageClient: DocumentStorageClient,
+  @Autowired private val alerts: SlackNotificationService,
+) {
 
   @Nested
   inner class GetDocument {
@@ -60,6 +70,7 @@ class DocumentStorageClientIntTest {
       val byteArray = response.body?.blockFirst()?.inputStream?.readAllBytes()
       val pdfBytes: ByteArray = File("dummy.pdf").inputStream().readAllBytes()
       assertThat(byteArray).isEqualTo(pdfBytes)
+      verifyNoInteractions(alerts)
     }
 
     @Test
@@ -68,14 +79,18 @@ class DocumentStorageClientIntTest {
 
       val response = documentStorageClient.retrieveDocument(uuid)
       assertThat(response).isNull()
+      verifyNoInteractions(alerts)
     }
 
     @Test
-    fun `should return null if 500 returned from document storage api`() {
+    fun `should send slack alert and propagate a 500 from the document storage api`() {
       val uuid = UUID.fromString("11111111-1111-1111-1111-111111111113")
+      documentServiceApiMockServer.stubFor(get(urlEqualTo("/documents/$uuid/file")).willReturn(serverError()))
 
-      val response = documentStorageClient.retrieveDocument(uuid)
-      assertThat(response).isNull()
+      assertThrows<WebClientResponseException.InternalServerError> {
+        documentStorageClient.retrieveDocument(uuid)
+      }
+      verify(alerts).sendDocumentApiCallFailedAlert("GET /documents/{id}/file", uuid)
     }
   }
 
@@ -91,6 +106,11 @@ class DocumentStorageClientIntTest {
       val response = documentStorageClient.deleteDocument(documentId)
       assertThat(response).isNotNull
       assertThat(response).isEqualTo(HttpStatus.valueOf(status))
+      if (status == 204 || status == 404) {
+        verifyNoInteractions(alerts)
+      } else {
+        verify(alerts).sendDocumentApiCallFailedAlert("DELETE /documents/{id}", documentId)
+      }
     }
   }
 
