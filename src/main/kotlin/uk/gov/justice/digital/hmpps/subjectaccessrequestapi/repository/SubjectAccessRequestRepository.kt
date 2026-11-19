@@ -145,12 +145,12 @@ interface SubjectAccessRequestRepository : JpaRepository<SubjectAccessRequest, U
   @Query(
     "SELECT s FROM SubjectAccessRequest s " +
       "WHERE s.status = 'Pending' " +
-      "AND s.requestDateTime < :oneHourThreshold " +
+      "AND s.requestDateTime < :firstAlertThreshold " +
       "AND s.requestDateTime >= :twelveHourThreshold " +
       "ORDER BY s.requestDateTime ASC",
   )
   fun findPendingSubjectAccessRequestsBetweenOverdueThresholds(
-    @Param("oneHourThreshold") oneHourThreshold: LocalDateTime,
+    @Param("firstAlertThreshold") firstAlertThreshold: LocalDateTime,
     @Param("twelveHourThreshold") twelveHourThreshold: LocalDateTime,
   ): List<SubjectAccessRequest>
 

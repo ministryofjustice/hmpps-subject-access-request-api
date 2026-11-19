@@ -303,7 +303,7 @@ class SlackNotificationServiceTest {
 
     val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
 
-    slackNotificationService.sendReportsOverdueAlert(listOf(timedOutSarWithCompletedService), "1 HOURS")
+    slackNotificationService.sendReportsOverdueAlert(listOf(timedOutSarWithCompletedService), "3 HOURS")
 
     verify(slackClient, times(2)).chatPostMessage(messageCaptor.capture())
     assertThat(messageCaptor.allValues.map { it.channel }).containsExactlyInAnyOrder(
@@ -313,7 +313,7 @@ class SlackNotificationServiceTest {
     assertThat(messageCaptor.allValues.map { it.channel }).doesNotContain("team-channel-02")
 
     val message = messageCaptor.firstValue
-    assertThat((message.blocks[1] as SectionBlock).text.text).contains("within 1 HOURS")
+    assertThat((message.blocks[1] as SectionBlock).text.text).contains("within 3 HOURS")
     assertThat((message.blocks[1] as SectionBlock).fields[2].text).isEqualTo("SAR456")
   }
 
@@ -333,7 +333,7 @@ class SlackNotificationServiceTest {
     )
     val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
 
-    slackNotificationService.sendReportsOverdueAlert(listOf(noServices, completed, timedOutSar), "1 HOURS")
+    slackNotificationService.sendReportsOverdueAlert(listOf(noServices, completed, timedOutSar), "3 HOURS")
 
     verify(slackClient, times(2)).chatPostMessage(messageCaptor.capture())
     assertThat(messageCaptor.allValues.map { it.channel }).containsExactlyInAnyOrder("test-channel-01", "team-channel-01")
@@ -393,7 +393,7 @@ class SlackNotificationServiceTest {
     }
     val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
 
-    slackNotificationService.sendReportsOverdueAlert(requests, "1 HOURS")
+    slackNotificationService.sendReportsOverdueAlert(requests, "3 HOURS")
 
     verify(slackClient, times(expectedBatches.size * expectedChannels.size)).chatPostMessage(messageCaptor.capture())
     assertThat(messageCaptor.allValues.map { it.channel }.distinct()).containsExactlyElementsOf(expectedChannels)
@@ -402,7 +402,7 @@ class SlackNotificationServiceTest {
       assertThat(messages).hasSize(expectedBatches.size)
       messages.zip(expectedBatches).forEach { (message, batch) ->
         val section = message.blocks[1] as SectionBlock
-        assertThat(section.text.text).contains("within 1 HOURS")
+        assertThat(section.text.text).contains("within 3 HOURS")
         assertThat(section.fields).hasSize(2 + 2 * batch.size)
         assertThat(section.fields.size).isLessThanOrEqualTo(10)
         assertThat(section.fields.map { it.text }).containsExactlyElementsOf(

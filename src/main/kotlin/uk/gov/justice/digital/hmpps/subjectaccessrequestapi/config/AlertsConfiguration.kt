@@ -14,7 +14,7 @@ class AlertsConfiguration(
 
 @Configuration
 class OverdueAlertConfiguration(
-  @param:Value("\${application.alerts.reports-overdue.first-alert-threshold:1}") val firstAlertThreshold: Long,
+  @param:Value("\${application.alerts.reports-overdue.first-alert-threshold:3}") val firstAlertThreshold: Long,
   @param:Value("\${application.alerts.reports-overdue.threshold:12}") val threshold: Long,
   @param:Value("\${application.alerts.reports-overdue.first-alert-threshold-unit:HOURS}") val firstAlertThresholdChronoUnit: ChronoUnit,
   @param:Value("\${application.alerts.reports-overdue.threshold-unit:HOURS}") val thresholdChronoUnit: ChronoUnit,

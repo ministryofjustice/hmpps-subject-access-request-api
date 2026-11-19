@@ -860,20 +860,23 @@ class SubjectAccessRequestRepositoryTest {
   @Nested
   inner class PendingRequestsAwaitingOverdueAlerts {
     @Test
-    fun `should separate requests between one and twelve hour alerts from requests older than twelve hours`() {
-      val betweenThresholds = insertSarSubmittedAtWithStatus(dateTimeNow.minusHours(2), Status.Pending)
+    fun `should alert only after three hours and separate requests older than twelve hours`() {
+      val firstAlertThreshold = dateTimeNow.minusHours(3)
+      val betweenThresholds = insertSarSubmittedAtWithStatus(firstAlertThreshold.minusSeconds(1), Status.Pending)
       val olderThanTwelveHours = insertSarSubmittedAtWithStatus(dateTimeNow.minusHours(13), Status.Pending)
-      insertSarSubmittedAtWithStatus(dateTimeNow.minusHours(2), Status.Completed)
+      insertSarSubmittedAtWithStatus(firstAlertThreshold, Status.Pending)
+      insertSarSubmittedAtWithStatus(dateTimeNow.minusHours(2), Status.Pending)
+      insertSarSubmittedAtWithStatus(dateTimeNow.minusHours(4), Status.Completed)
 
-      val oneHourAlertRequests = subjectAccessRequestRepository.findPendingSubjectAccessRequestsBetweenOverdueThresholds(
-        dateTimeNow.minusHours(1),
+      val firstAlertRequests = subjectAccessRequestRepository.findPendingSubjectAccessRequestsBetweenOverdueThresholds(
+        firstAlertThreshold,
         dateTimeNow.minusHours(12),
       )
       val twelveHourAlertRequests = subjectAccessRequestRepository.findAllPendingSubjectAccessRequestsSubmittedBefore(
         dateTimeNow.minusHours(12),
       )
 
-      assertThat(oneHourAlertRequests).extracting<UUID> { it.id }.containsExactly(betweenThresholds.id)
+      assertThat(firstAlertRequests).extracting<UUID> { it.id }.containsExactly(betweenThresholds.id)
       assertThat(twelveHourAlertRequests).extracting<UUID> { it?.id }.containsExactly(olderThanTwelveHours.id)
     }
   }
