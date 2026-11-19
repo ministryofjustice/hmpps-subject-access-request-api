@@ -31,7 +31,7 @@ class ReportsOverdueAlert(
   fun execute() {
     try {
       sendOverdueAlert(
-        requests = subjectAccessRequestService.getRequestsAwaitingOneHourOverdueAlert(),
+        requests = subjectAccessRequestService.getRequestsAwaitingFirstOverdueAlert(),
         threshold = alertsConfiguration.overdueAlertConfig.firstAlertThresholdAsString(),
       )
     } catch (ex: Exception) {

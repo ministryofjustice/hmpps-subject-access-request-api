@@ -31,7 +31,7 @@ class ReportsOverdueAlertTest {
   private val overdueAlertConfig: OverdueAlertConfiguration = mock()
   private val alertsService: AlertsService = mock()
   private val slackNotificationService: SlackNotificationService = mock()
-  private val oneHourRequest: SubjectAccessRequest = mock()
+  private val firstAlertRequest: SubjectAccessRequest = mock()
   private val twelveHourRequest: SubjectAccessRequest = mock()
 
   @Captor
@@ -71,44 +71,44 @@ class ReportsOverdueAlertTest {
 
   @Test
   fun `should not raise alerts when no requests are awaiting notifications`() {
-    whenever(subjectAccessRequestService.getRequestsAwaitingOneHourOverdueAlert()).thenReturn(emptyList())
+    whenever(subjectAccessRequestService.getRequestsAwaitingFirstOverdueAlert()).thenReturn(emptyList())
     whenever(subjectAccessRequestService.getRequestsAwaitingTwelveHourOverdueAlert()).thenReturn(emptyList())
     whenever(alertConfiguration.overdueAlertConfig).thenReturn(overdueAlertConfig)
-    whenever(overdueAlertConfig.firstAlertThresholdAsString()).thenReturn("1 HOURS")
+    whenever(overdueAlertConfig.firstAlertThresholdAsString()).thenReturn("3 HOURS")
     whenever(overdueAlertConfig.thresholdAsString()).thenReturn("12 HOURS")
 
     reportsOverdueAlert.execute()
     reportsOverdueAlert.executeTwelveHourAlert()
 
-    verify(subjectAccessRequestService).getRequestsAwaitingOneHourOverdueAlert()
+    verify(subjectAccessRequestService).getRequestsAwaitingFirstOverdueAlert()
     verify(subjectAccessRequestService).getRequestsAwaitingTwelveHourOverdueAlert()
     verify(slackNotificationService, never()).sendReportsOverdueAlert(any(), any())
     verify(alertsService, never()).raiseUnexpectedExceptionAlert(any(), any())
   }
 
   @Test
-  fun `should send direct Slack alerts for requests at one and twelve hour thresholds`() {
-    whenever(subjectAccessRequestService.getRequestsAwaitingOneHourOverdueAlert()).thenReturn(listOf(oneHourRequest))
+  fun `should send direct Slack alerts for requests at three and twelve hour thresholds`() {
+    whenever(subjectAccessRequestService.getRequestsAwaitingFirstOverdueAlert()).thenReturn(listOf(firstAlertRequest))
     whenever(subjectAccessRequestService.getRequestsAwaitingTwelveHourOverdueAlert()).thenReturn(listOf(twelveHourRequest))
     whenever(alertConfiguration.overdueAlertConfig).thenReturn(overdueAlertConfig)
-    whenever(overdueAlertConfig.firstAlertThresholdAsString()).thenReturn("1 HOURS")
+    whenever(overdueAlertConfig.firstAlertThresholdAsString()).thenReturn("3 HOURS")
     whenever(overdueAlertConfig.thresholdAsString()).thenReturn("12 HOURS")
     reportsOverdueAlert.execute()
     reportsOverdueAlert.executeTwelveHourAlert()
 
-    verify(slackNotificationService).sendReportsOverdueAlert(listOf(oneHourRequest), "1 HOURS")
+    verify(slackNotificationService).sendReportsOverdueAlert(listOf(firstAlertRequest), "3 HOURS")
     verify(slackNotificationService).sendReportsOverdueAlert(listOf(twelveHourRequest), "12 HOURS")
   }
 
   @Test
-  fun `should check only the one hour threshold on the frequent schedule`() {
-    whenever(subjectAccessRequestService.getRequestsAwaitingOneHourOverdueAlert()).thenReturn(listOf(oneHourRequest))
+  fun `should check only the first threshold on the frequent schedule`() {
+    whenever(subjectAccessRequestService.getRequestsAwaitingFirstOverdueAlert()).thenReturn(listOf(firstAlertRequest))
     whenever(alertConfiguration.overdueAlertConfig).thenReturn(overdueAlertConfig)
-    whenever(overdueAlertConfig.firstAlertThresholdAsString()).thenReturn("1 HOURS")
+    whenever(overdueAlertConfig.firstAlertThresholdAsString()).thenReturn("3 HOURS")
 
     reportsOverdueAlert.execute()
 
-    verify(slackNotificationService).sendReportsOverdueAlert(listOf(oneHourRequest), "1 HOURS")
+    verify(slackNotificationService).sendReportsOverdueAlert(listOf(firstAlertRequest), "3 HOURS")
     verify(subjectAccessRequestService, never()).getRequestsAwaitingTwelveHourOverdueAlert()
   }
 
@@ -121,7 +121,7 @@ class ReportsOverdueAlertTest {
     reportsOverdueAlert.executeTwelveHourAlert()
 
     verify(slackNotificationService).sendReportsOverdueAlert(listOf(twelveHourRequest), "12 HOURS")
-    verify(subjectAccessRequestService, never()).getRequestsAwaitingOneHourOverdueAlert()
+    verify(subjectAccessRequestService, never()).getRequestsAwaitingFirstOverdueAlert()
   }
 
   @Test
@@ -139,7 +139,7 @@ class ReportsOverdueAlertTest {
   @Test
   fun `should raise unexpected alert when subject access request service throws exception`() {
     val expectedCause = RuntimeException("some error")
-    whenever(subjectAccessRequestService.getRequestsAwaitingOneHourOverdueAlert())
+    whenever(subjectAccessRequestService.getRequestsAwaitingFirstOverdueAlert())
       .thenThrow(expectedCause)
 
     reportsOverdueAlert.execute()
