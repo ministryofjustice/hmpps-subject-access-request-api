@@ -45,15 +45,15 @@ class ReportsOverdueAlertTest {
   )
 
   @Test
-  fun `should schedule overdue checks every fifteen minutes by default`() {
+  fun `should schedule the first overdue check hourly by default`() {
     val method = ReportsOverdueAlert::class.java.getDeclaredMethod("execute")
     val schedule = method.getAnnotation(Scheduled::class.java)
     val lock = method.getAnnotation(SchedulerLock::class.java)
 
-    assertThat(schedule.fixedDelayString).isEqualTo("\${application.alerts.reports-overdue.alert-interval-minutes:15}")
+    assertThat(schedule.fixedDelayString).isEqualTo("\${application.alerts.reports-overdue.alert-interval-minutes:60}")
     assertThat(schedule.timeUnit).isEqualTo(TimeUnit.MINUTES)
     assertThat(lock.name).isEqualTo("reportsOverdueAlert")
-    assertThat(lock.lockAtLeastFor).isEqualTo("\${application.alerts.reports-overdue.alert-interval-minutes:15}m")
+    assertThat(lock.lockAtLeastFor).isEqualTo("\${application.alerts.reports-overdue.alert-interval-minutes:60}m")
     assertThat(lock.lockAtMostFor).isEqualTo("PT2H5M")
   }
 
