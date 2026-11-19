@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services
 
+import com.slack.api.methods.SlackApiException
 import com.slack.api.methods.request.chat.ChatPostMessageRequest
 import com.slack.api.model.block.Blocks.asBlocks
 import com.slack.api.model.block.Blocks.context
@@ -21,10 +22,12 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.ServiceConfig
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersion
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
+import java.io.IOException
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 @Service
 class SlackNotificationService(
@@ -47,6 +50,25 @@ class SlackNotificationService(
     private const val SLACK_CONTEXT_TEXT_MAX_LENGTH = 3000
     private const val MAX_REPORTS_PER_OVERDUE_MESSAGE = 4
     private const val TRUNCATED_TEXT_SUFFIX = "..."
+  }
+
+  fun sendDocumentApiCallFailedAlert(operation: String, documentId: UUID) {
+    val errorMessage = "error sending Document API failure Slack alert"
+    try {
+      sendMessage(
+        recipients = devHelpChannelId.split(",").map { it.trim() }.filter { it.isNotEmpty() }.distinct(),
+        blocks = asBlocks(
+          header { it.text(plainText("Subject Access Request: Document API Call Failed :warning:")) },
+          section { it.text(plainText("Operation: $operation\nDocument ID: $documentId")) },
+          context { it.elements(listOf(environmentContextText())) },
+        ),
+        errorMessage = errorMessage,
+      )
+    } catch (ex: IOException) {
+      LOG.warn(errorMessage, ex)
+    } catch (ex: SlackApiException) {
+      LOG.warn(errorMessage, ex)
+    }
   }
 
   fun sendReportsOverdueAlert(overdueRequests: List<SubjectAccessRequest>, threshold: String) {
