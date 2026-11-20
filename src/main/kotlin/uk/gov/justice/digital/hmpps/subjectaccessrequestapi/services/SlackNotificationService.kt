@@ -56,7 +56,7 @@ class SlackNotificationService(
     val errorMessage = "error sending Document API failure Slack alert"
     try {
       sendMessage(
-        recipients = devHelpChannelId.split(",").map { it.trim() }.filter { it.isNotEmpty() }.distinct(),
+        recipients = devHelpRecipients(),
         blocks = asBlocks(
           header { it.text(plainText("Subject Access Request: Document API Call Failed :warning:")) },
           section { it.text(plainText("Operation: $operation\nDocument ID: $documentId")) },
@@ -69,6 +69,18 @@ class SlackNotificationService(
     } catch (ex: SlackApiException) {
       LOG.warn(errorMessage, ex)
     }
+  }
+
+  fun sendBacklogThresholdAlert(backlogSize: Int, threshold: Int) {
+    sendMessage(
+      recipients = devHelpRecipients(),
+      blocks = asBlocks(
+        header { it.text(plainText("Subject Access Request: Backlog Too Large :warning:")) },
+        section { it.text(plainText("Pending requests: $backlogSize\nAlert threshold: $threshold")) },
+        context { it.elements(listOf(environmentContextText())) },
+      ),
+      errorMessage = "error sending backlog threshold Slack alert",
+    )
   }
 
   fun sendReportsOverdueAlert(overdueRequests: List<SubjectAccessRequest>, threshold: String) {
@@ -382,6 +394,8 @@ class SlackNotificationService(
     .map { it.trim() }
 
   private fun ServiceConfiguration.alertDisplayName(): String = "$label ($serviceName)"
+
+  private fun devHelpRecipients() = devHelpChannelId.split(",").map { it.trim() }.filter { it.isNotEmpty() }.distinct()
 
   private fun environmentContextText() = markdownText("Environment: *$environmentName*")
 

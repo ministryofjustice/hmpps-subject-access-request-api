@@ -16,6 +16,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.BacklogAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.AlertsService
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SlackNotificationService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 
 @ExtendWith(MockitoExtension::class)
@@ -23,6 +24,7 @@ class BacklogThresholdAlertTest {
 
   private val subjectAccessRequestService: SubjectAccessRequestService = mock()
   private val alertsService: AlertsService = mock()
+  private val slackNotificationService: SlackNotificationService = mock()
   private val alertsConfiguration: AlertsConfiguration = mock()
   private val backlogAlertConfig: BacklogAlertConfiguration = mock()
 
@@ -31,9 +33,6 @@ class BacklogThresholdAlertTest {
 
   @Captor
   private lateinit var propertiesCaptor: ArgumentCaptor<Map<String, String>>
-
-  @Captor
-  private lateinit var backlogSizeCaptor: ArgumentCaptor<Int>
 
   private lateinit var backlogThresholdAlert: BacklogThresholdAlert
 
@@ -46,6 +45,7 @@ class BacklogThresholdAlertTest {
       subjectAccessRequestService,
       alertsService,
       alertsConfiguration,
+      slackNotificationService,
     )
   }
 
@@ -53,7 +53,7 @@ class BacklogThresholdAlertTest {
   fun `should not trigger alert when pending alerts count is 0`() {
     backlogThresholdAlert.execute()
 
-    verifyNoInteractions(alertsService)
+    verifyNoInteractions(alertsService, slackNotificationService)
   }
 
   @Test
@@ -74,6 +74,7 @@ class BacklogThresholdAlertTest {
     assertThat(exceptionCaptor.allValues[0].message).isEqualTo("ReportBacklogThresholdAlert threw unexpected exception")
     assertThat(exceptionCaptor.allValues[0].cause).isEqualTo(thrownException)
     assertThat(propertiesCaptor.allValues[0]).isNull()
+    verifyNoInteractions(slackNotificationService)
   }
 
   @Test
@@ -83,22 +84,18 @@ class BacklogThresholdAlertTest {
 
     backlogThresholdAlert.execute()
 
-    verifyNoInteractions(alertsService)
+    verifyNoInteractions(alertsService, slackNotificationService)
   }
 
   @Test
-  fun `should trigger alert when backlog size is greater than threshold`() {
+  fun `should only send a Slack alert when backlog size is greater than threshold`() {
     whenever(subjectAccessRequestService.countPendingSubjectAccessRequests())
       .thenReturn(101)
 
     backlogThresholdAlert.execute()
 
-    verify(alertsService, times(1)).raiseReportBacklogThresholdAlert(
-      capture(backlogSizeCaptor),
-    )
-
-    assertThat(backlogSizeCaptor.allValues).hasSize(1)
-    assertThat(backlogSizeCaptor.allValues[0]).isEqualTo(101)
+    verify(slackNotificationService).sendBacklogThresholdAlert(101, 100)
+    verifyNoInteractions(alertsService)
   }
 
   @Test
@@ -108,6 +105,6 @@ class BacklogThresholdAlertTest {
 
     backlogThresholdAlert.execute()
 
-    verifyNoInteractions(alertsService)
+    verifyNoInteractions(alertsService, slackNotificationService)
   }
 }

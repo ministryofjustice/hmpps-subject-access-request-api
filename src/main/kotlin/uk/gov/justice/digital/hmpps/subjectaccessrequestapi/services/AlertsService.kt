@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.trackEvent
-import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestBacklogThresholdException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.exceptions.SubjectAccessRequestTimeoutException
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.SubjectAccessRequest
 import java.time.LocalDateTime
@@ -22,9 +21,6 @@ class AlertsService(
     private val log = LoggerFactory.getLogger(this::class.java)
     private val dataTimeFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
-    private const val BACKLOG_THRESHOLD_EXCEEDED_MESSAGE =
-      "Warning: Pending reports backlog threshold exceeded - timestamp: %s, threshold: %d, backlog: %d "
-
     private const val REQUESTS_TIMED_OUT_MESSAGE =
       "Warning: %d requests updated to status 'Errored' after not completing within the processing threshold: '%s'"
   }
@@ -39,26 +35,6 @@ class AlertsService(
     )
 
     Sentry.captureException(exception)
-  }
-
-  fun raiseReportBacklogThresholdAlert(backlogSize: Int) {
-    val msg = BACKLOG_THRESHOLD_EXCEEDED_MESSAGE.format(
-      dataTimeFmt.format(LocalDateTime.now()),
-      alertConfig.backlogAlertConfig.threshold,
-      backlogSize,
-    )
-
-    log.warn(msg)
-
-    telemetryClient.trackEvent(
-      "PendingRequestsBacklogThresholdAlert",
-      mapOf(
-        "backlog" to backlogSize.toString(),
-        "threshold" to alertConfig.backlogAlertConfig.threshold.toString(),
-        "timestamp" to LocalDateTime.now().format(dataTimeFmt),
-      ),
-    )
-    Sentry.captureException(SubjectAccessRequestBacklogThresholdException(msg))
   }
 
   fun raiseReportsTimedOutAlert(timedOutRequests: List<SubjectAccessRequest?>) {

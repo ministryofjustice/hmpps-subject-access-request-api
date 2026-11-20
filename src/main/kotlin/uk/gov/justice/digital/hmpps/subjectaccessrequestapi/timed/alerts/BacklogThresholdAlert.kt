@@ -5,6 +5,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.AlertsService
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SlackNotificationService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.util.concurrent.TimeUnit
 
@@ -13,6 +14,7 @@ class BacklogThresholdAlert(
   private val subjectAccessRequestService: SubjectAccessRequestService,
   private val alertsService: AlertsService,
   private val alertsConfiguration: AlertsConfiguration,
+  private val slackNotificationService: SlackNotificationService,
 ) {
 
   /**
@@ -27,8 +29,9 @@ class BacklogThresholdAlert(
   fun execute() {
     try {
       val backlogSize = subjectAccessRequestService.countPendingSubjectAccessRequests()
-      if (backlogSize > alertsConfiguration.backlogAlertConfig.threshold) {
-        alertsService.raiseReportBacklogThresholdAlert(backlogSize)
+      val threshold = alertsConfiguration.backlogAlertConfig.threshold
+      if (backlogSize > threshold) {
+        slackNotificationService.sendBacklogThresholdAlert(backlogSize, threshold)
       }
     } catch (ex: Exception) {
       alertsService.raiseUnexpectedExceptionAlert(
