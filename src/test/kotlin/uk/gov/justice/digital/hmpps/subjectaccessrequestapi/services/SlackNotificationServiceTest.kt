@@ -141,6 +141,24 @@ class SlackNotificationServiceTest {
   )
 
   @Test
+  fun `should send backlog threshold alerts only to the dev help channel`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>())).thenReturn(chatPostMessageResponse)
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendBacklogThresholdAlert(backlogSize = 101, threshold = 100)
+
+    verify(slackClient).chatPostMessage(messageCaptor.capture())
+    val message = messageCaptor.firstValue
+    assertThat(message.channel).isEqualTo("666")
+    assertThat((message.blocks[0] as HeaderBlock).text.text).contains("Backlog Too Large")
+    assertThat((message.blocks[1] as SectionBlock).text.text)
+      .isEqualTo("Pending requests: 101\nAlert threshold: 100")
+    assertThat(((message.blocks[2] as ContextBlock).elements.single() as MarkdownTextObject).text)
+      .isEqualTo("Environment: *test*")
+  }
+
+  @Test
   fun `should send Document API failure alerts only to the dev help channel`() {
     val documentId = UUID.randomUUID()
     val operation = "GET /documents/{id}/file"

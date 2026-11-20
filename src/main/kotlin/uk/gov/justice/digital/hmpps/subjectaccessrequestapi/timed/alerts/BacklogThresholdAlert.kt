@@ -5,30 +5,39 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.AlertsService
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SlackNotificationService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
 import java.util.concurrent.TimeUnit
+
+private const val BACKLOG_ALERT_INTERVAL_MINUTES = "\${application.alerts.backlog-threshold.alert-interval-minutes:120}"
 
 @Component
 class BacklogThresholdAlert(
   private val subjectAccessRequestService: SubjectAccessRequestService,
   private val alertsService: AlertsService,
   private val alertsConfiguration: AlertsConfiguration,
+  private val slackNotificationService: SlackNotificationService,
 ) {
 
   /**
    * Scheduled task to raise alert notifications if the backlog of Pending requests exceeds the configured threshold.
    */
   @Scheduled(
-    fixedDelayString = "\${application.alerts.backlog-threshold.alert-interval-minutes:120}",
+    fixedDelayString = BACKLOG_ALERT_INTERVAL_MINUTES,
     timeUnit = TimeUnit.MINUTES,
     initialDelay = 1,
   )
-  @SchedulerLock(name = "backlogThresholdAlert")
+  @SchedulerLock(
+    name = "backlogThresholdAlert",
+    lockAtLeastFor = "${BACKLOG_ALERT_INTERVAL_MINUTES}m",
+    lockAtMostFor = "#{$BACKLOG_ALERT_INTERVAL_MINUTES + 5L}m",
+  )
   fun execute() {
     try {
       val backlogSize = subjectAccessRequestService.countPendingSubjectAccessRequests()
-      if (backlogSize > alertsConfiguration.backlogAlertConfig.threshold) {
-        alertsService.raiseReportBacklogThresholdAlert(backlogSize)
+      val threshold = alertsConfiguration.backlogAlertConfig.threshold
+      if (backlogSize > threshold) {
+        slackNotificationService.sendBacklogThresholdAlert(backlogSize, threshold)
       }
     } catch (ex: Exception) {
       alertsService.raiseUnexpectedExceptionAlert(

@@ -30,7 +30,7 @@ class OverdueAlertConfiguration(
 @Configuration
 class BacklogAlertConfiguration(
   @param:Value("\${application.alerts.backlog-threshold.threshold:100}") val threshold: Int,
-  @param:Value("\${application.alerts.backlog-threshold.alert-interval-minutes:720}") val alertIntervalMinutes: Int,
+  @param:Value("\${application.alerts.backlog-threshold.alert-interval-minutes:120}") val alertIntervalMinutes: Int,
 ) {
   fun thresholdAlertFrequency() = "$alertIntervalMinutes ${ChronoUnit.MINUTES}"
 }
