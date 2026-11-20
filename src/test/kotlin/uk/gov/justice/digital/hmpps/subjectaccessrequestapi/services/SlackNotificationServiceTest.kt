@@ -19,6 +19,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.SlackApiClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.RequestTimeoutAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.RendererServiceFailureType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.HealthStatusType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RenderStatus
@@ -30,6 +31,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersi
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.TemplateVersionHealthStatus
 import java.io.IOException
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class SlackNotificationServiceTest {
@@ -137,6 +139,7 @@ class SlackNotificationServiceTest {
     reportsTimedOutTeamNotificationsEnabled = reportsTimedOutTeamNotificationsEnabled,
     serviceCallFailedTeamNotificationsEnabled = serviceCallFailedTeamNotificationsEnabled,
     rendererServiceCallFailedAlertLimiter = rendererServiceCallFailedAlertLimiter,
+    requestTimeoutAlertConfiguration = RequestTimeoutAlertConfiguration(3, ChronoUnit.MINUTES, 30),
     slackApiClient = slackClient,
   )
 
@@ -311,6 +314,25 @@ class SlackNotificationServiceTest {
       "test-channel-01",
       "team-channel-01",
     )
+    messageCaptor.allValues.forEach { message ->
+      assertThat((message.blocks[1] as SectionBlock).text.text)
+        .isEqualTo("Warning: 1 requests updated to status 'Errored' after not completing within the processing threshold: '3 Minutes'")
+    }
+  }
+
+  @Test
+  fun `should include the number of timed out requests and configured threshold in the alert`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>())).thenReturn(chatPostMessageResponse)
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendReportsTimedOutAlert(listOf(timedOutSar, timedOutSarWithCompletedService))
+
+    verify(slackClient, times(2)).chatPostMessage(messageCaptor.capture())
+    messageCaptor.allValues.forEach { message ->
+      assertThat((message.blocks[1] as SectionBlock).text.text)
+        .isEqualTo("Warning: 2 requests updated to status 'Errored' after not completing within the processing threshold: '3 Minutes'")
+    }
   }
 
   @Test
@@ -433,6 +455,54 @@ class SlackNotificationServiceTest {
         )
       }
     }
+  }
+
+  @Test
+  fun `should batch timed out reports within Slack field limits for every recipient`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>())).thenReturn(chatPostMessageResponse)
+
+    val lastRequest = SubjectAccessRequest(sarCaseReferenceNumber = "SAR5")
+    lastRequest.addServices(
+      RequestServiceDetail(
+        subjectAccessRequest = lastRequest,
+        serviceConfiguration = serviceConfigComplete,
+        renderStatus = RenderStatus.PENDING,
+      ),
+    )
+    val requests = listOf(
+      timedOutSar,
+      SubjectAccessRequest(sarCaseReferenceNumber = "SAR2"),
+      SubjectAccessRequest(sarCaseReferenceNumber = "SAR3"),
+      SubjectAccessRequest(sarCaseReferenceNumber = "SAR4"),
+      lastRequest,
+    )
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    slackNotificationService.sendReportsTimedOutAlert(requests)
+
+    verify(slackClient, times(6)).chatPostMessage(messageCaptor.capture())
+    listOf("test-channel-01", "team-channel-01", "team-channel-02").forEach { channel ->
+      val sections = messageCaptor.allValues.filter { it.channel == channel }.map { it.blocks[1] as SectionBlock }
+      assertThat(sections).hasSize(2)
+      assertThat(sections.map { it.fields.size }).containsExactly(10, 4)
+      assertThat(sections.flatMap { section -> section.fields.map { it.text } })
+        .contains("SAR123", "SAR2", "SAR3", "SAR4", "SAR5")
+    }
+  }
+
+  @Test
+  fun `should send every timed out batch only to global recipients when team alerts are disabled`() {
+    whenever(chatPostMessageResponse.isOk).thenReturn(true)
+    whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>())).thenReturn(chatPostMessageResponse)
+    val service = createSlackNotificationService(reportsTimedOutTeamNotificationsEnabled = false)
+    val messageCaptor = argumentCaptor<ChatPostMessageRequest>()
+
+    service.sendReportsTimedOutAlert(List(5) { timedOutSar })
+
+    verify(slackClient, times(2)).chatPostMessage(messageCaptor.capture())
+    assertThat(messageCaptor.allValues.map { it.channel }).containsExactly("test-channel-01", "test-channel-01")
+    assertThat(messageCaptor.allValues.map { (it.blocks[1] as SectionBlock).fields.size }).containsExactly(10, 4)
   }
 
   @Test

@@ -52,6 +52,7 @@ class ReportsTimedOutAlertTest {
       .expirePendingRequestsSubmittedBeforeThreshold()
 
     verifyNoInteractions(alertsService)
+    verifyNoInteractions(slackNotificationService)
   }
 
   @Test
@@ -65,9 +66,8 @@ class ReportsTimedOutAlertTest {
 
     verify(subjectAccessRequestService, times(1))
       .expirePendingRequestsSubmittedBeforeThreshold()
-
-    verify(alertsService, times(1)).raiseReportsTimedOutAlert(timedOutRequests)
     verify(slackNotificationService, times(1)).sendReportsTimedOutAlert(timedOutRequests)
+    verifyNoInteractions(alertsService)
   }
 
   @Test
@@ -88,22 +88,21 @@ class ReportsTimedOutAlertTest {
     assertThat(errorCaptor.allValues[0].cause).isEqualTo(thrownException)
     assertThat(errorCaptor.allValues[0].message).isEqualTo("ReportsTimedOutAlert threw unexpected exception")
     assertThat(propertiesCaptor.allValues[0]).isNull()
+    verifyNoInteractions(slackNotificationService)
   }
 
   @Test
-  fun `should raise unexpected error alert alertsService throws exception`() {
+  fun `should raise unexpected error alert when slack notification throws exception`() {
     whenever(subjectAccessRequestService.expirePendingRequestsSubmittedBeforeThreshold())
       .thenReturn(listOf(expiredSar1))
 
-    whenever(alertsService.raiseReportsTimedOutAlert(listOf(expiredSar1)))
+    whenever(slackNotificationService.sendReportsTimedOutAlert(listOf(expiredSar1)))
       .thenThrow(thrownException)
 
     timeoutAlert.execute()
 
     verify(subjectAccessRequestService, times(1)).expirePendingRequestsSubmittedBeforeThreshold()
-
-    verify(alertsService, times(1)).raiseReportsTimedOutAlert(listOf(expiredSar1))
-    verifyNoInteractions(slackNotificationService)
+    verify(slackNotificationService, times(1)).sendReportsTimedOutAlert(listOf(expiredSar1))
 
     verify(alertsService, times(1)).raiseUnexpectedExceptionAlert(
       capture(errorCaptor),
@@ -121,7 +120,7 @@ class ReportsTimedOutAlertTest {
     whenever(subjectAccessRequestService.expirePendingRequestsSubmittedBeforeThreshold())
       .thenReturn(listOf(expiredSar1))
 
-    whenever(alertsService.raiseReportsTimedOutAlert(listOf(expiredSar1)))
+    whenever(slackNotificationService.sendReportsTimedOutAlert(listOf(expiredSar1)))
       .thenThrow(thrownException)
 
     whenever(alertsService.raiseUnexpectedExceptionAlert(any(), isNull()))
@@ -132,9 +131,7 @@ class ReportsTimedOutAlertTest {
     assertThat(exception).isEqualTo(thrownException)
 
     verify(subjectAccessRequestService, times(1)).expirePendingRequestsSubmittedBeforeThreshold()
-
-    verify(alertsService, times(1)).raiseReportsTimedOutAlert(listOf(expiredSar1))
-    verifyNoInteractions(slackNotificationService)
+    verify(slackNotificationService, times(1)).sendReportsTimedOutAlert(listOf(expiredSar1))
 
     verify(alertsService, times(1)).raiseUnexpectedExceptionAlert(
       capture(errorCaptor),

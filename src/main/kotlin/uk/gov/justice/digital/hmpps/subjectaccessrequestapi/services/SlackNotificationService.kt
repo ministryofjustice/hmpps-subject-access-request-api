@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.client.SlackApiClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.RequestTimeoutAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.controllers.entity.RendererServiceFailureType
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RenderStatus
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.models.RequestServiceDetail
@@ -41,6 +42,7 @@ class SlackNotificationService(
   @param:Value("\${slack.bot.team-notifications-enabled.reports-timed-out:true}") private val reportsTimedOutTeamNotificationsEnabled: Boolean,
   @param:Value("\${slack.bot.team-notifications-enabled.service-call-failed:true}") private val serviceCallFailedTeamNotificationsEnabled: Boolean,
   private val rendererServiceCallFailedAlertLimiter: RendererServiceCallFailedAlertLimiter,
+  private val requestTimeoutAlertConfiguration: RequestTimeoutAlertConfiguration,
   val slackApiClient: SlackApiClient,
 ) {
 
@@ -48,7 +50,7 @@ class SlackNotificationService(
     private val LOG = LoggerFactory.getLogger(this::class.java)
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
     private const val SLACK_CONTEXT_TEXT_MAX_LENGTH = 3000
-    private const val MAX_REPORTS_PER_OVERDUE_MESSAGE = 4
+    private const val MAX_REPORTS_PER_MESSAGE = 4
     private const val TRUNCATED_TEXT_SUFFIX = "..."
   }
 
@@ -90,7 +92,7 @@ class SlackNotificationService(
       },
       true,
     )
-    overdueRequests.chunked(MAX_REPORTS_PER_OVERDUE_MESSAGE).ifEmpty { listOf(emptyList()) }.forEach { requests ->
+    overdueRequests.chunked(MAX_REPORTS_PER_MESSAGE).ifEmpty { listOf(emptyList()) }.forEach { requests ->
       sendMessage(
         recipients = recipients,
         blocks = buildReportsOverdueMessage(requests, threshold),
@@ -185,16 +187,19 @@ class SlackNotificationService(
   }
 
   fun sendReportsTimedOutAlert(timedOutRequests: List<SubjectAccessRequest>) {
-    sendMessage(
-      recipients = recipientsFor(
-        timedOutRequests.flatMap { request ->
-          timedOutServiceDetails(request).flatMap { it.serviceConfiguration.slackChannelIds() }
-        },
-        reportsTimedOutTeamNotificationsEnabled,
-      ),
-      blocks = buildReportsTimedOutMessage(timedOutRequests),
-      errorMessage = "error sending reports timed out slack alert",
+    val recipients = recipientsFor(
+      timedOutRequests.flatMap { request ->
+        timedOutServiceDetails(request).flatMap { it.serviceConfiguration.slackChannelIds() }
+      },
+      reportsTimedOutTeamNotificationsEnabled,
     )
+    timedOutRequests.chunked(MAX_REPORTS_PER_MESSAGE).ifEmpty { listOf(emptyList()) }.forEach { requests ->
+      sendMessage(
+        recipients = recipients,
+        blocks = buildReportsTimedOutMessage(requests, timedOutRequests.size),
+        errorMessage = "error sending reports timed out slack alert",
+      )
+    }
   }
 
   fun sendRendererServiceCallFailedAlert(
@@ -329,10 +334,11 @@ class SlackNotificationService(
     },
   )
 
-  private fun buildReportsTimedOutMessage(timedOutRequests: List<SubjectAccessRequest>): List<LayoutBlock> = buildReportsAlertMessage(
+  private fun buildReportsTimedOutMessage(timedOutRequests: List<SubjectAccessRequest>, totalCount: Int): List<LayoutBlock> = buildReportsAlertMessage(
     requests = timedOutRequests,
     title = "Reports Timed Out",
-    description = "One or more Subject Access Requests did not complete within 48 hours and were marked as errored.",
+    description = "Warning: $totalCount requests updated to status 'Errored' " +
+      "after not completing within the processing threshold: '${requestTimeoutAlertConfiguration.thresholdAsString()}'",
     followUp = "Please investigate the failed requests and retry if necessary.",
   )
 
