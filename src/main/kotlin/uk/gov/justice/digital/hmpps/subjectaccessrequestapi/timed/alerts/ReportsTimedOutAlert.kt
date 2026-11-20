@@ -30,7 +30,6 @@ class ReportsTimedOutAlert(
     try {
       val expiredReports = subjectAccessRequestService.expirePendingRequestsSubmittedBeforeThreshold()
       expiredReports.takeIf { it.isNotEmpty() }?.let {
-        alertsService.raiseReportsTimedOutAlert(it)
         slackNotificationService.sendReportsTimedOutAlert(it)
       }
     } catch (ex: Exception) {
