@@ -1,9 +1,14 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequestapi.timed.alerts
 
+import net.javacrumbs.shedlock.spring.ExtendedLockConfigurationExtractor
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.junit.jupiter.MockitoExtension
@@ -13,11 +18,17 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.AnnotationConfigApplicationContext
+import org.springframework.mock.env.MockEnvironment
+import org.springframework.scheduling.annotation.Scheduled
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.AlertsConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.config.BacklogAlertConfiguration
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.AlertsService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SlackNotificationService
 import uk.gov.justice.digital.hmpps.subjectaccessrequestapi.services.SubjectAccessRequestService
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 @ExtendWith(MockitoExtension::class)
 class BacklogThresholdAlertTest {
@@ -48,6 +59,36 @@ class BacklogThresholdAlertTest {
       slackNotificationService,
     )
   }
+
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(ints = [180])
+  fun `should resolve lock durations from the backlog schedule interval`(intervalOverride: Int?) {
+    val method = BacklogThresholdAlert::class.java.getDeclaredMethod("execute")
+    val schedule = method.getAnnotation(Scheduled::class.java)
+    val expectedInterval = (intervalOverride ?: 120).toLong()
+
+    AnnotationConfigApplicationContext().use { context ->
+      context.environment = MockEnvironment().apply {
+        intervalOverride?.let { setProperty("application.alerts.backlog-threshold.alert-interval-minutes", it.toString()) }
+      }
+      context.register(ShedLockTestConfiguration::class.java)
+      context.refresh()
+
+      val lock = context.getBean(ExtendedLockConfigurationExtractor::class.java)
+        .getLockConfiguration(backlogThresholdAlert, method, emptyArray())
+        .orElseThrow()
+
+      assertThat(schedule.timeUnit).isEqualTo(TimeUnit.MINUTES)
+      assertThat(context.environment.resolveRequiredPlaceholders(schedule.fixedDelayString)).isEqualTo(expectedInterval.toString())
+      assertThat(lock.lockAtLeastFor).isEqualTo(Duration.ofMinutes(expectedInterval))
+      assertThat(lock.lockAtMostFor).isEqualTo(Duration.ofMinutes(expectedInterval + 5))
+    }
+  }
+
+  @TestConfiguration(proxyBeanMethods = false)
+  @EnableSchedulerLock(defaultLockAtMostFor = "PT60S")
+  class ShedLockTestConfiguration
 
   @Test
   fun `should not trigger alert when pending alerts count is 0`() {
