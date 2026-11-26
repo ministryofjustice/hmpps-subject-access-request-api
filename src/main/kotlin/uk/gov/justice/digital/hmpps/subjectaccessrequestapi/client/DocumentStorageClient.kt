@@ -26,7 +26,7 @@ class DocumentStorageClient(
     private const val SERVICE_NAME_HEADER = "Service-Name"
     private const val SERVICE_NAME_HEADER_VALUE = "DPS-Subject-Access-Requests"
     private const val DOWNLOAD_PATH = "/documents/{id}/file"
-    private const val DELETE_PATH = "/documents/{id}"
+    private const val DELETE_PATH = "/documents/{id}/purge"
   }
 
   fun retrieveDocument(documentId: UUID): ResponseEntity<Flux<InputStreamResource>>? {

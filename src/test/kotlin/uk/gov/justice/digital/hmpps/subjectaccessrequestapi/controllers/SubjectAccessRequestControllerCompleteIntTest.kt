@@ -118,7 +118,7 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
         .jsonPath("moreInfo").isEqualTo("SubjectAccessRequestId: ${sar.id}")
 
       hmppsAuth.verify(1, postRequestedFor(urlPathEqualTo("/auth/oauth/token")))
-      documentServiceApi.verify(1, deleteRequestedFor(urlPathEqualTo("/documents/${sar.id}")))
+      documentServiceApi.verify(1, deleteRequestedFor(urlPathEqualTo("/documents/${sar.id}/purge")))
     }
 
     @Test
@@ -156,7 +156,7 @@ class SubjectAccessRequestControllerCompleteIntTest : IntegrationTestBase() {
         .jsonPath("moreInfo").isEqualTo("SubjectAccessRequestId: ${sar.id}")
 
       hmppsAuth.verify(1, postRequestedFor(urlPathEqualTo("/auth/oauth/token")))
-      documentServiceApi.verify(1, deleteRequestedFor(urlPathEqualTo("/documents/${sar.id}")))
+      documentServiceApi.verify(1, deleteRequestedFor(urlPathEqualTo("/documents/${sar.id}/purge")))
     }
   }
 
