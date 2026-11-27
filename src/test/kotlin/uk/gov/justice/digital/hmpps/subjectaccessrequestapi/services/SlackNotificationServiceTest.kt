@@ -179,7 +179,7 @@ class SlackNotificationServiceTest {
   fun `should not propagate a Slack transport failure when alerting about Document API failures`() {
     whenever(slackClient.chatPostMessage(any<ChatPostMessageRequest>())).thenThrow(IOException("Slack unavailable"))
 
-    slackNotificationService.sendDocumentApiCallFailedAlert("DELETE /documents/{id}", UUID.randomUUID())
+    slackNotificationService.sendDocumentApiCallFailedAlert("DELETE /documents/{id}/purge", UUID.randomUUID())
 
     verify(slackClient).chatPostMessage(any<ChatPostMessageRequest>())
   }

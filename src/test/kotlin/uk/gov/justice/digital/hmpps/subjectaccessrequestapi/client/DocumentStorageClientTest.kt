@@ -45,7 +45,7 @@ class DocumentStorageClientTest {
     }
 
     assertThat(thrown).isSameAs(failure)
-    verify(alerts).sendDocumentApiCallFailedAlert("DELETE /documents/{id}", documentId)
+    verify(alerts).sendDocumentApiCallFailedAlert("DELETE /documents/{id}/purge", documentId)
   }
 
   private fun client(response: Mono<ClientResponse>): DocumentStorageClient = DocumentStorageClient(

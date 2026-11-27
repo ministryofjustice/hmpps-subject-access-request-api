@@ -109,7 +109,7 @@ class DocumentStorageClientIntTest(
       if (status == 204 || status == 404) {
         verifyNoInteractions(alerts)
       } else {
-        verify(alerts).sendDocumentApiCallFailedAlert("DELETE /documents/{id}", documentId)
+        verify(alerts).sendDocumentApiCallFailedAlert("DELETE /documents/{id}/purge", documentId)
       }
     }
   }
